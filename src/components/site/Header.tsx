@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Locale } from "@/lib/types";
 import type { Dictionary } from "@/lib/i18n";
 import { TLink } from "./Transition";
+import { SoundToggle } from "./Sound";
 import { gsap, prefersReducedMotion, whenReady } from "./motion";
 
 interface Props {
@@ -148,13 +149,14 @@ export function Header({ locale, dict }: Props) {
                 aria-current={isActive(item.href) ? "page" : undefined}
               >
                 <sup>0{i + 1}</sup>
-                <span className="nav-link__text">
-                  <span>{item.label}</span>
+                <span className="nav-link__text" data-scramble>
+                  <span data-scramble-target>{item.label}</span>
                   <span aria-hidden="true">{item.label}</span>
                 </span>
               </TLink>
             ))}
           </nav>
+          <SoundToggle labels={dict.sound} />
           <LangSwitch />
         </div>
 
@@ -191,7 +193,7 @@ export function Header({ locale, dict }: Props) {
           ))}
         </ul>
         <div className="mobile-menu__foot">
-          <span className="meta muted">Hidalgo — {dict.role}</span>
+          <SoundToggle labels={dict.sound} />
           <LangSwitch />
         </div>
       </div>

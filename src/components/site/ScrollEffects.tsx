@@ -93,6 +93,30 @@ export function ScrollEffects() {
           );
         });
 
+        // Inclinación según la velocidad del scroll (las imágenes “se arrastran”).
+        const skewEls = q("[data-skew]");
+        if (skewEls.length) {
+          const setters = skewEls.map((el) => gsap.quickSetter(el, "skewY", "deg") as (v: number) => void);
+          const proxy = { skew: 0 };
+          const clamp = gsap.utils.clamp(-5, 5);
+          ScrollTrigger.create({
+            onUpdate(self) {
+              const skew = clamp(self.getVelocity() / -380);
+              if (Math.abs(skew) > Math.abs(proxy.skew)) {
+                proxy.skew = skew;
+                gsap.to(proxy, {
+                  skew: 0,
+                  duration: 0.9,
+                  ease: "power3",
+                  overwrite: true,
+                  onUpdate: () => setters.forEach((set) => set(proxy.skew)),
+                });
+              }
+            },
+          });
+          gsap.set(skewEls, { transformOrigin: "center center", force3D: true });
+        }
+
         q("[data-parallax]").forEach((el) => {
           const amount = parseFloat(el.dataset.parallax ?? "0.15");
           gsap.fromTo(

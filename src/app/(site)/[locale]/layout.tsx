@@ -13,6 +13,8 @@ import { Cursor } from "@/components/site/Cursor";
 import { ExampleBadge } from "@/components/site/ExampleBadge";
 import { Footer } from "@/components/site/Footer";
 import { Header } from "@/components/site/Header";
+import { Hud } from "@/components/site/Hud";
+import { SoundProvider } from "@/components/site/Sound";
 import { Preloader } from "@/components/site/Preloader";
 import { ScrollEffects } from "@/components/site/ScrollEffects";
 import { SmoothScroll } from "@/components/site/SmoothScroll";
@@ -82,18 +84,21 @@ export default async function SiteLayout({ children, params }: { children: React
           </filter>
         </svg>
 
+        <SoundProvider>
         <TransitionProvider>
-          <Preloader role={dict.role} />
+          <Preloader role={dict.role} lines={[...dict.boot]} />
           <Header locale={locale} dict={dict} />
           <main id="main" tabIndex={-1}>
             {children}
           </main>
           <Footer locale={locale} dict={dict} settings={site} />
         </TransitionProvider>
+        </SoundProvider>
 
         <SmoothScroll />
         <ScrollEffects />
         <Cursor />
+        <Hud labels={{ home: dict.nav.home.toUpperCase(), work: dict.nav.work.toUpperCase(), about: dict.nav.about.toUpperCase(), contact: dict.nav.contact.toUpperCase() }} />
         <div className="grain" aria-hidden="true" />
         {showExample && (
           <ExampleBadge

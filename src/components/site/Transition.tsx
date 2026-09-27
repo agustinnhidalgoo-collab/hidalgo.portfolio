@@ -14,6 +14,10 @@ import {
 } from "react";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "./motion";
 import { scrollToTop } from "./SmoothScroll";
+import { scramble } from "./scramble";
+
+const COLS = 12;
+const ROWS = 7;
 
 type Navigate = (href: string, label?: string) => void;
 const TransitionContext = createContext<Navigate | null>(null);
@@ -38,10 +42,17 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
     scrollToTop(true);
     requestAnimationFrame(() => {
       ScrollTrigger.refresh();
+      const cells = el.querySelectorAll(".curtain__cell");
       gsap
         .timeline({ onComplete: () => void (busy.current = false) })
-        .to(label.current, { yPercent: -110, duration: 0.5, ease: "power3.in" })
-        .to(el, { clipPath: "inset(0% 0% 100% 0%)", duration: 0.9, ease: "expo.inOut" }, "-=0.2")
+        .to(label.current, { opacity: 0, duration: 0.25 })
+        .to(cells, {
+          scaleY: 0,
+          transformOrigin: "50% 0%",
+          duration: 0.55,
+          ease: "power3.inOut",
+          stagger: { grid: [ROWS, COLS], from: "edges", amount: 0.45 },
+        }, "-=0.1")
         .set(el, { visibility: "hidden" });
     });
   }, []);
@@ -60,14 +71,28 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
       }
       busy.current = true;
       router.prefetch(href);
-      if (label.current) label.current.textContent = text;
+      if (label.current) {
+        label.current.textContent = text;
+        label.current.dataset.scrambleText = text;
+      }
       const el = curtain.current;
+      const cells = el.querySelectorAll(".curtain__cell");
       gsap
         .timeline()
-        .set(el, { visibility: "visible", clipPath: "inset(100% 0% 0% 0%)" })
-        .set(label.current, { yPercent: 110 })
-        .to(el, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.75, ease: "expo.inOut" })
-        .to(label.current, { yPercent: 0, duration: 0.6, ease: "expo.out" }, "-=0.3")
+        .set(el, { visibility: "visible" })
+        .set(cells, { scaleY: 0, transformOrigin: "50% 100%" })
+        .set(label.current, { opacity: 0 })
+        .to(cells, {
+          scaleY: 1,
+          duration: 0.5,
+          ease: "power3.inOut",
+          stagger: { grid: [ROWS, COLS], from: "center", amount: 0.4 },
+        })
+        .add(() => {
+          if (!label.current) return;
+          gsap.set(label.current, { opacity: 1 });
+          scramble(label.current, 450);
+        }, "-=0.25")
         .add(() => {
           pending.current = {
             from: window.location.pathname,
@@ -88,6 +113,11 @@ export function TransitionProvider({ children }: { children: ReactNode }) {
     <TransitionContext.Provider value={navigate}>
       {children}
       <div ref={curtain} className="curtain" data-theme="dark" aria-hidden="true">
+        <div className="curtain__grid">
+          {Array.from({ length: ROWS * COLS }, (_, i) => (
+            <span key={i} className="curtain__cell" />
+          ))}
+        </div>
         <div className="curtain__label display">
           <span ref={label} />
         </div>

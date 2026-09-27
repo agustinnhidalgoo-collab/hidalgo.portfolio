@@ -13,6 +13,7 @@ import { gsap, hasFinePointer, prefersReducedMotion } from "./motion";
 export function Cursor() {
   const ref = useRef<HTMLDivElement>(null);
   const labelRef = useRef<HTMLSpanElement>(null);
+  const ringRef = useRef<HTMLSpanElement>(null);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -21,8 +22,13 @@ export function Cursor() {
     const root = document.documentElement;
     root.classList.add("has-cursor");
 
-    const xTo = gsap.quickTo(el, "x", { duration: 0.22, ease: "power3.out" });
-    const yTo = gsap.quickTo(el, "y", { duration: 0.22, ease: "power3.out" });
+    const xTo = gsap.quickTo(el, "x", { duration: 0.08, ease: "power3.out" });
+    const yTo = gsap.quickTo(el, "y", { duration: 0.08, ease: "power3.out" });
+    const ring = ringRef.current!;
+    const rxTo = gsap.quickTo(ring, "x", { duration: 0.45, ease: "power3.out" });
+    const ryTo = gsap.quickTo(ring, "y", { duration: 0.45, ease: "power3.out" });
+    let lastX = 0;
+    let lastY = 0;
     let visible = false;
 
     const setTheme = (target: Element | null) => {
@@ -35,11 +41,23 @@ export function Cursor() {
       if (e.pointerType !== "mouse") return;
       if (!visible) {
         gsap.set(el, { x: e.clientX, y: e.clientY });
+        lastX = e.clientX;
+        lastY = e.clientY;
         gsap.to(el, { autoAlpha: 1, duration: 0.3 });
         visible = true;
       }
       xTo(e.clientX);
       yTo(e.clientY);
+      // El anillo va detrás: se desplaza en sentido contrario y vuelve al punto con inercia.
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      const rx = (gsap.getProperty(ring, "x") as number) - dx;
+      const ry = (gsap.getProperty(ring, "y") as number) - dy;
+      gsap.set(ring, { x: gsap.utils.clamp(-120, 120, rx), y: gsap.utils.clamp(-120, 120, ry) });
+      rxTo(0);
+      ryTo(0);
       setTheme(e.target as Element);
     };
 
@@ -89,6 +107,9 @@ export function Cursor() {
 
   return (
     <div ref={ref} className="cursor" aria-hidden="true" style={{ opacity: 0 }}>
+      <span ref={ringRef} className="cursor__ring">
+        <i />
+      </span>
       <span className="cursor__dot" />
       <span ref={labelRef} className="cursor__label" />
     </div>

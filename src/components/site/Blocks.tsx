@@ -16,7 +16,11 @@ function Caption({ text }: { text: string }) {
 }
 
 export function Blocks({ blocks, locale, dict }: Props) {
-  const visual = (media: Media, sizes: string) => <Picture media={media} locale={locale} sizes={sizes} reveal videoLabels={dict.video} />;
+  const visual = (media: Media, sizes: string) => (
+    <div data-skew>
+      <Picture media={media} locale={locale} sizes={sizes} reveal videoLabels={dict.video} />
+    </div>
+  );
 
   return (
     <div className="blocks">

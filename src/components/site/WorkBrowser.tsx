@@ -97,7 +97,7 @@ export function WorkBrowser({ items, categories, locale, labels }: Props) {
           {visible.map((item) => (
             <article key={item.id} className="card" data-flip-id={item.id}>
               <TLink href={item.href} transitionLabel={item.title} data-cursor="view" data-cursor-label={labels.view}>
-                <div className="card__media">
+                <div className="card__media" data-skew>
                   <DuoPicture
                     media={item.cover}
                     locale={locale}

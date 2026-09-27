@@ -2,14 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import { gsap, markReady, prefersReducedMotion } from "./motion";
+import { scramble } from "./scramble";
 
 const KEY = "hidalgo:loaded";
+const SEGMENTS = 32;
 
-/** Precarga breve, solo en la primera visita de la sesión. */
-export function Preloader({ role }: { role: string }) {
+/**
+ * Precarga tipo “arranque de sistema”, solo en la primera visita de la sesión:
+ * líneas de estado que se decodifican, contador y barra segmentada.
+ */
+export function Preloader({ role, lines }: { role: string; lines: string[] }) {
   const ref = useRef<HTMLDivElement>(null);
   const countRef = useRef<HTMLSpanElement>(null);
-  const barRef = useRef<HTMLSpanElement>(null);
+  const logRef = useRef<HTMLOListElement>(null);
+  const barRef = useRef<HTMLDivElement>(null);
   const [show, setShow] = useState(true);
 
   useEffect(() => {
@@ -26,19 +32,31 @@ export function Preloader({ role }: { role: string }) {
     }
 
     const counter = { v: 0 };
+    const segs = barRef.current ? Array.from(barRef.current.children) : [];
+    const items = logRef.current ? Array.from(logRef.current.children) as HTMLElement[] : [];
     const fontsReady = document.fonts?.ready ?? Promise.resolve();
+    const total = 2.2;
     const tl = gsap.timeline({ paused: true });
     tl.to(counter, {
       v: 100,
-      duration: 1.5,
+      duration: total,
       ease: "power2.inOut",
       onUpdate: () => {
-        if (countRef.current) countRef.current.textContent = String(Math.round(counter.v)).padStart(3, "0");
+        const v = Math.round(counter.v);
+        if (countRef.current) countRef.current.textContent = String(v).padStart(3, "0");
+        const on = Math.round((v / 100) * SEGMENTS);
+        segs.forEach((s, i) => s.classList.toggle("is-on", i < on));
       },
-    })
-      .to(barRef.current, { scaleX: 1, duration: 1.5, ease: "power2.inOut" }, 0)
-      .add(() => markReady(), "-=0.15")
-      .to(ref.current, { clipPath: "inset(0% 0% 100% 0%)", duration: 1, ease: "expo.inOut" }, "-=0.1")
+    });
+    items.forEach((li, i) => {
+      tl.add(() => {
+        li.style.opacity = "1";
+        const text = li.querySelector<HTMLElement>("[data-line]");
+        if (text) scramble(text, 260);
+      }, (i / items.length) * total * 0.75);
+    });
+    tl.add(() => markReady(), "-=0.1")
+      .to(ref.current, { clipPath: "inset(0% 0% 100% 0%)", duration: 1, ease: "expo.inOut" })
       .add(() => setShow(false));
 
     fontsReady.then(() => tl.play());
@@ -51,16 +69,27 @@ export function Preloader({ role }: { role: string }) {
   if (!show) return null;
   return (
     <div ref={ref} className="preloader" data-theme="dark" aria-hidden="true">
-      <div className="meta" style={{ display: "flex", justifyContent: "space-between" }}>
-        <span>Hidalgo</span>
+      <div className="preloader__top meta">
+        <span>HIDALGO / SYS</span>
         <span>{role}</span>
       </div>
+      <ol ref={logRef} className="preloader__log meta">
+        {lines.map((l, i) => (
+          <li key={i} style={{ opacity: 0 }}>
+            <span className="preloader__idx">{String(i + 1).padStart(2, "0")}</span>
+            <span data-line>{l}</span>
+            <span className="preloader__ok">OK</span>
+          </li>
+        ))}
+      </ol>
       <div>
-        <span ref={countRef} className="preloader__count" style={{ display: "block", textAlign: "right" }}>
+        <span ref={countRef} className="preloader__count">
           000
         </span>
-        <div className="preloader__bar" style={{ marginTop: 20 }}>
-          <span ref={barRef} />
+        <div ref={barRef} className="preloader__segments">
+          {Array.from({ length: SEGMENTS }, (_, i) => (
+            <i key={i} />
+          ))}
         </div>
       </div>
     </div>

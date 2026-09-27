@@ -34,6 +34,7 @@ export function HeroWorld({ world, roles, intro, role, location, timezone, local
   const hintRef = useRef<HTMLDivElement>(null);
   const rolesRef = useRef<HTMLDivElement>(null);
   const bandRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -43,9 +44,115 @@ export function HeroWorld({ world, roles, intro, role, location, timezone, local
     if (reduce) return;
 
     const ctx = gsap.context(() => {}, root);
-    let removeMove: (() => void) | null = null;
+    const cleanups: (() => void)[] = [];
+    let cancelled = false;
 
-    const stop = whenReady(() => {
+    // Escena 3D (vidrio líquido). Si no hay WebGL, queda la puerta SVG.
+    const loadGlass = async () => {
+      const canvas = canvasRef.current;
+      if (!canvas) return null;
+      try {
+        const mod = await import("./webgl/glass-scene");
+        if (cancelled || !mod.webglAvailable()) return null;
+        await document.fonts?.load('900 100px "Archivo Variable"');
+        const scene = new mod.GlassScene({
+          canvas,
+          word: "HIDALGO",
+          caption: role,
+          mobile: !hasFinePointer() || window.innerWidth < 760,
+        });
+        cleanups.push(() => scene.dispose());
+        return scene;
+      } catch (err) {
+        console.warn("WebGL no disponible", err);
+        return null;
+      }
+    };
+
+    const stop = whenReady(async () => {
+      const glass = await loadGlass();
+      if (cancelled) return;
+      if (glass) {
+        root.dataset.gl = "on";
+        glass.renderOnce();
+        gsap.fromTo(canvasRef.current, { opacity: 0 }, { opacity: 1, duration: 1.2, ease: "power2.out" });
+
+        // Cursor → vidrio. En táctiles, una deriva automática.
+        if (hasFinePointer()) {
+          const move = (e: PointerEvent) => glass.setPointer(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
+          window.addEventListener("pointermove", move, { passive: true });
+          cleanups.push(() => window.removeEventListener("pointermove", move));
+        } else {
+          const drift = () => {
+            const t = performance.now() / 1000;
+            glass.setPointer(0.5 + Math.sin(t * 0.5) * 0.3, 0.5 + Math.cos(t * 0.37) * 0.2);
+          };
+          gsap.ticker.add(drift);
+          cleanups.push(() => gsap.ticker.remove(drift));
+        }
+        const onResize = () => {
+          glass.resize();
+          glass.drawPlate();
+        };
+        window.addEventListener("resize", onResize);
+        cleanups.push(() => window.removeEventListener("resize", onResize));
+
+        // Renderizar solo mientras la portada está en pantalla y no se entró del todo.
+        let inView = true;
+        let entered = false;
+        const sync = () => (inView && !entered ? glass.start() : glass.stop());
+        const io = new IntersectionObserver(([e]) => {
+          inView = e.isIntersecting;
+          sync();
+        });
+        io.observe(stageRef.current!);
+        cleanups.push(() => io.disconnect());
+        sync();
+
+        ctx.add(() => {
+          const lines = rolesRef.current ? Array.from(rolesRef.current.children) : [];
+          gsap.set(lines, { yPercent: 110, y: 0, opacity: 0 });
+          gsap.set(bandRef.current, { yPercent: 100, y: 0 });
+          gsap.fromTo(hintRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 1, delay: 0.8 });
+          const prog = { p: 0 };
+          const tl = gsap.timeline({
+            defaults: { ease: "none" },
+            scrollTrigger: {
+              trigger: stageRef.current,
+              start: "top top",
+              end: "+=240%",
+              pin: true,
+              scrub: 1,
+              anticipatePin: 1,
+              invalidateOnRefresh: true,
+            },
+          });
+          tl.to(hintRef.current, { opacity: 0, duration: 0.08 }, 0)
+            .to(prog, {
+              p: 1,
+              duration: 0.56,
+              ease: "power1.in",
+              onUpdate: () => {
+                glass.setProgress(prog.p);
+                const nowEntered = prog.p > 0.985;
+                if (nowEntered !== entered) {
+                  entered = nowEntered;
+                  sync();
+                }
+                if (!glass || entered) return;
+                if (!inView) glass.renderOnce();
+              },
+            }, 0)
+            .to(canvasRef.current, { opacity: 0, duration: 0.07 }, 0.5)
+            .fromTo(sceneRef.current, { scale: 1.35 }, { scale: 1, ease: "power2.out", duration: 0.6 }, 0)
+            .to(lines, { yPercent: 0, opacity: 1, stagger: 0.06, duration: 0.2, ease: "power2.out" }, 0.52)
+            .to(bandRef.current, { yPercent: 0, duration: 0.3, ease: "power2.out" }, 0.72);
+          ScrollTrigger.refresh();
+        });
+        return;
+      }
+
+      // Respaldo sin WebGL: la puerta SVG con el nombre calado.
       ctx.add(() => {
         const gate = gateRef.current!;
         const text = textRef.current!;
@@ -68,8 +175,6 @@ export function HeroWorld({ world, roles, intro, role, location, timezone, local
         // y: 0 explícito: el estado inicial viene de CSS y no debe sumarse a la animación.
         gsap.set(lines, { yPercent: 110, y: 0, opacity: 0 });
         gsap.set(bandRef.current, { yPercent: 100, y: 0 });
-
-        // Entrada al cargar
         gsap.fromTo(gate, { scale: 1.15, opacity: 0 }, { scale: 1, opacity: 1, duration: 1.6, ease: "expo.out" });
         gsap.fromTo(hintRef.current, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 1, delay: 0.8 });
 
@@ -86,12 +191,7 @@ export function HeroWorld({ world, roles, intro, role, location, timezone, local
           },
         });
         tl.to(hintRef.current, { opacity: 0, duration: 0.08 }, 0)
-          .fromTo(
-            gate,
-            { scale: 1, transformOrigin: origin },
-            { scale: 70, ease: "power3.in", duration: 0.55, immediateRender: false },
-            0,
-          )
+          .fromTo(gate, { scale: 1, transformOrigin: origin }, { scale: 70, ease: "power3.in", duration: 0.55, immediateRender: false }, 0)
           .to(gate, { opacity: 0, duration: 0.05 }, 0.5)
           .fromTo(sceneRef.current, { scale: 1.35 }, { scale: 1, ease: "power2.out", duration: 0.6 }, 0)
           .to(lines, { yPercent: 0, opacity: 1, stagger: 0.06, duration: 0.2, ease: "power2.out" }, 0.5)
@@ -108,7 +208,7 @@ export function HeroWorld({ world, roles, intro, role, location, timezone, local
               yTo((e.clientY / window.innerHeight - 0.5) * -28);
             };
             window.addEventListener("pointermove", move, { passive: true });
-            removeMove = () => window.removeEventListener("pointermove", move);
+            cleanups.push(() => window.removeEventListener("pointermove", move));
           }
         }
         ScrollTrigger.refresh();
@@ -116,11 +216,12 @@ export function HeroWorld({ world, roles, intro, role, location, timezone, local
     });
 
     return () => {
+      cancelled = true;
       stop();
-      removeMove?.();
+      cleanups.forEach((c) => c());
       ctx.revert();
     };
-  }, []);
+  }, [role]);
 
   return (
     <section ref={rootRef} className="world" data-theme="dark" data-mode="static" aria-label="Hidalgo">
@@ -149,7 +250,10 @@ export function HeroWorld({ world, roles, intro, role, location, timezone, local
           </div>
         </div>
 
-        {/* La puerta: cacao con el nombre calado */}
+        {/* Escena 3D: vidrio líquido delante del nombre */}
+        <canvas ref={canvasRef} className="world__gl" aria-hidden="true" />
+
+        {/* La puerta: cacao con el nombre calado (respaldo sin WebGL) */}
         <svg ref={gateRef} className="world__gate" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
           <defs>
             <mask id="world-gate-mask" maskUnits="userSpaceOnUse" x="-20000" y="-20000" width="41000" height="40400">

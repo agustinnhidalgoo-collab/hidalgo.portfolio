@@ -31,6 +31,9 @@ interface Props {
  */
 export function ProjectIndex({ items, locale, viewLabel, exampleLabel }: Props) {
   const previewRef = useRef<HTMLDivElement>(null);
+  const glCanvas = useRef<HTMLCanvasElement>(null);
+  const glPreview = useRef<import("./webgl/distort-preview").DistortPreview | null>(null);
+  const [glMode, setGlMode] = useState(false);
   const [active, setActive] = useState<number | null>(null);
   const [enabled, setEnabled] = useState(false);
   const prev = useRef<number | null>(null);
@@ -65,9 +68,49 @@ export function ProjectIndex({ items, locale, viewLabel, exampleLabel }: Props) 
     setEnabled(hasFinePointer() && !prefersReducedMotion() && window.innerWidth >= 900);
   }, []);
 
+  // Vista previa en WebGL (si el equipo lo permite); si no, la versión DOM.
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    let dispose: (() => void) | null = null;
+    (async () => {
+      try {
+        const [{ DistortPreview }, { webglAvailable }] = await Promise.all([import("./webgl/distort-preview"), import("./webgl/glass-scene")]);
+        if (cancelled || !webglAvailable() || !glCanvas.current) return;
+        const preview = new DistortPreview(glCanvas.current, items.map((i) => i.cover.src.src));
+        glPreview.current = preview;
+        setGlMode(true);
+        const move = (e: PointerEvent) => preview.move(e.clientX, e.clientY);
+        const resize = () => preview.resize();
+        window.addEventListener("pointermove", move, { passive: true });
+        window.addEventListener("resize", resize);
+        dispose = () => {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("resize", resize);
+          preview.dispose();
+          glPreview.current = null;
+        };
+      } catch {
+        /* se queda la versión DOM */
+      }
+    })();
+    return () => {
+      cancelled = true;
+      dispose?.();
+      setGlMode(false);
+    };
+  }, [enabled, items]);
+
+  useEffect(() => {
+    const p = glPreview.current;
+    if (!p) return;
+    if (active === null) p.hide();
+    else p.show(active);
+  }, [active, glMode]);
+
   useEffect(() => {
     const el = previewRef.current;
-    if (!el || !enabled) return;
+    if (!el || !enabled || glMode) return;
     const xTo = gsap.quickTo(el, "x", { duration: 0.7, ease: "power3.out" });
     const yTo = gsap.quickTo(el, "y", { duration: 0.7, ease: "power3.out" });
     let lastX = 0;
@@ -82,11 +125,11 @@ export function ProjectIndex({ items, locale, viewLabel, exampleLabel }: Props) 
     };
     window.addEventListener("pointermove", onMove, { passive: true });
     return () => window.removeEventListener("pointermove", onMove);
-  }, [enabled]);
+  }, [enabled, glMode]);
 
   useEffect(() => {
     const el = previewRef.current;
-    if (!el || !enabled) return;
+    if (!el || !enabled || glMode) return;
     const itemsEls = el.querySelectorAll<HTMLElement>(".hover-preview__item");
     if (active === null) {
       gsap.to(el, { scale: 0.6, autoAlpha: 0, duration: 0.45, ease: "power3.out" });
@@ -101,7 +144,7 @@ export function ProjectIndex({ items, locale, viewLabel, exampleLabel }: Props) 
       }
     }
     prev.current = active;
-  }, [active, enabled]);
+  }, [active, enabled, glMode]);
 
   return (
     <>
@@ -134,7 +177,8 @@ export function ProjectIndex({ items, locale, viewLabel, exampleLabel }: Props) 
         ))}
       </ul>
 
-      {enabled && (
+      {enabled && <canvas ref={glCanvas} className="distort-canvas" aria-hidden="true" />}
+      {enabled && !glMode && (
         <div ref={previewRef} className="hover-preview" aria-hidden="true">
           {items.map((item) => (
             <div key={item.id} className="hover-preview__item">
