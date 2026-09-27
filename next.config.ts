@@ -9,9 +9,16 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  serverExternalPackages: ["sharp", "@libsql/client"],
+  images: { formats: ["image/avif", "image/webp"] },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
+  },
+  async redirects() {
+    return [
+      { source: "/", destination: "/es", permanent: false },
+      { source: "/:page(work|about|contact)", destination: "/es/:page", permanent: false },
+      { source: "/work/:slug", destination: "/es/work/:slug", permanent: false },
+    ];
   },
 };
 

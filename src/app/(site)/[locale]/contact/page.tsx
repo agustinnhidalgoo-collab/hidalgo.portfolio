@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDictionary } from "@/lib/i18n";
-import { getSettings } from "@/lib/content";
+import { site as settings } from "@/lib/content";
 import { isLocale, t } from "@/lib/types";
 import { Clock } from "@/components/site/Clock";
 import { CopyEmail } from "@/components/site/CopyEmail";
@@ -22,7 +22,6 @@ export default async function ContactPage({ params }: Props) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
-  const settings = await getSettings();
   const location = t(settings.location, locale);
   const availability = t(settings.availability, locale);
 

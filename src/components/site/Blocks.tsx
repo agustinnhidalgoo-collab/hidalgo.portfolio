@@ -1,13 +1,11 @@
 import type { Dictionary } from "@/lib/i18n";
 import { RichText } from "@/lib/rich-text";
-import { type Block, type Locale, type MediaRecord, t } from "@/lib/types";
+import { type Block, type L10n, type Locale, type Media, isMedia, t } from "@/lib/types";
 import { toEmbedUrl } from "@/lib/utils";
 import { Picture } from "./Picture";
-import { Video } from "./Video";
 
 interface Props {
   blocks: Block[];
-  media: Record<string, MediaRecord>;
   locale: Locale;
   dict: Dictionary;
 }
@@ -17,73 +15,55 @@ function Caption({ text }: { text: string }) {
   return <figcaption className="caption meta">{text}</figcaption>;
 }
 
-function Visual({ id, media, locale, sizes, dict }: { id: string | null; media: Record<string, MediaRecord>; locale: Locale; sizes: string; dict: Dictionary }) {
-  const m = id ? media[id] : undefined;
-  if (!m) return null;
-  if (m.kind === "video")
-    return <Video media={m} autoplay label={t(m.alt, locale)} labels={dict.video} />;
-  return <Picture media={m} locale={locale} sizes={sizes} reveal />;
-}
+export function Blocks({ blocks, locale, dict }: Props) {
+  const visual = (media: Media, sizes: string) => <Picture media={media} locale={locale} sizes={sizes} reveal videoLabels={dict.video} />;
 
-export function Blocks({ blocks, media, locale, dict }: Props) {
   return (
     <div className="blocks">
-      {blocks.map((b) => {
+      {blocks.map((b, i) => {
         switch (b.type) {
           case "text": {
             const heading = t(b.heading, locale);
-            const body = t(b.body, locale);
-            if (!heading && !body) return null;
             return (
-              <section key={b.id} className="block-text grid wrap">
+              <section key={i} className="block-text grid wrap">
                 {heading && (
                   <h2 className="block-text__heading h3" data-reveal="lines">
                     {heading}
                   </h2>
                 )}
                 <div className="block-text__body" data-reveal="rise">
-                  <RichText text={body} className="prose lead" />
+                  <RichText text={t(b.body, locale)} className="prose lead" />
                 </div>
               </section>
             );
           }
           case "image": {
-            if (!b.mediaId || !media[b.mediaId]) return null;
             const wide = b.size === "wide";
             return (
-              <figure key={b.id} className={`wrap ${wide ? "" : "grid block-image--contained"}`} style={{ margin: 0 }}>
+              <figure key={i} className={`wrap ${wide ? "" : "grid block-image--contained"}`} style={{ margin: 0 }}>
                 <div>
-                  <Visual id={b.mediaId} media={media} locale={locale} dict={dict} sizes={wide ? "100vw" : "(min-width: 900px) 84vw, 100vw"} />
+                  {visual(b.media, wide ? "100vw" : "(min-width: 900px) 84vw, 100vw")}
                   <Caption text={t(b.caption, locale)} />
                 </div>
               </figure>
             );
           }
-          case "full": {
-            if (!b.mediaId || !media[b.mediaId]) return null;
+          case "full":
             return (
-              <figure key={b.id} className="block-full" style={{ margin: 0 }}>
-                <Visual id={b.mediaId} media={media} locale={locale} dict={dict} sizes="100vw" />
+              <figure key={i} className="block-full" style={{ margin: 0 }}>
+                {visual(b.media, "100vw")}
                 <div className="wrap">
                   <Caption text={t(b.caption, locale)} />
                 </div>
               </figure>
             );
-          }
           case "gallery": {
-            const items = b.items.filter((i) => i.mediaId && media[i.mediaId]);
-            if (!items.length) return null;
+            const columns = b.columns ?? 2;
             return (
-              <div key={b.id} className={`wrap gallery gallery--${b.columns}`}>
-                {items.map((item, i) => (
-                  <figure key={i} style={{ margin: 0 }}>
-                    <Visual
-                      id={item.mediaId}
-                      media={media}
-                      locale={locale}
-                      dict={dict}
-                      sizes={b.columns === 3 ? "(min-width: 700px) 33vw, 100vw" : "(min-width: 700px) 50vw, 100vw"}
-                    />
+              <div key={i} className={`wrap gallery gallery--${columns}`}>
+                {b.items.map((item, j) => (
+                  <figure key={j} style={{ margin: 0 }}>
+                    {visual(item.media, columns === 3 ? "(min-width: 700px) 33vw, 100vw" : "(min-width: 700px) 50vw, 100vw")}
                     <Caption text={t(item.caption, locale)} />
                   </figure>
                 ))}
@@ -91,47 +71,37 @@ export function Blocks({ blocks, media, locale, dict }: Props) {
             );
           }
           case "columns": {
-            const col = (c: typeof b.left, key: string) =>
-              c.kind === "image" ? (
-                <Visual key={key} id={c.mediaId} media={media} locale={locale} dict={dict} sizes="(min-width: 800px) 50vw, 100vw" />
+            const col = (c: Media | L10n, key: string) =>
+              isMedia(c) ? (
+                <div key={key}>{visual(c, "(min-width: 800px) 50vw, 100vw")}</div>
               ) : (
                 <div key={key} data-reveal="rise">
-                  <RichText text={t(c.text, locale)} className="prose lead" />
+                  <RichText text={t(c, locale)} className="prose lead" />
                 </div>
               );
             return (
-              <div key={b.id} className="wrap columns">
+              <div key={i} className="wrap columns">
                 {col(b.left, "l")}
                 {col(b.right, "r")}
               </div>
             );
           }
-          case "video": {
+          case "embed": {
+            const src = toEmbedUrl(b.url);
+            if (!src) return null;
             const caption = t(b.caption, locale);
-            if (b.source === "embed") {
-              const src = toEmbedUrl(b.url);
-              if (!src) return null;
-              return (
-                <figure key={b.id} className="wrap" style={{ margin: 0 }}>
-                  <div className="embed" data-reveal="image">
-                    <iframe
-                      src={src}
-                      title={caption || "Video"}
-                      loading="lazy"
-                      allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-                      allowFullScreen
-                      referrerPolicy="strict-origin-when-cross-origin"
-                    />
-                  </div>
-                  <Caption text={caption} />
-                </figure>
-              );
-            }
-            const m = b.mediaId ? media[b.mediaId] : undefined;
-            if (!m || m.kind !== "video") return null;
             return (
-              <figure key={b.id} className="wrap" style={{ margin: 0 }}>
-                <Video media={m} autoplay={b.autoplay} label={caption || t(m.alt, locale)} labels={dict.video} />
+              <figure key={i} className="wrap" style={{ margin: 0 }}>
+                <div className="embed" data-reveal="image">
+                  <iframe
+                    src={src}
+                    title={caption || "Video"}
+                    loading="lazy"
+                    allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                    allowFullScreen
+                    referrerPolicy="strict-origin-when-cross-origin"
+                  />
+                </div>
                 <Caption text={caption} />
               </figure>
             );

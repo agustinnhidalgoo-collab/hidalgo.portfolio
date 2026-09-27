@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { Locale, MediaRecord } from "@/lib/types";
-import { DuoPicture, Picture, imageSources } from "./Picture";
+import Image from "next/image";
+import type { ImageMedia, Locale } from "@/lib/types";
+import { DuoPicture } from "./Picture";
 import { TLink } from "./Transition";
 import { gsap, hasFinePointer, prefersReducedMotion } from "./motion";
 
@@ -12,7 +13,7 @@ export interface IndexItem {
   title: string;
   year: string;
   categories: string[];
-  cover: MediaRecord | null;
+  cover: ImageMedia;
   isExample: boolean;
 }
 
@@ -111,12 +112,7 @@ export function ProjectIndex({ items, locale, viewLabel, exampleLabel }: Props) 
         <div ref={previewRef} className="hover-preview" aria-hidden="true">
           {items.map((item) => (
             <div key={item.id} className="hover-preview__item">
-              {item.cover && item.cover.kind === "image" ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img {...imageSources(item.cover)} sizes="420px" alt="" loading="lazy" decoding="async" />
-              ) : (
-                <Picture media={null} locale={locale} />
-              )}
+              <Image src={item.cover.src} sizes="420px" alt="" placeholder="blur" />
             </div>
           ))}
         </div>

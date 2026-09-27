@@ -2,7 +2,7 @@ import type { Locale } from "./types";
 
 /**
  * Textos fijos de la interfaz (navegación, botones, etiquetas).
- * El contenido editorial —bio, proyectos, servicios— se edita desde el panel.
+ * El contenido editorial —bio, proyectos, servicios— está en src/content/.
  */
 const dictionary = {
   es: {
@@ -38,8 +38,6 @@ const dictionary = {
     notFound: "Página no encontrada",
     notFoundText: "Lo que buscás no está acá, o se movió.",
     goHome: "Volver al inicio",
-    preview: "Vista previa — borrador sin publicar",
-    exitPreview: "Volver al panel",
     exampleContent: "Contenido de ejemplo",
     scroll: "Scroll",
     projects: "proyectos",
@@ -85,8 +83,6 @@ const dictionary = {
     notFound: "Page not found",
     notFoundText: "What you're looking for isn't here, or it moved.",
     goHome: "Back home",
-    preview: "Preview — unpublished draft",
-    exitPreview: "Back to admin",
     exampleContent: "Sample content",
     scroll: "Scroll",
     projects: "projects",

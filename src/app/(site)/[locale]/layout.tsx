@@ -6,9 +6,9 @@ import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { getDictionary } from "@/lib/i18n";
-import { getSettings, listPublishedProjects } from "@/lib/content";
+import { hasExampleContent, site } from "@/lib/content";
 import { siteUrl } from "@/lib/site-meta";
-import { isLocale, t } from "@/lib/types";
+import { LOCALES, isLocale, t } from "@/lib/types";
 import { Cursor } from "@/components/site/Cursor";
 import { ExampleBadge } from "@/components/site/ExampleBadge";
 import { Footer } from "@/components/site/Footer";
@@ -18,7 +18,11 @@ import { ScrollEffects } from "@/components/site/ScrollEffects";
 import { SmoothScroll } from "@/components/site/SmoothScroll";
 import { TransitionProvider } from "@/components/site/Transition";
 
-export const dynamic = "force-dynamic";
+export const dynamicParams = false;
+
+export function generateStaticParams() {
+  return LOCALES.map((locale) => ({ locale }));
+}
 
 export const viewport: Viewport = {
   themeColor: "#F2E6B3",
@@ -29,8 +33,7 @@ export const viewport: Viewport = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  const settings = await getSettings();
-  const description = t(settings.seoDescription, locale) || t(settings.tagline, locale) || "Hidalgo — Graphic Designer";
+  const description = t(site.seoDescription, locale) || t(site.tagline, locale) || "Hidalgo — Graphic Designer";
   return {
     metadataBase: new URL(siteUrl()),
     title: { default: "HIDALGO — Graphic Designer", template: "%s — HIDALGO" },
@@ -54,9 +57,7 @@ export default async function SiteLayout({ children, params }: { children: React
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
-  const settings = await getSettings();
-  const projects = await listPublishedProjects();
-  const showExample = settings.isExample || projects.some((p) => p.content.isExample);
+  const showExample = hasExampleContent;
 
   return (
     <html lang={locale} data-theme="light" suppressHydrationWarning>
@@ -87,7 +88,7 @@ export default async function SiteLayout({ children, params }: { children: React
           <main id="main" tabIndex={-1}>
             {children}
           </main>
-          <Footer locale={locale} dict={dict} settings={settings} />
+          <Footer locale={locale} dict={dict} settings={site} />
         </TransitionProvider>
 
         <SmoothScroll />
@@ -99,8 +100,8 @@ export default async function SiteLayout({ children, params }: { children: React
             closeLabel={dict.close}
             text={
               locale === "es"
-                ? "Base con contenido de ejemplo — se reemplaza desde el panel."
-                : "Base with sample content — replace it from the admin panel."
+                ? "Base con contenido de ejemplo."
+                : "Base with sample content."
             }
           />
         )}

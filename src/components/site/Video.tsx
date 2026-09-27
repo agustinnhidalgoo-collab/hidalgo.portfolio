@@ -1,22 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { mediaUrl } from "@/lib/media-url";
-import type { MediaRecord } from "@/lib/types";
 import { prefersReducedMotion } from "./motion";
 
 interface Props {
-  media: MediaRecord;
-  autoplay: boolean;
+  src: string;
+  poster?: string;
   label: string;
   labels: { play: string; pause: string; soundOn: string; soundOff: string };
+  className?: string;
 }
 
 /**
- * Video subido. Con autoplay se reproduce en silencio solo mientras está en
- * pantalla; con movimiento reducido nunca arranca solo y muestra controles.
+ * Video corto en loop y sin sonido, que se reproduce solo mientras está en
+ * pantalla. Con movimiento reducido no arranca solo y muestra controles.
  */
-export function Video({ media, autoplay, label, labels }: Props) {
+export function Video({ src, poster, label, labels, className = "" }: Props) {
   const ref = useRef<HTMLVideoElement>(null);
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
@@ -27,7 +26,7 @@ export function Video({ media, autoplay, label, labels }: Props) {
     if (!v) return;
     const r = prefersReducedMotion();
     setReduce(r);
-    if (!autoplay || r) return;
+    if (r) return;
     const io = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) v.play().catch(() => {});
@@ -37,24 +36,24 @@ export function Video({ media, autoplay, label, labels }: Props) {
     );
     io.observe(v);
     return () => io.disconnect();
-  }, [autoplay]);
+  }, []);
 
-  const manual = !autoplay || reduce;
   return (
-    <div className="video media" data-reveal="image">
+    <div className={`video media ${className}`} data-reveal="image">
       <video
         ref={ref}
-        src={mediaUrl(media.file)}
+        src={src}
+        poster={poster}
         muted={muted}
-        loop={!manual}
+        loop={!reduce}
         playsInline
         preload="metadata"
-        controls={manual}
+        controls={reduce}
         aria-label={label || undefined}
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
       />
-      {!manual && (
+      {!reduce && (
         <div style={{ position: "absolute", right: 14, bottom: 14, display: "flex", gap: 8 }}>
           <button
             type="button"
@@ -69,13 +68,7 @@ export function Video({ media, autoplay, label, labels }: Props) {
           >
             {playing ? labels.pause : labels.play}
           </button>
-          <button
-            type="button"
-            className="video__toggle"
-            style={{ position: "static" }}
-            aria-pressed={!muted}
-            onClick={() => setMuted((m) => !m)}
-          >
+          <button type="button" className="video__toggle" style={{ position: "static" }} aria-pressed={!muted} onClick={() => setMuted((m) => !m)}>
             {muted ? labels.soundOn : labels.soundOff}
           </button>
         </div>

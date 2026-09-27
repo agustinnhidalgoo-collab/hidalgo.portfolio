@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDictionary } from "@/lib/i18n";
-import { getMediaMap, getSettings } from "@/lib/content";
-import { mediaUrl } from "@/lib/media-url";
+import { site as settings } from "@/lib/content";
 import { RichText } from "@/lib/rich-text";
 import { isLocale, t } from "@/lib/types";
 import { Marquee } from "@/components/site/Marquee";
@@ -23,11 +22,8 @@ export default async function AboutPage({ params }: Props) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
-  const settings = await getSettings();
-  const media = await getMediaMap([settings.portraitId, settings.cv.es, settings.cv.en]);
-  const portrait = settings.portraitId ? media[settings.portraitId] : undefined;
-  const cvId = settings.cv[locale] ?? settings.cv[locale === "es" ? "en" : "es"];
-  const cv = cvId ? media[cvId] : undefined;
+  const portrait = settings.portrait;
+  const cv = settings.cv[locale] ?? settings.cv[locale === "es" ? "en" : "es"];
   const bio = t(settings.bio, locale);
   const services = settings.services.filter((s) => t(s.title, locale));
   const disciplines = settings.disciplines.map((d) => t(d, locale)).filter(Boolean);
@@ -61,7 +57,7 @@ export default async function AboutPage({ params }: Props) {
                 {cv ? (
                   <a
                     className="btn btn--solid"
-                    href={`${mediaUrl(cv.file)}?name=CV-Hidalgo-${locale.toUpperCase()}.pdf`}
+                    href={cv}
                     download={`CV-Hidalgo-${locale.toUpperCase()}.pdf`}
                     data-magnetic
                   >

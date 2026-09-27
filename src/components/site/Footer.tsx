@@ -1,5 +1,5 @@
 import type { Dictionary } from "@/lib/i18n";
-import { type Locale, type SiteSettings, t } from "@/lib/types";
+import { type Locale, type SiteContent, t } from "@/lib/types";
 import { BackToTop } from "./BackToTop";
 import { Clock } from "./Clock";
 import { CopyEmail } from "./CopyEmail";
@@ -7,7 +7,7 @@ import { KineticWord } from "./KineticWord";
 import { TLink } from "./Transition";
 import { HideOnPath } from "./HideOnPath";
 
-export function Footer({ locale, dict, settings }: { locale: Locale; dict: Dictionary; settings: SiteSettings }) {
+export function Footer({ locale, dict, settings }: { locale: Locale; dict: Dictionary; settings: SiteContent }) {
   const location = t(settings.location, locale);
   const availability = t(settings.availability, locale);
   return (

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getDictionary } from "@/lib/i18n";
-import { listCategories, listPublishedProjects } from "@/lib/content";
+import { categories, projects } from "@/lib/content";
 import { buildIndexItems } from "@/lib/views";
 import { isLocale, t } from "@/lib/types";
 import { WorkBrowser } from "@/components/site/WorkBrowser";
@@ -21,8 +21,7 @@ export default async function WorkPage({ params }: Props) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
-  const [projects, categories] = await Promise.all([listPublishedProjects(), listCategories()]);
-  const items = await buildIndexItems(projects, categories, locale);
+  const items = buildIndexItems(projects, locale);
 
   return (
     <div data-theme="light">

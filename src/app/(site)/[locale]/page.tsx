@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getDictionary } from "@/lib/i18n";
-import { getSettings, listCategories, listPublishedProjects } from "@/lib/content";
+import { featuredProjects, projects, site as settings } from "@/lib/content";
 import { buildIndexItems } from "@/lib/views";
 import { isLocale, t } from "@/lib/types";
 import { Arrow } from "@/components/site/Arrow";
@@ -14,11 +14,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const dict = getDictionary(locale);
-  const [settings, projects, categories] = await Promise.all([getSettings(), listPublishedProjects(), listCategories()]);
-
-  const featured = projects.filter((p) => p.featured);
-  const selection = (featured.length ? featured : projects).slice(0, 8);
-  const items = await buildIndexItems(selection, categories, locale);
+  const items = buildIndexItems(featuredProjects(), locale);
   const intro = t(settings.intro, locale);
   const tagline = t(settings.tagline, locale);
   const location = t(settings.location, locale);
