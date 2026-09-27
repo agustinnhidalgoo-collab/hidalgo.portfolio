@@ -3,7 +3,17 @@ import crypto from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
+import { del, put } from "@vercel/blob";
 import type { MediaKind, MediaVariant } from "./types";
+
+/* ─── Dónde se guardan los archivos ────────────────────────────
+   - Con BLOB_READ_WRITE_TOKEN (Vercel Blob, gratis en el plan Hobby):
+     los archivos van a la nube y se guarda su URL completa.
+   - Sin él: carpeta local MEDIA_DIR, servida por la ruta /media/*.   */
+
+export function usingBlob(): boolean {
+  return !!process.env.BLOB_READ_WRITE_TOKEN;
+}
 
 export function mediaDir(): string {
   return path.resolve(process.env.MEDIA_DIR || "./storage/media");
@@ -17,6 +27,39 @@ export function resolveMediaPath(file: string): string | null {
   return full.startsWith(root + path.sep) ? full : null;
 }
 
+/** Guarda un archivo y devuelve la referencia que se guarda en la base (nombre local o URL). */
+async function writeFile(name: string, buf: Buffer, contentType: string): Promise<string> {
+  if (usingBlob()) {
+    const res = await put(`media/${name}`, buf, {
+      access: "public",
+      contentType,
+      addRandomSuffix: false,
+      cacheControlMaxAge: 60 * 60 * 24 * 365,
+    });
+    return res.url;
+  }
+  const dir = mediaDir();
+  await fs.mkdir(dir, { recursive: true });
+  await fs.writeFile(path.join(dir, name), buf);
+  return name;
+}
+
+export async function deleteStoredFiles(file: string, variants: MediaVariant[]) {
+  const refs = [file, ...variants.map((v) => v.file)];
+  const urls = refs.filter((r) => /^https?:\/\//.test(r));
+  if (urls.length && usingBlob()) {
+    try {
+      await del(urls);
+    } catch (err) {
+      console.error("No se pudieron borrar archivos de Blob", err);
+    }
+  }
+  for (const f of refs.filter((r) => !/^https?:\/\//.test(r))) {
+    const p = resolveMediaPath(f);
+    if (p) await fs.rm(p, { force: true });
+  }
+}
+
 /* ─── Validación por firma binaria (no se confía en la extensión) ─ */
 
 interface Detected {
@@ -25,7 +68,7 @@ interface Detected {
   ext: string;
 }
 
-const LIMITS: Record<MediaKind, number> = {
+export const LIMITS: Record<MediaKind, number> = {
   image: 25 * 1024 * 1024,
   video: 300 * 1024 * 1024,
   file: 20 * 1024 * 1024,
@@ -66,8 +109,15 @@ export interface StoredMedia {
   variants: MediaVariant[];
 }
 
-/** Valida, procesa y guarda un archivo subido. */
-export async function storeUpload(buf: Buffer): Promise<StoredMedia> {
+export function newMediaId(): string {
+  return crypto.randomUUID().replace(/-/g, "").slice(0, 20);
+}
+
+/**
+ * Valida y procesa un archivo. Si `existing` viene con la referencia del
+ * original ya guardado (subida directa a Blob), no se vuelve a escribir.
+ */
+export async function storeUpload(buf: Buffer, existing?: { id: string; file: string }): Promise<StoredMedia> {
   const detected = detectType(buf);
   if (!detected) {
     throw new UploadError("Formato no admitido. Usá JPG, PNG, WEBP, AVIF, GIF, MP4, WEBM, MOV o PDF.");
@@ -77,12 +127,8 @@ export async function storeUpload(buf: Buffer): Promise<StoredMedia> {
     throw new UploadError(`El archivo supera el máximo de ${mb} MB para este tipo.`);
   }
 
-  const id = crypto.randomUUID().replace(/-/g, "").slice(0, 20);
-  const dir = mediaDir();
-  await fs.mkdir(dir, { recursive: true });
-
-  const file = `${id}.${detected.ext}`;
-  await fs.writeFile(path.join(dir, file), buf);
+  const id = existing?.id ?? newMediaId();
+  const file = existing?.file ?? (await writeFile(`${id}.${detected.ext}`, buf, detected.mime));
 
   const result: StoredMedia = {
     id,
@@ -112,28 +158,19 @@ export async function storeUpload(buf: Buffer): Promise<StoredMedia> {
       if (detected.mime !== "image/gif" && result.width) {
         const widths = VARIANT_WIDTHS.filter((w) => w < result.width!);
         widths.push(Math.min(result.width, 2800));
-        for (const w of [...new Set(widths)]) {
-          const vFile = `${id}-${w}.webp`;
-          await sharp(buf)
-            .rotate()
-            .resize({ width: w, withoutEnlargement: true })
-            .webp({ quality: 82 })
-            .toFile(path.join(dir, vFile));
-          result.variants.push({ w, file: vFile });
-        }
+        const unique = [...new Set(widths)];
+        result.variants = await Promise.all(
+          unique.map(async (w) => {
+            const out = await sharp(buf).rotate().resize({ width: w, withoutEnlargement: true }).webp({ quality: 82 }).toBuffer();
+            return { w, file: await writeFile(`${id}-${w}.webp`, out, "image/webp") };
+          }),
+        );
       }
     } catch {
-      await fs.rm(path.join(dir, file), { force: true });
+      await deleteStoredFiles(file, result.variants);
       throw new UploadError("No se pudo procesar la imagen. ¿Está dañada?");
     }
   }
 
   return result;
-}
-
-export async function deleteStoredFiles(file: string, variants: MediaVariant[]) {
-  for (const f of [file, ...variants.map((v) => v.file)]) {
-    const p = resolveMediaPath(f);
-    if (p) await fs.rm(p, { force: true });
-  }
 }

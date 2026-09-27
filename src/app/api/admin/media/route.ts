@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { listMedia, toMedia } from "@/lib/content";
-import { storeUpload, UploadError } from "@/lib/media";
+import { storeUpload, UploadError, usingBlob } from "@/lib/media";
 import { eq } from "drizzle-orm";
 
 export async function GET(req: Request) {
   const denied = await requireAdmin(req);
   if (denied) return denied;
-  return NextResponse.json({ media: await listMedia() });
+  return NextResponse.json({ media: await listMedia(), storage: usingBlob() ? "blob" : "local" });
 }
 
 /** Sube un archivo (campo "file"). Se valida por firma binaria y tamaño. */
