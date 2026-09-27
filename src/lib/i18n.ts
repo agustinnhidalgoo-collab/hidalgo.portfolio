@@ -1,0 +1,113 @@
+import type { Locale } from "./types";
+
+/**
+ * Textos fijos de la interfaz (navegación, botones, etiquetas).
+ * El contenido editorial —bio, proyectos, servicios— se edita desde el panel.
+ */
+const dictionary = {
+  es: {
+    nav: { home: "Inicio", work: "Proyectos", about: "Sobre mí", contact: "Contacto" },
+    role: "Graphic Designer",
+    menu: "Menú",
+    close: "Cerrar",
+    skip: "Saltar al contenido",
+    selectedWork: "Proyectos destacados",
+    allWork: "Ver todos los proyectos",
+    index: "Índice",
+    view: "Ver",
+    all: "Todos",
+    list: "Lista",
+    grid: "Grilla",
+    year: "Año",
+    client: "Cliente",
+    role_: "Rol",
+    category: "Categoría",
+    next: "Siguiente proyecto",
+    back: "Volver a proyectos",
+    services: "Servicios",
+    disciplines: "Disciplinas",
+    downloadCv: "Descargar CV",
+    cvPending: "CV disponible pronto",
+    letsTalk: "¿Hablamos?",
+    copy: "Copiar",
+    copied: "Copiado",
+    localTime: "Hora local",
+    backToTop: "Volver arriba",
+    noProjects: "Todavía no hay proyectos publicados.",
+    noProjectsFilter: "No hay proyectos en esta categoría.",
+    notFound: "Página no encontrada",
+    notFoundText: "Lo que buscás no está acá, o se movió.",
+    goHome: "Volver al inicio",
+    preview: "Vista previa — borrador sin publicar",
+    exitPreview: "Volver al panel",
+    exampleContent: "Contenido de ejemplo",
+    scroll: "Scroll",
+    projects: "proyectos",
+    availability: "Disponibilidad",
+    location: "Ubicación",
+    elsewhere: "En otros lugares",
+    writeMe: "Escribime",
+    rights: "Todos los derechos reservados",
+    language: "Idioma",
+    video: { play: "Reproducir", pause: "Pausa", soundOn: "Sonido", soundOff: "Silenciar" },
+    grid_: "Vista",
+  },
+  en: {
+    nav: { home: "Home", work: "Work", about: "About", contact: "Contact" },
+    role: "Graphic Designer",
+    menu: "Menu",
+    close: "Close",
+    skip: "Skip to content",
+    selectedWork: "Selected work",
+    allWork: "See all projects",
+    index: "Index",
+    view: "View",
+    all: "All",
+    list: "List",
+    grid: "Grid",
+    year: "Year",
+    client: "Client",
+    role_: "Role",
+    category: "Category",
+    next: "Next project",
+    back: "Back to work",
+    services: "Services",
+    disciplines: "Disciplines",
+    downloadCv: "Download CV",
+    cvPending: "CV coming soon",
+    letsTalk: "Let's talk",
+    copy: "Copy",
+    copied: "Copied",
+    localTime: "Local time",
+    backToTop: "Back to top",
+    noProjects: "No published projects yet.",
+    noProjectsFilter: "No projects in this category.",
+    notFound: "Page not found",
+    notFoundText: "What you're looking for isn't here, or it moved.",
+    goHome: "Back home",
+    preview: "Preview — unpublished draft",
+    exitPreview: "Back to admin",
+    exampleContent: "Sample content",
+    scroll: "Scroll",
+    projects: "projects",
+    availability: "Availability",
+    location: "Location",
+    elsewhere: "Elsewhere",
+    writeMe: "Write me",
+    rights: "All rights reserved",
+    language: "Language",
+    video: { play: "Play", pause: "Pause", soundOn: "Sound on", soundOff: "Mute" },
+    grid_: "View",
+  },
+} as const;
+
+export type Dictionary = (typeof dictionary)["es"];
+
+export function getDictionary(locale: Locale): Dictionary {
+  return dictionary[locale] as Dictionary;
+}
+
+export function localePath(locale: Locale, path = ""): string {
+  const clean = path.replace(/^\/+/, "");
+  return clean ? `/${locale}/${clean}` : `/${locale}`;
+}

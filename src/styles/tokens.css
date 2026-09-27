@@ -1,0 +1,54 @@
+/* ──────────────────────────────────────────────────────────────
+   HIDALGO — Tokens del sistema visual
+   Paleta confirmada por Hidalgo (2026-09-27):
+     Whipped Butter  #F2E6B3
+     Cookie Crumble  #4B2E21
+   Todo lo demás se deriva de estos dos colores.
+   ────────────────────────────────────────────────────────────── */
+
+:root {
+  --butter: #f2e6b3;
+  --cocoa: #4b2e21;
+
+  --font: "Archivo Variable", "Archivo", "Helvetica Neue", Arial, sans-serif;
+
+  /* Grilla */
+  --margin: clamp(16px, 3.2vw, 56px);
+  --gutter: clamp(12px, 1.5vw, 24px);
+  --cols: 12;
+
+  /* Escala tipográfica fluida */
+  --fs-meta: 0.72rem;
+  --fs-small: 0.875rem;
+  --fs-body: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
+  --fs-lead: clamp(1.25rem, 1rem + 1.2vw, 2.15rem);
+  --fs-h3: clamp(1.6rem, 1.2rem + 1.8vw, 3rem);
+  --fs-h2: clamp(2.6rem, 1.5rem + 5vw, 7.5rem);
+  --fs-h1: clamp(3.4rem, 1.5rem + 9vw, 13rem);
+
+  /* Movimiento */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+  --dur: 0.6s;
+
+  --header-h: 64px;
+}
+
+/* Temas: claro = fondo manteca / tinta cacao; oscuro = inverso */
+:root,
+[data-theme="light"] {
+  --bg: var(--butter);
+  --fg: var(--cocoa);
+}
+[data-theme="dark"] {
+  --bg: var(--cocoa);
+  --fg: var(--butter);
+}
+[data-theme] {
+  --fg-muted: color-mix(in srgb, var(--fg) 74%, var(--bg));
+  --fg-faint: color-mix(in srgb, var(--fg) 45%, var(--bg));
+  --line: color-mix(in srgb, var(--fg) 24%, var(--bg));
+  --tint: color-mix(in srgb, var(--fg) 7%, var(--bg));
+  background-color: var(--bg);
+  color: var(--fg);
+}
