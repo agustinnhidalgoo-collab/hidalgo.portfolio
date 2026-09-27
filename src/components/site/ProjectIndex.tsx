@@ -5,7 +5,7 @@ import Image from "next/image";
 import type { ImageMedia, Locale } from "@/lib/types";
 import { DuoPicture } from "./Picture";
 import { TLink } from "./Transition";
-import { gsap, hasFinePointer, prefersReducedMotion } from "./motion";
+import { gsap, hasFinePointer, prefersReducedMotion, ScrollTrigger, whenReady } from "./motion";
 
 export interface IndexItem {
   id: string;
@@ -34,6 +34,32 @@ export function ProjectIndex({ items, locale, viewLabel, exampleLabel }: Props) 
   const [active, setActive] = useState<number | null>(null);
   const [enabled, setEnabled] = useState(false);
   const prev = useRef<number | null>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  // Entrada de las filas al hacer scroll. La maneja el propio índice porque sus
+  // filas cambian con los filtros y el cambio de vista, después de cargar la página.
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list || prefersReducedMotion()) return;
+    const rows = Array.from(list.querySelectorAll<HTMLElement>(".index-row"));
+    const ctx = gsap.context(() => {
+      gsap.set(rows, { opacity: 0, y: 50 });
+    }, list);
+    const stop = whenReady(() => {
+      ctx.add(() => {
+        ScrollTrigger.batch(rows, {
+          start: "top 92%",
+          once: true,
+          onEnter: (batch) => gsap.to(batch, { opacity: 1, y: 0, duration: 1.2, stagger: 0.07, ease: "expo.out" }),
+        });
+        ScrollTrigger.refresh();
+      });
+    });
+    return () => {
+      stop();
+      ctx.revert();
+    };
+  }, [items]);
 
   useEffect(() => {
     setEnabled(hasFinePointer() && !prefersReducedMotion() && window.innerWidth >= 900);
@@ -79,9 +105,9 @@ export function ProjectIndex({ items, locale, viewLabel, exampleLabel }: Props) 
 
   return (
     <>
-      <ul className="index-list" onPointerLeave={() => setActive(null)}>
+      <ul ref={listRef} className="index-list" onPointerLeave={() => setActive(null)}>
         {items.map((item, i) => (
-          <li key={item.id} className="index-row" data-reveal="rise" data-delay={String(Math.min(i, 5) * 0.05)}>
+          <li key={item.id} className="index-row">
             <TLink
               href={item.href}
               className="index-row__link"

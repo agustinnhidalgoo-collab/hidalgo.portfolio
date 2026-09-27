@@ -1089,7 +1089,7 @@ a:hover .duo img {
 /* ─── Proyecto ────────────────────────────────────────────── */
 
 .project-hero__title {
-  font-size: clamp(3rem, 1rem + 10vw, 14rem);
+  font-size: clamp(2.4rem, 10.5vw, 14rem);
   overflow-wrap: anywhere;
   hyphens: auto;
 }
@@ -1202,7 +1202,7 @@ a:hover .duo img {
 .next-project__title {
   display: block;
   margin-top: 16px;
-  font-size: clamp(2.8rem, 1rem + 9vw, 12rem);
+  font-size: clamp(2.2rem, 10vw, 12rem);
   transition: font-stretch 0.9s var(--ease-out), letter-spacing 0.9s var(--ease-out);
 }
 .next-project:hover .next-project__title {
@@ -1427,7 +1427,7 @@ body:has(.preview-bar) .header {
   visibility: hidden;
 }
 .curtain__label {
-  font-size: clamp(3rem, 1rem + 10vw, 13rem);
+  font-size: clamp(2.2rem, 10.5vw, 13rem);
   overflow: hidden;
 }
 .curtain__label span {

@@ -23,8 +23,8 @@
   --fs-body: clamp(1rem, 0.95rem + 0.2vw, 1.125rem);
   --fs-lead: clamp(1.25rem, 1rem + 1.2vw, 2.15rem);
   --fs-h3: clamp(1.6rem, 1.2rem + 1.8vw, 3rem);
-  --fs-h2: clamp(2.6rem, 1.5rem + 5vw, 7.5rem);
-  --fs-h1: clamp(3.4rem, 1.5rem + 9vw, 13rem);
+  --fs-h2: clamp(2.2rem, 1.2rem + 5.4vw, 7.5rem);
+  --fs-h1: clamp(2.4rem, 11vw, 13rem);
 
   /* Movimiento */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
