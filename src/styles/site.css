@@ -1543,3 +1543,176 @@ html.skip-preload .preloader {
     min-height: 86svh;
   }
 }
+
+/* ─── Entrada inmersiva (Home) ────────────────────────────── */
+
+.world {
+  position: relative;
+  background: var(--cocoa);
+}
+.world__stage {
+  position: relative;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background: var(--cocoa);
+}
+.world__scene {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.world__depth {
+  position: absolute;
+  inset: -48px;
+}
+.world__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Fondo tipo estudio fotográfico en la paleta, hasta tener la foto o video de Hidalgo */
+.world__studio {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 38% 55% at 52% 40%, color-mix(in srgb, var(--butter) 44%, var(--cocoa)) 0%, transparent 70%),
+    radial-gradient(ellipse 75% 85% at 50% 45%, color-mix(in srgb, var(--butter) 26%, var(--cocoa)) 0%, var(--cocoa) 78%);
+}
+.world__studio::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -10%;
+  width: 34%;
+  height: 120%;
+  transform: translateX(-50%) rotate(8deg);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--butter) 12%, transparent), transparent);
+  filter: blur(30px);
+}
+.world__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 90% 90% at 50% 45%, transparent 55%, color-mix(in srgb, var(--cocoa) 85%, transparent) 100%);
+}
+.world__roles {
+  position: absolute;
+  left: 50%;
+  top: 30%;
+  transform: translateX(-58%);
+  z-index: 2;
+  color: var(--butter);
+}
+.world__role {
+  margin: 0;
+  overflow: hidden;
+  font-size: clamp(1.4rem, 0.8rem + 2.6vw, 3.6rem);
+  font-weight: 820;
+  font-stretch: 100%;
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.world__role-soft {
+  color: transparent;
+  -webkit-text-stroke: 1.2px var(--butter);
+}
+.world__gate {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  will-change: transform;
+  display: none;
+}
+html.js-motion .world__gate {
+  display: block;
+}
+.world__gate-text {
+  font-family: var(--font);
+  font-weight: 900;
+  font-stretch: 112%;
+  letter-spacing: -0.02em;
+}
+.world__hint {
+  position: absolute;
+  left: 50%;
+  bottom: 28px;
+  z-index: 4;
+  display: none;
+  align-items: center;
+  gap: 12px;
+  transform: translateX(-50%);
+  color: var(--butter);
+}
+html.js-motion .world__hint {
+  display: inline-flex;
+}
+.world__band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  padding: 18px var(--margin) clamp(10px, 1.4vw, 20px);
+  background: var(--cocoa);
+  color: var(--butter);
+  border-top: 1px solid color-mix(in srgb, var(--butter) 18%, transparent);
+}
+html.js-motion .world__band {
+  visibility: hidden;
+}
+html.js-motion .world[data-mode="motion"] .world__band {
+  visibility: visible;
+}
+html.js-motion .world__role {
+  opacity: 0;
+}
+.world__band-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 20px;
+  color: color-mix(in srgb, var(--butter) 70%, var(--cocoa));
+}
+.world__intro {
+  max-width: 88ch;
+  margin: 14px auto 0;
+  text-align: center;
+  font-size: clamp(0.82rem, 0.75rem + 0.3vw, 1rem);
+  line-height: 1.35;
+}
+.world__divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 12px 0 8px;
+}
+.world__divider span {
+  width: min(110px, 18vw);
+  height: 1px;
+  background: color-mix(in srgb, var(--butter) 50%, transparent);
+}
+.world__divider i {
+  width: 7px;
+  height: 7px;
+  background: var(--butter);
+  transform: rotate(45deg);
+}
+@media (max-width: 700px) {
+  .world__roles {
+    top: 26%;
+    left: var(--margin);
+    transform: none;
+  }
+  .world__band-meta span:nth-child(n + 3) {
+    display: none;
+  }
+}

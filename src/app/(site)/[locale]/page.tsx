@@ -4,8 +4,7 @@ import { featuredProjects, projects, site as settings } from "@/lib/content";
 import { buildIndexItems } from "@/lib/views";
 import { isLocale, t } from "@/lib/types";
 import { Arrow } from "@/components/site/Arrow";
-import { Clock } from "@/components/site/Clock";
-import { KineticWord } from "@/components/site/KineticWord";
+import { HeroWorld } from "@/components/site/HeroWorld";
 import { Marquee } from "@/components/site/Marquee";
 import { ProjectIndex } from "@/components/site/ProjectIndex";
 import { TLink } from "@/components/site/Transition";
@@ -22,38 +21,17 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
-      <section className="hero wrap" data-theme="light">
-        <span className="reg reg--tl" aria-hidden="true" />
-        <span className="reg reg--tr" aria-hidden="true" />
-
-        <div className="grid hero__top">
-          <div className="hero__meta meta" data-reveal="fade" data-delay="0.6">
-            <span>{dict.role}</span>
-            {location && <span className="muted">{location}</span>}
-            <span className="muted">
-              <Clock timezone={settings.timezone} locale={locale} />
-            </span>
-          </div>
-          {intro && (
-            <p className="hero__intro lead" data-reveal="lines" data-delay="0.3">
-              {intro}
-            </p>
-          )}
-        </div>
-
-        <div className="hero__bottom">
-          <div className="hero__caption meta">
-            <span className="scroll-cue">
-              <span className="scroll-cue__bar" aria-hidden="true" />
-              {dict.scroll}
-            </span>
-            <span>
-              {projects.length} {dict.projects}
-            </span>
-          </div>
-          <KineticWord text="HIDALGO" intro squash />
-        </div>
-      </section>
+      <HeroWorld
+        world={settings.world}
+        roles={disciplines.slice(0, 3)}
+        intro={intro}
+        role={dict.role}
+        location={location}
+        timezone={settings.timezone}
+        locale={locale}
+        projectsLabel={`${projects.length} ${dict.projects}`}
+        enterLabel={dict.enter}
+      />
 
       <div data-theme="dark">
         {disciplines.length > 0 && <Marquee items={disciplines} label={dict.disciplines} />}

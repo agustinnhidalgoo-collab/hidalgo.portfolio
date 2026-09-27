@@ -85,6 +85,8 @@ export interface SiteContent {
   phone?: string;
   links: { label: string; url: string }[];
   portrait?: ImageMedia;
+  /** Foto o video que se ve “a través” de HIDALGO al entrar al sitio. */
+  world?: Media;
   /** PDFs dentro de /public, ej. "/cv/CV-Hidalgo-ES.pdf" */
   cv: { es?: string; en?: string };
   seoDescription: L10n;

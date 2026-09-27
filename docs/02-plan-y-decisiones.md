@@ -26,6 +26,7 @@
 | D13 | Favicon provisorio: “H” en la paleta (hasta tener logo propio) | **A confirmar** | Supuesto |
 | D14 | No usar logos, clientes ni textos de terceros presentes en las referencias | Regla | Prompt |
 | D15 | **Sin panel de administración:** el objetivo es un portfolio para enviar. El contenido vive en `src/content/` y se actualiza cuando Hidalgo envía material. Reemplaza a D3 y D11. | **Confirmado** (2026-09-27) | Hidalgo |
+| D17 | **Entrada inmersiva en la Home** (ref. Ethan Park enviada por Hidalgo): puerta cacao con HIDALGO calado; el scroll atraviesa las letras y se entra al “mundo”; roles escalonados; franja con intro y nombre gigante. El “mundo” será una foto editorial o un video de Hidalgo (**pendiente**); mientras tanto, fondo de estudio en la paleta. | Confirmado (dirección) | Hidalgo |
 | D16 | Hosting **gratuito** en Vercel (plan Hobby), sin instalar Node | **Confirmado** (2026-09-27) | Hidalgo |
 
 ## Resultados de QA (versión estática, 2026-09-27)
@@ -48,4 +49,5 @@
 - [ ] CV en PDF (ES y/o EN).
 - [ ] Retrato (opcional).
 - [ ] Confirmar la zona horaria (D12) y el favicon (D13), o enviar un logo propio.
+- [ ] **Foto editorial o video corto** para la entrada de la Home (retrato con buena luz, vertical u horizontal).
 - [ ] Crear la cuenta gratuita de Vercel y publicar (`docs/05-publicar-gratis.md`).

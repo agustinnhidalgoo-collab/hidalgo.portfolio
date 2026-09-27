@@ -42,6 +42,10 @@ export const site: SiteContent = {
     { title: { es: "Tercer servicio", en: "Third service" }, description: { es: "Descripción breve del servicio.", en: "Short description of the service." } },
   ],
 
+  // Foto editorial o video en loop para la entrada (pendiente: la envía Hidalgo).
+  // Ej.: world: { type: "image", src: retrato, alt: { es: "…", en: "…" } }
+  world: undefined,
+
   email: "email@ejemplo.com",
   links: [],
 
