@@ -45,11 +45,30 @@ const ogAbs = abs(ogImage);
     <meta name="twitter:card" content={ogAbs ? 'summary_large_image' : 'summary'} />
     <link rel="preload" as="font" type="font/woff2" href={antonUrl} crossorigin />
     <link rel="preload" as="font" type="font/woff2" href={interUrl} crossorigin />
-    <script is:inline>document.documentElement.classList.add('js');</script>
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add('js');
+        try {
+          var calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (!calm && (location.pathname === '/' || location.pathname === '/index.html') && !sessionStorage.getItem('pre')) d.classList.add('has-pre');
+          if (!calm && sessionStorage.getItem('curtain')) d.classList.add('curtain-on');
+        } catch (e) {}
+        // Red de seguridad: si el JS de movimiento no llega, todo queda visible.
+        setTimeout(function () { d.classList.remove('has-pre', 'curtain-on'); d.classList.add('motion-timeout'); }, 6000);
+      })();
+    </script>
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
   </head>
   <body>
     <a class="skip" href="#contenido">Saltar al contenido</a>
+    <div class="progress" aria-hidden="true"></div>
+    <div class="pre" aria-hidden="true">
+      <p class="pre__w display">Portfolio</p>
+      <p class="pre__count"><span class="pre__n">0</span><span>%</span></p>
+      <p class="pre__name">{person.wordmark} · {person.year}</p>
+    </div>
+    <div class="curtain" aria-hidden="true"></div>
     <Header current={path} />
     <main id="contenido" tabindex="-1">
       <slot />

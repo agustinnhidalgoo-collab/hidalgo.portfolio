@@ -43,6 +43,10 @@ Dominio: aún no confirmado, por eso no hay canonical ni URLs absolutas en sitem
 - **Movimiento**: revelados por máscara/desvanecido activados por visibilidad (una vez), transición de página nativa (View Transitions), scroll nativo. Con `prefers-reduced-motion` todo aparece estático.
 - **Sin sección Servicios**: los archivos no la desarrollan; se omite hasta tener contenido.
 
+## Capa interactiva (GSAP + Lenis)
+
+`src/scripts/motion.ts`, cargado aparte solo si el visitante no pidió movimiento reducido: preloader con contador (una vez por sesión), scroll con inercia, título del hero letra por letra con profundidad según el puntero, manifiesto que se llena palabra a palabra con el scroll, parallax y revelados con máscara, marquee que reacciona a la velocidad, cursor con etiqueta ("Ver") y botones magnéticos (solo ratón), barra de progreso y cortina roja entre páginas. Sin JS o con `prefers-reduced-motion` el contenido queda estático y completo. Se controla con atributos: `data-parallax`, `data-clip`, `data-drift`, `data-scrub`, `data-cursor`, `data-magnetic`.
+
 ## Datos contrastados (video vs. CV)
 
 - Formación coherente: video "estudiante de Comunicación Visual Gráfica y Digital, Univ. de Belgrano"; CV: Licenciatura en Comunicación Visual, Gráfica y Digital, 2024 – Actualidad. Se usó la grafía del CV para el título.

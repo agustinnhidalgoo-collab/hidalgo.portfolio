@@ -39,3 +39,6 @@ if ('IntersectionObserver' in window) {
 } else {
   targets.forEach((t) => t.classList.add('is-in'));
 }
+
+// Capa de movimiento: se carga aparte y solo si el usuario no pidió menos movimiento.
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches) import('./motion');

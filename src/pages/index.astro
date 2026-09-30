@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Contact from '../components/Contact.astro';
+import Marquee from '../components/Marquee.astro';
 import ProjectMeta from '../components/ProjectMeta.astro';
 import portrait from '../assets/portrait/agustin.png';
 import { person, contact, cv, copy, cvData } from '../data/site';
@@ -49,11 +50,13 @@ const featured = cvData.experience.filter((e) => e.featured);
     </nav>
   </section>
 
+  <Marquee />
+
   <!-- 01 · Introducción -->
   <section class="sec on-dark" id="introduccion" aria-labelledby="introduccion-title">
     <div class="wrap">
       <p class="eyebrow reveal">{contact.instagramHandle}</p>
-      <h2 id="introduccion-title" class="display intro__title mask">
+      <h2 id="introduccion-title" class="display intro__title mask" data-drift="3">
         <span class="line"><span>Introducción</span></span>
       </h2>
       <div class="intro__body prose reveal" style="--d:120ms">
@@ -76,7 +79,7 @@ const featured = cvData.experience.filter((e) => e.featured);
   <section class="on-light" id="filosofia" aria-labelledby="filosofia-title">
     <div class="wrap manifesto-wrap">
       <h2 id="filosofia-title" class="sr-only">Filosofía creativa</h2>
-      <p class="display manifesto mask" aria-label={copy.manifesto.join(' ')}>
+      <p class="display manifesto" data-scrub aria-label={copy.manifesto.join(' ')}>
         {copy.manifesto.map((l, i) => (
           <span class="line" style={`--i:${i}`} aria-hidden="true"><span>{l}</span></span>
         ))}
@@ -122,13 +125,14 @@ const featured = cvData.experience.filter((e) => e.featured);
                 <span class="sr-only">: {p.data.title}</span>
               </a>
             </div>
-            <a class="spread__media" href={`/proyectos/${p.id}`} tabindex="-1" aria-hidden="true">
+            <a class="spread__media" href={`/proyectos/${p.id}`} tabindex="-1" aria-hidden="true" data-cursor="Ver" data-clip>
               <Image
                 src={p.data.cover.src}
                 alt=""
                 format="webp"
                 quality={88}
                 loading="lazy"
+                data-parallax="5"
                 sizes="(min-width: 64rem) 46vw, 100vw"
               />
             </a>
@@ -142,11 +146,11 @@ const featured = cvData.experience.filter((e) => e.featured);
   <section class="sec on-dark about" id="sobre-mi" aria-labelledby="sobre-title" style="border-top: 1px solid var(--rule-dark)">
     <div class="wrap">
       <div class="grid">
-        <div class="about__figure reveal">
+        <div class="about__figure" data-clip>
           <Image src={portrait} alt="" format="webp" quality={90} widths={[520, 1040]} sizes="(min-width: 64rem) 40vw, 90vw" loading="lazy" />
         </div>
         <div class="about__text">
-          <h2 id="sobre-title" class="display about__name mask" aria-label={person.name}>
+          <h2 id="sobre-title" class="display about__name mask" aria-label={person.name} data-drift="2">
             <span class="about__soy" aria-hidden="true">soy</span>
             <span class="line" style="--i:0" aria-hidden="true"><span>Agustin</span></span>
             <span class="line" style="--i:1" aria-hidden="true"><span>Hidalgo</span></span>
@@ -155,7 +159,7 @@ const featured = cvData.experience.filter((e) => e.featured);
             {copy.about.map((p) => <p set:html={inline(p)} />)}
           </div>
           <div class="about__cta reveal">
-            <a class="btn" href={cv.href} download={cv.file}>{cv.label} <span class="arrow" aria-hidden="true">↓</span></a>
+            <a class="btn" data-magnetic href={cv.href} download={cv.file}>{cv.label} <span class="arrow" aria-hidden="true">↓</span></a>
             <a class="ulink" href="/sobre-mi">Sobre mí en detalle <span class="arrow" aria-hidden="true">→</span></a>
           </div>
         </div>

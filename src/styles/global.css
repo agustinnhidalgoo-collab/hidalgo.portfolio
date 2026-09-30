@@ -276,40 +276,6 @@ mark.pill {
   }
 }
 
-/* Transición entre páginas (navegadores con View Transitions; sin JS) */
-@view-transition {
-  navigation: auto;
-}
-@media (prefers-reduced-motion: no-preference) {
-  ::view-transition-old(root) {
-    animation: 260ms var(--ease) both vt-out;
-  }
-  ::view-transition-new(root) {
-    animation: 420ms var(--ease) both vt-in;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  @view-transition {
-    navigation: none;
-  }
-  html {
-    scroll-behavior: auto;
-  }
-}
-@keyframes vt-out {
-  to {
-    opacity: 0;
-  }
-}
-@keyframes vt-in {
-  from {
-    clip-path: inset(0 0 100% 0);
-  }
-  to {
-    clip-path: inset(0);
-  }
-}
-
 /* ---------- Enlaces y botones ---------- */
 .ulink {
   display: inline-flex;
@@ -625,10 +591,11 @@ dialog.index::backdrop {
 .hero__title {
   position: absolute;
   z-index: 1;
-  left: 50%;
+  left: 0;
+  right: 0;
   top: 30%;
-  transform: translateX(-50%);
-  width: max-content;
+  text-align: center;
+  white-space: nowrap;
   font-size: min(21.6vw, 50svh);
   line-height: 0.86;
   color: var(--white);
@@ -682,52 +649,6 @@ dialog.index::backdrop {
 }
 .hero__links a {
   color: var(--white);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .hero__title {
-    animation: hero-title 900ms var(--ease) 100ms both;
-  }
-  .hero__portrait {
-    animation: hero-fade 1000ms var(--ease) 0ms both;
-  }
-  .hero__note--a span,
-  .hero__note--b span {
-    display: inline-block;
-    animation: hero-wipe 850ms var(--ease) both;
-  }
-  .hero__note--a span {
-    animation-delay: 650ms;
-  }
-  .hero__note--b span {
-    animation-delay: 1000ms;
-  }
-  .hero__sig,
-  .hero__links {
-    animation: hero-fade 800ms var(--ease) 1200ms both;
-  }
-}
-@keyframes hero-title {
-  from {
-    clip-path: inset(100% 0 0 0);
-    transform: translateX(-50%) translateY(6%);
-  }
-  to {
-    clip-path: inset(-5% 0 -5% 0);
-    transform: translateX(-50%);
-  }
-}
-@keyframes hero-fade {
-  from {
-    opacity: 0;
-  }
-}
-@keyframes hero-wipe {
-  from {
-    clip-path: inset(-10% 100% -10% 0);
-  }
-  to {
-    clip-path: inset(-10% -6% -10% -6%);
-  }
 }
 @media (max-width: 40rem) {
   .hero__title {
@@ -835,11 +756,6 @@ dialog.index::backdrop {
 }
 .spread__media img {
   width: 100%;
-  transition: transform 900ms var(--ease);
-}
-.spread__media:hover img,
-.spread__media:focus-visible img {
-  transform: scale(1.025);
 }
 .pnum {
   display: flex;
@@ -1403,4 +1319,193 @@ dialog.index::backdrop {
 /* Bloqueo de scroll con el índice abierto (sin JS) */
 html:has(dialog[open]) {
   overflow: hidden;
+}
+
+/* =========================================================
+   Capa de movimiento (activa con JS y movimiento permitido)
+   ========================================================= */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+.chw {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-block: 0.08em 0.02em;
+  margin-block: -0.08em -0.02em;
+}
+.ch {
+  display: inline-block;
+  will-change: transform;
+}
+.manifesto .w {
+  color: rgb(124 0 0 / 0.14);
+}
+
+.pre,
+.curtain,
+.progress,
+.cursor {
+  display: none;
+}
+.progress {
+  position: fixed;
+  z-index: 25;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: var(--red-display);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .js .progress {
+    display: block;
+  }
+  .js .hero__title,
+  .js .hero__portrait,
+  .js .hero__note span,
+  .js .hero__links {
+    visibility: hidden;
+  }
+  html.motion-timeout .hero__title,
+  html.motion-timeout .hero__portrait,
+  html.motion-timeout .hero__note span,
+  html.motion-timeout .hero__links {
+    visibility: visible;
+  }
+  html.has-pre {
+    overflow: hidden;
+  }
+  html.has-pre .pre {
+    display: grid;
+  }
+  html.curtain-on .curtain {
+    display: block;
+  }
+}
+.pre {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  place-items: center;
+  align-content: center;
+  background: var(--red);
+  color: var(--white);
+  clip-path: inset(0);
+}
+.pre__w {
+  font-size: clamp(3.5rem, 17vw, 20rem);
+  white-space: nowrap;
+}
+.pre__count {
+  position: absolute;
+  left: var(--gutter);
+  bottom: 1.25rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.15em;
+  font-weight: 800;
+  font-size: clamp(1.5rem, 3vw, 2.75rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+.pre__name {
+  position: absolute;
+  right: var(--gutter);
+  bottom: 1.5rem;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+}
+.curtain {
+  position: fixed;
+  z-index: 190;
+  inset: 0;
+  background: var(--red);
+  clip-path: inset(0);
+  pointer-events: none;
+}
+
+/* Cursor */
+.cursor {
+  position: fixed;
+  z-index: 300;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 200ms;
+}
+html.has-cursor .cursor {
+  display: block;
+  opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .js .cursor {
+    display: block;
+  }
+}
+.cursor__c {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  mix-blend-mode: difference;
+  transform: translate(-7px, -7px);
+}
+.cursor__c.is-label {
+  mix-blend-mode: normal;
+  background: var(--white);
+  color: var(--black);
+}
+.cursor__l {
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Marquee */
+.marquee {
+  overflow: hidden;
+  padding-block: clamp(0.9rem, 2vw, 1.6rem);
+  background: var(--red);
+  color: var(--white);
+  border-block: 1px solid rgb(255 255 255 / 0.25);
+}
+.marquee__track {
+  display: flex;
+  width: max-content;
+  white-space: nowrap;
+  will-change: transform;
+}
+.marquee__track span {
+  padding-right: 0.5em;
+  font-family: var(--f-display);
+  font-size: clamp(2.2rem, 6.4vw, 6.5rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.marquee__track span i {
+  font-style: normal;
+  opacity: 0.55;
+  padding-left: 0.5em;
 }

@@ -52,8 +52,8 @@ const sizes = '(min-width: 64rem) 46vw, 100vw';
           <p class="descriptor reveal">{data.descriptor}</p>
           <div class="reveal"><ProjectMeta project={project} /></div>
         </div>
-        <div class="case-open__media">
-          <Image src={data.cover.src} alt={data.cover.alt} format="webp" quality={88} loading="eager" fetchpriority="high" sizes={sizes} />
+        <div class="case-open__media" data-clip>
+          <Image src={data.cover.src} alt={data.cover.alt} format="webp" quality={88} loading="eager" fetchpriority="high" data-parallax="4" sizes={sizes} />
         </div>
       </div>
     </header>
@@ -162,7 +162,7 @@ const sizes = '(min-width: 64rem) 46vw, 100vw';
     )}
 
     {next.id !== project.id && (
-      <a class="next on-dark" href={`/proyectos/${next.id}`}>
+      <a class="next on-dark" href={`/proyectos/${next.id}`} data-cursor="Ir">
         <div class="wrap">
           <span class="label">Siguiente proyecto</span>
           <span class={`display next__title ${next.data.titleTone === 'red' ? 'ptitle--red' : ''}`} style="display:block">{next.data.title}</span>
