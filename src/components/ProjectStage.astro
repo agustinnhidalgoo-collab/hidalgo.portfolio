@@ -9,7 +9,7 @@ const { project, n } = Astro.props;
 const { data } = project;
 const { Content } = await render(project);
 const scene = data.scene ?? 'bottle';
-const prefix = scene === 'card' ? 'c' : 'b';
+const prefix = scene === 'cape' ? 'c' : 'b';
 const imgs = data.stageImages ?? [];
 const links = data.sections.map((s, i) => ({ s, i })).filter(({ s }) => 'title' in s && s.title);
 const palette = data.sections.find((s) => s.kind === 'palette');

@@ -1,8 +1,8 @@
 /* Sonido del portfolio (Web Audio). Opcional: apagado hasta que el visitante lo activa.
-   - Efectos de interfaz: archivos CC0 (public/audio), un pack distinto en cada mundo.
-   - Ambiente de cada mundo y roce de la capa: sintetizados aquí (sin archivos).
+   - Foley propio (public/audio/foley): vino en la bodega, capa y tijera en la barbería. Sin clics ni hover.
+   - Ambiente: aire de bodega con gotas lejanas y el roce de la capa ligado al scroll (sintetizados aquí).
    - Se suspende con la pestaña oculta y nunca arranca sin un gesto del usuario. */
-import { AUDIO_BASE, CINEMATIC, CUE_VOLUME, LEVELS, WORLD_PACK, type World } from '../data/sound-map';
+import { AUDIO_BASE, BUILD_CUE, FOLEY, LEVELS, STEP_CUE, WORLD_CUE, type Cue, type World } from '../data/sound-map';
 
 const KEY = 'portfolio:sound';
 const root = document.documentElement;
@@ -34,27 +34,23 @@ function load(url: string) {
 }
 
 interface PlayOpts {
-  pack?: string;
   volume?: number;
   rate?: number;
-  big?: boolean; // transiciones entre mundos: usa el pack cinematic si el cue existe ahí
   force?: boolean; // ignora el límite de repetición (página de pruebas)
 }
 
-export async function play(cue: string, o: PlayOpts = {}) {
-  if (!enabled || !ctx || ctx.state !== 'running') return;
+export async function play(cue: Cue, o: PlayOpts = {}) {
+  if (!enabled || !ctx || ctx.state !== 'running' || !FOLEY[cue]) return;
   const now = performance.now();
-  const min = cue === 'hover' ? 110 : 60;
-  if (!o.force && now - (lastPlayed.get(cue) ?? -1e9) < min) return;
+  if (!o.force && now - (lastPlayed.get(cue) ?? -1e9) < 140) return;
   lastPlayed.set(cue, now);
-  const pack = o.pack ?? (o.big && CINEMATIC.has(cue) ? 'cinematic' : WORLD_PACK[world]);
-  const buf = await load(`${AUDIO_BASE}/${pack}/${cue}.mp3`);
+  const buf = await load(`${AUDIO_BASE}/${cue}.mp3`);
   if (!buf || !ctx || !enabled) return;
   const src = ctx.createBufferSource();
   src.buffer = buf;
-  src.playbackRate.value = (o.rate ?? 1) * (1 + (Math.random() - 0.5) * 0.04); // leve variación: evita el efecto «ametralladora»
+  src.playbackRate.value = (o.rate ?? 1) * (1 + (Math.random() - 0.5) * 0.05); // leve variación: nunca suena idéntico
   const g = ctx.createGain();
-  g.gain.value = (CUE_VOLUME[cue] ?? 0.18) * (o.volume ?? 1) * (o.big ? 1.25 : 1);
+  g.gain.value = FOLEY[cue].vol * (o.volume ?? 1);
   src.connect(g).connect(uiBus);
   src.start();
   src.onended = () => {
@@ -105,55 +101,40 @@ function buildAmbience() {
     b2 = 0.57 * b2 + w * 1.0526913;
     d[i] = (b0 + b1 + b2 + w * 0.1848) * 0.12;
   }
-  (Object.keys(WORLD_PACK) as World[]).forEach((w) => {
+  (['studio', 'cellar', 'barber'] as World[]).forEach((w) => {
     beds[w] = c.createGain();
     beds[w].gain.value = 0;
     beds[w].connect(ambBus);
   });
 
-  // Estudio: aire suave y un acorde grave muy bajo
-  {
-    const out = beds.studio;
-    const n = noise(), lp = c.createBiquadFilter(), ng = c.createGain();
-    lp.type = 'lowpass'; lp.frequency.value = 520; ng.gain.value = 0.35;
-    n.connect(lp).connect(ng).connect(out); n.start();
-    [98, 146.83, 196].forEach((f, i) => {
-      const o = osc('sine', f, (i - 1) * 4), g = c.createGain();
-      g.gain.value = 0.05 / (i + 1);
-      lfo(g.gain, 0.05 + i * 0.03, 0.012);
-      o.connect(g).connect(out); o.start();
-    });
-  }
-  // Bodega: bordón grave, aire de sótano que respira y gotas lejanas
+  // Estudio: silencio (la presentación personal no lleva ambiente)
+
+  // Bodega: aire grave de sótano que respira, sin zumbidos; las gotas lejanas lo completan
   {
     const out = beds.cellar;
     const n = noise(), lp = c.createBiquadFilter(), ng = c.createGain();
-    lp.type = 'lowpass'; lp.frequency.value = 260; ng.gain.value = 0.55;
-    lfo(ng.gain, 0.045, 0.22);
+    lp.type = 'lowpass'; lp.frequency.value = 210; ng.gain.value = 0.7;
+    lfo(ng.gain, 0.05, 0.25);
     n.connect(lp).connect(ng).connect(out); n.start();
-    [55, 82.41, 110].forEach((f, i) => {
-      const o = osc('sine', f, (i - 1) * 6), g = c.createGain();
-      g.gain.value = 0.09 / (i + 1);
-      lfo(g.gain, 0.04 + i * 0.02, 0.02);
-      o.connect(g).connect(out); o.start();
-    });
+    const n2 = noise(), bp = c.createBiquadFilter(), g2 = c.createGain();
+    bp.type = 'bandpass'; bp.frequency.value = 620; bp.Q.value = 0.5; g2.gain.value = 0.05;
+    lfo(g2.gain, 0.07, 0.04);
+    n2.connect(bp).connect(g2).connect(out); n2.start();
   }
-  // Barbería: zumbido de tubo fluorescente, tono de sala y la capa (el roce sube con el desplazamiento)
+  // Barbería: aire de sala muy tenue; el roce de la capa (ligado al scroll) es el sonido principal
   {
     const out = beds.barber;
     const n = noise(), bp = c.createBiquadFilter(), ng = c.createGain();
-    bp.type = 'bandpass'; bp.frequency.value = 1400; bp.Q.value = 0.35; ng.gain.value = 0.22;
+    bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 0.4; ng.gain.value = 0.1;
     n.connect(bp).connect(ng).connect(out); n.start();
-    const hum = osc('sine', 60), hg = c.createGain();
-    hg.gain.value = 0.035;
-    hum.connect(hg).connect(out); hum.start();
-    // Capa de barbero: roce de tela; se agita con el desplazamiento (ruido filtrado con pulsos lentos)
+    // Capa de barbero: roce de tela; se agita con el desplazamiento (ruido filtrado con pulsos irregulares)
     buzzFilter = c.createBiquadFilter();
     buzzFilter.type = 'bandpass'; buzzFilter.frequency.value = 900; buzzFilter.Q.value = 0.6;
     buzzGain = c.createGain();
     buzzGain.gain.value = 0;
     const am = c.createGain(); am.gain.value = 0.6;
-    lfo(am.gain, 5.5, 0.4); // flameo
+    lfo(am.gain, 7.3, 0.4); // flameo
+    lfo(am.gain, 2.1, 0.15);
     const rn = noise();
     rn.connect(buzzFilter).connect(am).connect(buzzGain).connect(clothBus);
     rn.start();
@@ -167,7 +148,7 @@ function drip() {
   const f = 1300 + Math.random() * 900;
   const o = osc('sine', f), g = c.createGain(), dl = c.createDelay(1), fb = c.createGain(), lp = c.createBiquadFilter();
   g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(0.06, t + 0.004);
+  g.gain.linearRampToValueAtTime(0.09, t + 0.004);
   g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
   o.frequency.setValueAtTime(f * 1.25, t);
   o.frequency.exponentialRampToValueAtTime(f, t + 0.05);
@@ -204,7 +185,7 @@ function buzzLoop() {
   vel += (inst - vel) * (inst > vel ? 0.35 : 0.07);
   const k = world === 'barber' ? clamp(vel / 1.6) : 0;
   const t = ctx.currentTime;
-  buzzGain.gain.setTargetAtTime(LEVELS.buzz * k, t, 0.06);
+  buzzGain.gain.setTargetAtTime(LEVELS.cloth * k, t, 0.06);
   buzzFilter.frequency.setTargetAtTime(600 + k * 2200, t, 0.08);
   if (k > 0.002 || inst > 0.01) buzzRaf = requestAnimationFrame(buzzLoop);
 }
@@ -261,9 +242,8 @@ export async function setEnabled(on: boolean, o: { silent?: boolean; remember?: 
     master.gain.cancelScheduledValues(c.currentTime);
     master.gain.setTargetAtTime(LEVELS.master, c.currentTime, 0.25);
     applyWorld(world);
-    if (!o.silent) play('toggle-on');
+    if (!o.silent) play('clink', { volume: 0.7 });
   } else {
-    if (!o.silent) play('toggle-off');
     enabled = false;
     if (ctx) {
       master.gain.setTargetAtTime(0, ctx.currentTime, 0.12);
@@ -278,16 +258,15 @@ export async function setEnabled(on: boolean, o: { silent?: boolean; remember?: 
 }
 export const toggle = () => setEnabled(!enabled);
 
+const ORDER: World[] = ['studio', 'cellar', 'barber'];
 export function setWorld(w: World, from?: World) {
   if (w === world) return;
   world = w;
-  if (enabled) {
-    applyWorld(w);
-    // Transición entre mundos: impacto cinematográfico corto (hacia adelante) o deslizamiento (de regreso)
-    const order: World[] = ['studio', 'cellar', 'barber'];
-    const fwd = order.indexOf(w) > order.indexOf(from ?? 'studio');
-    play(fwd ? (w === 'barber' ? 'checkpoint' : 'unlock') : 'swipe', { big: true });
-  }
+  if (!enabled) return;
+  applyWorld(w);
+  const fwd = ORDER.indexOf(w) > ORDER.indexOf(from ?? 'studio');
+  const c = WORLD_CUE[w][fwd ? 'forward' : 'back'];
+  if (c) play(c);
 }
 
 /* ---------- Eventos de la página ---------- */
@@ -295,64 +274,18 @@ addEventListener('portfolio:world', (e) => {
   const d = (e as CustomEvent<{ world: World; from: World }>).detail;
   setWorld(d.world, d.from);
 });
+// Paso de un tramo fijado: adelante / atrás según el mundo activo
 addEventListener('portfolio:sfx', (e) => {
-  const d = (e as CustomEvent<{ cue: string; big?: boolean }>).detail;
-  play(d.cue, { big: d.big });
+  const d = (e as CustomEvent<{ cue: 'forward' | 'back' }>).detail;
+  const c = STEP_CUE[world][d.cue];
+  if (c) play(c, { volume: d.cue === 'back' ? 0.75 : 1 });
 });
-
-let lastHover: Element | null = null;
-document.addEventListener(
-  'pointerover',
-  (e) => {
-    if (!enabled || (e as PointerEvent).pointerType !== 'mouse') return;
-    const t = (e.target as Element).closest('a[href], button');
-    if (!t || t === lastHover || t.closest('[data-no-sound]')) return;
-    lastHover = t;
-    play('hover');
-  },
-  { passive: true },
-);
-document.addEventListener('pointerout', (e) => {
-  if (!(e.relatedTarget as Element | null)?.closest?.('a[href], button')) lastHover = null;
+// Armado de la botella: suena al avanzar de fase
+addEventListener('portfolio:build', (e) => {
+  const d = (e as CustomEvent<{ phase: number; dir: 1 | -1 }>).detail;
+  const c = BUILD_CUE[d.phase];
+  if (c && d.dir > 0) play(c);
 });
-document.addEventListener(
-  'click',
-  (e) => {
-    if (!enabled) return;
-    const a = (e.target as Element).closest<HTMLElement>('a[href], button');
-    if (!a || a.classList.contains('snd-btn')) return;
-    if (a.closest('[data-no-sound]')) return;
-    if (a.hasAttribute('data-menu-open')) return play('open');
-    if (a.hasAttribute('data-menu-close')) return; // el cierre suena desde el evento «close» del diálogo
-    if (a.closest('#index-dialog')) return;
-    const href = a.getAttribute('href') ?? '';
-    if (a.hasAttribute('download')) return play('success');
-    if (/^(mailto:|https:\/\/wa\.me|https:\/\/www\.instagram)/.test(href)) return play('send');
-    if (href.startsWith('#')) return play('select');
-    play('press');
-  },
-  { passive: true },
-);
-document.getElementById('index-dialog')?.addEventListener('close', () => play('close'));
-
-// Pasos de sección: un toque suave al entrar en cada capítulo
-if ('IntersectionObserver' in window) {
-  const seen = new Set<Element>();
-  const io = new IntersectionObserver(
-    (entries) => {
-      for (const en of entries) {
-        if (en.isIntersecting && en.intersectionRatio > 0.5) {
-          if (!seen.has(en.target)) {
-            seen.add(en.target);
-            play('progress-step');
-          }
-        } else if (!en.isIntersecting) seen.delete(en.target);
-      }
-    },
-    { threshold: [0, 0.5] },
-  );
-  document.querySelectorAll('[data-snd-section]').forEach((s) => io.observe(s));
-}
 
 document.addEventListener('visibilitychange', () => {
   if (!ctx) return;
@@ -362,3 +295,4 @@ document.addEventListener('visibilitychange', () => {
 
 /* Para la página de pruebas (/sonidos) */
 export const __ready = () => !!ctx && enabled;
+export { FOLEY };

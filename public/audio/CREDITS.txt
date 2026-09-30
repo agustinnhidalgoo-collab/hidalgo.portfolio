@@ -1,5 +1,0 @@
-Sonidos de interfaz: biblioteca «uisfx» (https://uisfx.com, https://github.com/romainsimon/uisfx), versión 0.4.0.
-Packs usados: studio, organic, mechanical y cinematic (solo 3 sonidos).
-Licencia del audio: CC0 1.0 (dominio público). Se permite copiar, modificar y usar, incluso comercialmente; la atribución no es obligatoria, pero se agradece.
-El código de esa biblioteca (MIT) no se incluye: este proyecto solo usa los archivos de audio.
-El ambiente (bodega y barbería) y el roce de la capa se sintetizan en el navegador con Web Audio (src/scripts/sound.ts).

@@ -1,13 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
-import { CUE_VOLUME, WORLD_PACK } from '../data/sound-map';
+import { FOLEY } from '../data/sound-map';
 
-const cues = Object.keys(CUE_VOLUME);
-const packs = [
-  { id: 'studio', name: 'Studio', where: 'Apertura, Sobre mí, introducción' },
-  { id: 'organic', name: 'Organic', where: 'Bodega (Cordero con piel de lobo)' },
-  { id: 'mechanical', name: 'Mechanical', where: 'Barbería (Be Fresh)' },
-];
+const wine = ['cork', 'pour', 'glug', 'clink', 'scan'] as const;
+const barber = ['cape-on', 'cape-flap', 'snip'] as const;
 ---
 
 <Base title="Prueba de sonidos — Agustín Hidalgo" description="Página interna para escuchar los sonidos del portfolio." path="/sonidos" robots="noindex, nofollow">
@@ -16,36 +12,29 @@ const packs = [
       <p class="label">Página interna · no está enlazada</p>
       <h1 class="display" style="font-size: clamp(3rem, 9vw, 8rem); margin-block: 0.5rem 1.5rem">Sonidos</h1>
       <p class="prose">
-        Acá podés escuchar cada sonido y cada ambiente antes de decidir. Los efectos son archivos de dominio público (CC0) de la biblioteca uisfx;
-        los ambientes y el roce de la capa se generan en el navegador. Todo se ajusta en <code>src/data/sound-map.ts</code>.
+        Acá podés escuchar cada sonido antes de decidir. Son propios: están sintetizados con <code>scripts/make-sounds.py</code> (sin muestras de terceros),
+        y todo se ajusta en <code>src/data/sound-map.ts</code>. En el sitio no hay sonidos de clic ni de hover: suena lo que pasa en escena.
       </p>
       <p style="margin-top: 1.5rem"><button class="btn" type="button" id="snd-start" data-no-sound>Activar audio de prueba</button></p>
 
-      <h2 class="label" style="margin-top: 3rem">Ambientes (suenan en bucle; el roce de la capa depende del scroll)</h2>
+      <h2 class="label" style="margin-top: 3rem">Bodega · vino</h2>
       <div class="snd-row">
-        <button class="btn btn--ghost" type="button" data-world="studio" data-no-sound>Apertura</button>
+        {wine.map((c) => <button class="btn btn--ghost snd-cue" type="button" data-cue={c} data-no-sound title={FOLEY[c].what}>{c}</button>)}
+      </div>
+      <p class="notice" style="margin-top: 1rem">{wine.map((c) => `${c}: ${FOLEY[c].what}`).join(' · ')}</p>
+
+      <h2 class="label" style="margin-top: 3rem">Barbería · capa y tijera</h2>
+      <div class="snd-row">
+        {barber.map((c) => <button class="btn btn--ghost snd-cue" type="button" data-cue={c} data-no-sound title={FOLEY[c].what}>{c}</button>)}
+      </div>
+      <p class="notice" style="margin-top: 1rem">{barber.map((c) => `${c}: ${FOLEY[c].what}`).join(' · ')}</p>
+
+      <h2 class="label" style="margin-top: 3rem">Ambientes (en bucle; el roce de la capa depende del scroll)</h2>
+      <div class="snd-row">
+        <button class="btn btn--ghost" type="button" data-world="studio" data-no-sound>Apertura (silencio)</button>
         <button class="btn btn--ghost" type="button" data-world="cellar" data-no-sound>Bodega</button>
         <button class="btn btn--ghost" type="button" data-world="barber" data-no-sound>Barbería</button>
       </div>
-
-      {packs.map((p) => (
-        <div style="margin-top: 2.5rem">
-          <h2 class="label">Pack {p.name} — {p.where}</h2>
-          <div class="snd-row">
-            {cues.map((c) => <button class="btn btn--ghost snd-cue" type="button" data-pack={p.id} data-cue={c} data-no-sound>{c}</button>)}
-          </div>
-        </div>
-      ))}
-
-      <div style="margin-top: 2.5rem">
-        <h2 class="label">Transiciones entre mundos (pack cinematic)</h2>
-        <div class="snd-row">
-          {['unlock', 'checkpoint', 'swipe'].map((c) => <button class="btn btn--ghost snd-cue" type="button" data-pack="cinematic" data-cue={c} data-big data-no-sound>{c}</button>)}
-        </div>
-      </div>
-      <p class="notice" style="margin-top: 2.5rem">
-        Packs por mundo: {Object.entries(WORLD_PACK).map(([w, p]) => `${w} → ${p}`).join(' · ')}. Audio: CC0 1.0, ver <a href="/audio/CREDITS.txt">créditos</a>.
-      </p>
     </div>
   </section>
 </Base>
@@ -74,7 +63,7 @@ const packs = [
   document.querySelectorAll<HTMLButtonElement>('.snd-cue').forEach((b) =>
     b.addEventListener('click', async () => {
       await setEnabled(true, { remember: false, silent: true });
-      play(b.dataset.cue!, { pack: b.dataset.pack, force: true, big: b.hasAttribute('data-big') });
+      play(b.dataset.cue as never, { force: true });
     }),
   );
   document.querySelectorAll<HTMLButtonElement>('[data-world]').forEach((b) =>

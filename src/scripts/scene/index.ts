@@ -1,7 +1,8 @@
 /* Escena 3D del portfolio (Three.js).
    Recorrido: apertura con el nombre en 3D y el retrato en capas (una fila de letras detrás y otra delante),
-   la botella de «Cordero con piel de lobo» asomando abajo → la botella sube y acompaña → en Be Fresh
-   entran su tarjeta (isologo vectorial extruido) y la capa de barbero ondulando.
+   sin nada más. Al bajar, la botella de «Cordero con piel de lobo» sube desde abajo y se ARMA con el scroll
+   (trazo técnico → vidrio → etiqueta → acabado). En Be Fresh la protagonista es solo la capa de barbero,
+   que también se arma (patrón → tela) y ondula.
 
    Principios:
    - El estado de la escena es una FUNCIÓN PURA de la posición de scroll y del layout actual:
@@ -12,15 +13,16 @@
    - Solo se dibuja cuando algo cambia y hay un objeto a la vista. */
 import {
   ACESFilmicToneMapping,
-  Box3,
   BoxGeometry,
   CanvasTexture,
   Color,
   CylinderGeometry,
   DirectionalLight,
-  ExtrudeGeometry,
+  BufferGeometry,
   Float32BufferAttribute,
   Group,
+  LineBasicMaterial,
+  LineSegments,
   LatheGeometry,
   Mesh,
   MeshBasicMaterial,
@@ -31,12 +33,10 @@ import {
   PlaneGeometry,
   PointLight,
   Scene,
-  Shape,
   SpotLight,
   SRGBColorSpace,
   TextureLoader,
   Vector2,
-  Vector3,
   WebGLRenderer,
 } from 'three';
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
@@ -46,7 +46,6 @@ import bottleProfile from '../../assets/3d/bottle-profile.json';
 import labelFrontUrl from '../../assets/3d/label-front.webp?url';
 import labelBackUrl from '../../assets/3d/label-back.webp?url';
 import portraitUrl from '../../assets/portrait/agustin.webp?url';
-import bfSvg from '../../assets/3d/bf-isologo.svg?raw';
 import capeUrl from '../../assets/3d/capa.webp?url';
 
 type Tier = 'high' | 'mid' | 'low';
@@ -136,6 +135,34 @@ export async function startScene(): Promise<boolean> {
     if (m.material) (m.material as MeshBasicMaterial).dispose();
   });
 
+  /* ---------- Armado por scroll ----------
+     Un recorte por altura (con borde rojo luminoso) deja aparecer cada pieza "como si se dibujara":
+     la botella se arma de abajo hacia arriba; la capa, de arriba hacia abajo. Todo es función del scroll. */
+  interface Cut { uLim: { value: number }; uGlow: { value: number } }
+  const mkCut = (): Cut => ({ uLim: { value: 0 }, uGlow: { value: 0 } });
+  const applyCut = (sh: { uniforms: Record<string, unknown>; vertexShader: string; fragmentShader: string }, u: Cut, expr: string, glow: boolean) => {
+    sh.uniforms.uLim = u.uLim;
+    sh.uniforms.uGlow = u.uGlow;
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying float vCut;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvCut = ${expr};`);
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying float vCut;\nuniform float uLim;\nuniform float uGlow;')
+      .replace('void main() {', 'void main() {\n  if (vCut > uLim) discard;');
+    if (glow) {
+      sh.fragmentShader = sh.fragmentShader.replace(
+        '#include <dithering_fragment>',
+        '#include <dithering_fragment>\n  gl_FragColor.rgb += vec3(1.0, 0.17, 0.1) * uGlow * (1.0 - smoothstep(0.0, 0.03, uLim - vCut));',
+      );
+    }
+  };
+  const cutMat = (m: { onBeforeCompile: unknown }, u: Cut, expr: string, glow = true) => {
+    m.onBeforeCompile = (sh: Parameters<typeof applyCut>[0]) => applyCut(sh, u, expr, glow);
+  };
+  const part = (a: number, b: number, k: number) => clamp((k - a) / (b - a), 0, 1); // tramo [a,b] de 0 a 1
+  const bU = mkCut(), lU = mkCut(), wU = mkCut(); // botella: vidrio/tapa, etiquetas, trazo técnico
+  const cU = mkCut(), gU = mkCut(); // capa: tela y patrón
+
   /* ---------- Luces (sin sombras proyectadas: no aportan y cuestan) ---------- */
   const key = new SpotLight(0xfff1e4, 420, 60, 0.42, 1, 1.4);
   key.position.set(-8, 7, 14);
@@ -146,9 +173,6 @@ export async function startScene(): Promise<boolean> {
   const fill = new DirectionalLight(0xffffff, 1.0);
   fill.position.set(4, 3, 10);
   scene.add(fill);
-  const rake = new SpotLight(0xffffff, 0, 60, 0.42, 1, 1.4); // luz rasante: relieve de la tarjeta y filo de la máquina
-  rake.position.set(-11, -4, 5);
-  scene.add(rake, rake.target);
 
   /* ---------- Nombre en 3D: dos filas a distinta profundidad (retrato en medio) ---------- */
   const font = new Font(fontJson as never);
@@ -238,9 +262,11 @@ export async function startScene(): Promise<boolean> {
   const CAP_Y = 0.79;
   const glass = new MeshPhysicalMaterial({ color: 0x070908, roughness: 0.05, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 2.9, ior: 1.5 });
   const bodyPts = [new Vector2(0, 0), new Vector2(prof[0].x * 0.85, 0), ...prof.filter((p) => p.y <= CAP_Y + 0.01)];
+  cutMat(glass, bU, 'position.y');
   bottle.add(new Mesh(new LatheGeometry(bodyPts, seg), glass));
   const capMat = new MeshPhysicalMaterial({ color: 0x4a0f22, roughness: 0.3, metalness: 0.22, clearcoat: 0.9, clearcoatRoughness: 0.22, envMapIntensity: 1.5 });
   const capPts = [...prof.filter((p) => p.y >= CAP_Y).map((p) => new Vector2(p.x * 1.035, p.y)), new Vector2(prof[prof.length - 1].x * 1.035, 1), new Vector2(0, 1)];
+  cutMat(capMat, bU, 'position.y');
   bottle.add(new Mesh(new LatheGeometry(capPts, Math.round(seg * 0.6)), capMat));
   const bodyR = Math.max(...bodyPts.map((p) => p.x));
   const loader = new TextureLoader();
@@ -260,7 +286,9 @@ export async function startScene(): Promise<boolean> {
       uv.push((Math.sin(phi) / Math.sin(half) + 1) / 2, pos.getY(i) / (y1 - y0) + 0.5);
     }
     g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
-    const m = new Mesh(g, new MeshStandardMaterial({ map: tex, roughness: 0.82, metalness: 0, bumpMap: tex, bumpScale: 1.1, alphaTest: 0.4 }));
+    const mat = new MeshStandardMaterial({ map: tex, roughness: 0.82, metalness: 0, bumpMap: tex, bumpScale: 1.1, alphaTest: 0.4 });
+    cutMat(mat, lU, `position.y + ${((y0 + y1) / 2).toFixed(4)}`);
+    const m = new Mesh(g, mat);
     m.position.y = (y0 + y1) / 2;
     if (flip) m.rotation.y = PI;
     return m;
@@ -268,6 +296,50 @@ export async function startScene(): Promise<boolean> {
   const texF = await loadTex(labelFrontUrl); // lo único imprescindible para la apertura
   bottle.add(makeLabel(texF, 0.1664, 0.6352, 1.36, false));
   bottle.position.y = -0.5;
+
+  /* Trazo técnico: anillos y meridianos de la silueta, guías de corte y regla. Desaparece al terminar el armado. */
+  const wireMat = new LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, toneMapped: false, depthWrite: false });
+  const guideMat = new LineBasicMaterial({ color: 0xff3a2a, transparent: true, opacity: 0.7, toneMapped: false, depthWrite: false });
+  cutMat(wireMat, wU, 'position.y', false);
+  cutMat(guideMat, wU, 'position.y', false);
+  {
+    const w: number[] = [];
+    const g: number[] = [];
+    const N = tier === 'low' ? 40 : 64;
+    const line = (a: number[], x0: number, y0: number, z0: number, x1: number, y1: number, z1: number) => a.push(x0, y0, z0, x1, y1, z1);
+    for (let i = 0; i < prof.length; i += 4) {
+      const r = prof[i].x * 1.012, y = prof[i].y;
+      for (let k = 0; k < N; k++) {
+        const a0 = (k / N) * PI * 2, a1 = ((k + 1) / N) * PI * 2;
+        line(w, Math.cos(a0) * r, y, Math.sin(a0) * r, Math.cos(a1) * r, y, Math.sin(a1) * r);
+      }
+    }
+    for (let m = 0; m < 16; m++) {
+      const a = (m / 16) * PI * 2;
+      for (let i = 0; i < prof.length - 2; i += 2) {
+        const r0 = prof[i].x * 1.012, r1 = prof[i + 2].x * 1.012;
+        line(w, Math.cos(a) * r0, prof[i].y, Math.sin(a) * r0, Math.cos(a) * r1, prof[i + 2].y, Math.sin(a) * r1);
+      }
+    }
+    // guías horizontales (base, etiqueta, hombro/tapa, cima) y regla a la derecha con marcas cada 5 %
+    [0.002, 0.1664, 0.6352, CAP_Y, 0.998].forEach((y) => line(g, -0.36, y, 0, 0.36, y, 0));
+    line(g, 0.3, 0, 0, 0.3, 1, 0);
+    for (let k = 0; k <= 20; k++) line(g, 0.3, k / 20, 0, 0.3 + (k % 5 === 0 ? 0.045 : 0.022), k / 20, 0);
+    // contorno de la etiqueta sobre el cilindro
+    const rr = bodyR + 0.006, hf = 1.36;
+    const pt = (a: number, y: number): [number, number, number] => [Math.sin(a) * rr, y, Math.cos(a) * rr];
+    for (let k = 0; k < 28; k++) {
+      const a0 = -hf + (k / 28) * hf * 2, a1 = -hf + ((k + 1) / 28) * hf * 2;
+      [0.1664, 0.6352].forEach((y) => line(g, ...pt(a0, y), ...pt(a1, y)));
+    }
+    [-hf, hf].forEach((a) => line(g, ...pt(a, 0.1664), ...pt(a, 0.6352)));
+    const geo = (arr: number[]) => {
+      const b = new BufferGeometry();
+      b.setAttribute('position', new Float32BufferAttribute(arr, 3));
+      return b;
+    };
+    bottle.add(new LineSegments(geo(w), wireMat), new LineSegments(geo(g), guideMat));
+  }
   const bottleRoot = new Group();
   bottleRoot.add(bottle);
   scene.add(bottleRoot);
@@ -297,50 +369,16 @@ export async function startScene(): Promise<boolean> {
   const shadow = new Mesh(new PlaneGeometry(1, 0.16), shadowMat);
   scene.add(shadow);
 
-  /* ---------- Be Fresh: tarjeta (isologo vectorial extruido) y máquina de pelo (se construyen al acercarse) ---------- */
-  let card: Group | null = null;
+  /* ---------- Be Fresh: la capa de barbero es la única protagonista (se construye al acercarse) ---------- */
   let cape: Mesh | null = null;
-  let capeAspect = 1.45;
   const capeU = { uTime: { value: 0 }, uAmp: { value: 0.3 } };
   let barberBuilding = false;
   const buildBarber = async () => {
-    if (card || barberBuilding) return;
+    if (cape || barberBuilding) return;
     barberBuilding = true;
-    const { SVGLoader } = await import('three/examples/jsm/loaders/SVGLoader.js');
-
-    // Tarjeta
-    const cardMat = new MeshStandardMaterial({ color: 0x060607, roughness: 0.88, metalness: 0.04, envMapIntensity: 0.3 });
-    const bfMat = new MeshStandardMaterial({ color: 0x2a2a2d, roughness: 0.2, metalness: 0.7 });
-    const g = new Group();
-    const CW = 1, CH = 0.78, CD = 0.03;
-    const cs = new Shape();
-    cs.moveTo(-CW / 2, -CH / 2); cs.lineTo(CW / 2, -CH / 2); cs.lineTo(CW / 2, CH / 2); cs.lineTo(-CW / 2, CH / 2); cs.closePath();
-    const cg = new ExtrudeGeometry(cs, { depth: CD, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.004, bevelSegments: 2 });
-    cg.translate(0, 0, -CD / 2);
-    g.add(new Mesh(cg, cardMat));
-    const svg = new SVGLoader().parse(bfSvg);
-    const bf = new Group();
-    svg.paths.forEach((p) => {
-      p.toShapes().forEach((shape) => {
-        bf.add(new Mesh(new ExtrudeGeometry(shape, { depth: 5, bevelEnabled: true, bevelThickness: 0.8, bevelSize: 0.7, bevelSegments: 3, curveSegments: 10 }), bfMat));
-      });
-    });
-    const box = new Box3().setFromObject(bf);
-    const size = box.getSize(new Vector3());
-    const center = box.getCenter(new Vector3());
-    bf.children.forEach((c) => c.position.sub(center));
-    const k = (CW * 0.5) / size.x;
-    bf.scale.set(k, -k, k); // el SVG tiene el eje Y hacia abajo
-    bf.position.z = CD / 2 + 0.001;
-    g.add(bf);
-    card = new Group();
-    card.add(g);
-    scene.add(card);
-
     // Capa de barbero: mockup real del proyecto, como plano con ondulación de tela (deformación de vértices + brillo)
     const capeTex = await loadTex(capeUrl);
     const ca = capeTex.image.width / capeTex.image.height;
-    capeAspect = ca;
     const capeMat = new MeshBasicMaterial({ map: capeTex, transparent: true, depthWrite: false, toneMapped: false });
     capeMat.onBeforeCompile = (sh) => {
       sh.uniforms.uTime = capeU.uTime;
@@ -362,27 +400,50 @@ export async function startScene(): Promise<boolean> {
       sh.fragmentShader = sh.fragmentShader
         .replace('#include <common>', '#include <common>\nvarying float vShade;')
         .replace('#include <map_fragment>', '#include <map_fragment>\n  diffuseColor.rgb += vec3(vShade);');
+      applyCut(sh, cU, '(1.0 - uv.y)', true); // la tela "cae" de arriba hacia abajo
     };
     cape = new Mesh(new PlaneGeometry(1, 1 / ca, 36, 26), capeMat);
+
+    // Patrón de corte: contorno y cuadrícula finas que se dibujan antes que la tela
+    const gridMat = new LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5, toneMapped: false, depthWrite: false });
+    const edgeMat = new LineBasicMaterial({ color: 0xff3a2a, transparent: true, opacity: 0.85, toneMapped: false, depthWrite: false });
+    cutMat(gridMat, gU, `(0.5 - position.y * ${ca.toFixed(4)})`, false);
+    cutMat(edgeMat, gU, `(0.5 - position.y * ${ca.toFixed(4)})`, false);
+    const hh = 0.5 / ca, hw = 0.5;
+    const gl: number[] = [], el: number[] = [];
+    const L = (a: number[], x0: number, y0: number, x1: number, y1: number) => a.push(x0, y0, 0.004, x1, y1, 0.004);
+    L(el, -hw, -hh, hw, -hh); L(el, hw, -hh, hw, hh); L(el, hw, hh, -hw, hh); L(el, -hw, hh, -hw, -hh);
+    for (let i = 1; i < 14; i++) L(gl, -hw + (i / 14) * 2 * hw, -hh, -hw + (i / 14) * 2 * hw, hh);
+    for (let i = 1; i < 10; i++) L(gl, -hw, -hh + (i / 10) * 2 * hh, hw, -hh + (i / 10) * 2 * hh);
+    const mk = (arr: number[], m: LineBasicMaterial) => {
+      const b = new BufferGeometry();
+      b.setAttribute('position', new Float32BufferAttribute(arr, 3));
+      return new LineSegments(b, m);
+    };
+    cape.add(mk(gl, gridMat), mk(el, edgeMat));
+    capeGrid = [gridMat, edgeMat];
     scene.add(cape);
     kick();
   };
+  let capeGrid: LineBasicMaterial[] = [];
 
   /* ---------- Layout: poses a partir de los elementos [data-slot] ---------- */
   const heroEl = $('#inicio');
   const parkEl = $('[data-slot="park"]');
   const bottleStage = $('#stage-bottle');
-  const cardStage = $('#stage-card');
+  const capeStage = $('#stage-cape');
+  const note = $<HTMLElement>('.buildnote');
   const nameEl = $('[data-slot="name"]');
   const portEl = $('[data-slot="portrait"]');
   let W = 0, H = 0, ppu = 1, lk = 1;
   let bottleTrack: Track = { keys: [{ y: 0, v: OFF }] };
-  let cardTrack: Track = { keys: [{ y: 0, v: OFF }] };
   let capeTrack: Track = { keys: [{ y: 0, v: OFF }] };
   let nameTrack: Track = { keys: [{ y: 0, v: OFF }] };
   let portTrack: Track = { keys: [{ y: 0, v: OFF }] };
   let monoTrack: { y: number; v: number }[] = [{ y: 0, v: 0 }];
-  let cardStageEnter = Infinity;
+  let capeStageEnter = Infinity;
+  let bBuild = { a: 0, b: 1 }; // tramo de scroll en que se arma la botella
+  let cBuild = { a: 0, b: 1 }; // ídem, la capa
   let bottleTop = Infinity;
 
   const docTop = (el: HTMLElement) => el.getBoundingClientRect().top + scrollY;
@@ -392,20 +453,11 @@ export async function startScene(): Promise<boolean> {
   };
   const P = (x: number, y: number, s: number, ry = 0, rx = 0, rz = 0): Pose => ({ x, y, s, ry, rx, rz });
   const bp = (r: SlotRect, ry: number, dy = 0, rx = 0): Pose => P(r.cx, r.cy + dy, Math.min(r.h, BOTTLE_MAX), ry, rx);
-  // La capa es la protagonista del mundo de la barbería; la tarjeta con el isologo la acompaña en primer plano
-  const cp = (r: SlotRect, ry: number, dy = 0, rx = 0): Pose => {
-    const base = r.w * 0.44;
-    return r.i === 1
-      ? P(r.cx + r.w * 0.3, r.cy + r.h * 0.22 + dy, base * 0.8, ry, rx)
-      : P(r.cx - r.w * 0.26, r.cy + r.h * 0.2 + dy, base, ry, rx);
-  };
-  const kp = (r: SlotRect, ry: number, dy = 0, rx = 0): Pose =>
-    r.i === 1
-      ? P(r.cx, r.cy - r.h * 0.03 + dy, Math.min(r.w * 1.06, r.h * 1.5), ry, rx)
-      : P(r.cx + r.w * 0.03, r.cy - r.h * 0.06 + dy, Math.min(r.w * 0.98, r.h * 1.4), ry, rx);
+  // La capa, como la botella, ocupa el recuadro de cada paso y gira de uno a otro
+  const kp = (r: SlotRect, ry: number, dy = 0, rx = 0): Pose => P(r.cx, r.cy - r.h * 0.02 + dy, Math.min(r.w * 1.04, r.h * 1.46), ry, rx);
 
   /** Tramo de un proyecto: entrada 1:1 con la sección, 3 pasos y salida 1:1. */
-  function stageKeys(stage: HTMLElement, slots: string[], make: (r: SlotRect, ry: number, dy?: number, rx?: number) => Pose, ry0: number, ryBack: number, attach: boolean, ry3 = ryBack + PI): { keys: Key[]; enter: number } {
+  function stageKeys(stage: HTMLElement, slots: string[], make: (r: SlotRect, ry: number, dy?: number, rx?: number) => Pose, ry0: number, ryBack: number, attach: boolean, ry3 = ryBack + PI): { keys: Key[]; enter: number; pinned: boolean; T: number; L: number; vh: number } {
     const steps = [1, 2, 3].map((n) => $(`.step-${n}`, stage)!);
     const pos = slots.map((s, i) => rel($(`[data-slot="${s}"]`, steps[i])!, steps[i], i));
     const T = docTop(stage), Hs = stage.offsetHeight;
@@ -438,7 +490,7 @@ export async function startScene(): Promise<boolean> {
     keys.push({ y: T + Hs, v: make(pos[2], ry3 + 0.14, -vh), lin: true });
     keys.sort((a, b) => a.y - b.y);
     for (let i = 1; i < keys.length; i++) if (keys[i].y <= keys[i - 1].y) keys[i].y = keys[i - 1].y + 0.5;
-    return { keys, enter };
+    return { keys, enter, pinned, T, L: Math.max(1, Hs - vh), vh };
   }
 
   function layout() {
@@ -467,11 +519,8 @@ export async function startScene(): Promise<boolean> {
       } else portTrack = { keys: [{ y: 0, v: OFF }] };
     }
 
-    // Botella: asoma en la apertura (solo con pantalla ancha) → sube y se estaciona junto al texto → su tramo
-    const heroSlot = $('[data-slot="hero"]', heroEl!);
-    const hr = heroSlot?.getBoundingClientRect();
-    const peek = !!hr && hr.width > 0;
-    const hero = peek ? bp({ cx: hr!.left + hr!.width / 2, cy: hr!.top + scrollY + hr!.height / 2, w: hr!.width, h: hr!.height, i: 0 }, -0.3) : OFF;
+    // Botella: la apertura es solo identidad (nombre + retrato). Al bajar, la botella sube desde abajo,
+    // se estaciona junto al texto mientras se arma con el scroll y luego entra en su tramo.
     const pr = parkEl?.getBoundingClientRect();
     const wideLayout = !!pr && pr.width > 0;
     if (bottleStage) bottleTop = docTop(bottleStage);
@@ -479,30 +528,32 @@ export async function startScene(): Promise<boolean> {
     const bKeys: Key[] = [];
     if (wideLayout && first) {
       const parked = (ry: number): Pose => P(pr!.left + pr!.width / 2, vh / 2, Math.min(vh * 0.66, BOTTLE_MAX), ry);
-      const a = Math.max(1, Hh * 0.9);
-      const b = Math.max(a + 2, first.enter);
-      bKeys.push({ y: 0, v: peek ? hero : { ...parked(-0.5), y: vh * 1.4 } });
-      bKeys.push({ y: a, v: parked(-0.5) });
-      bKeys.push({ y: (a + b) / 2, v: parked(-0.28) });
-      bKeys.push({ y: b, v: parked(-0.4) });
+      const below: Pose = { ...parked(-0.62), y: vh * 1.55 };
+      const r0 = Hh * 0.8;
+      const r1 = Math.max(r0 + 2, Hh * 1.25);
+      const b = Math.max(r1 + 2, first.enter);
+      bKeys.push({ y: 0, v: below }, { y: r0, v: below }, { y: r1, v: parked(-0.5) });
+      bKeys.push({ y: (r1 + b) / 2, v: parked(-0.28) }, { y: b, v: parked(-0.4) });
+      const a0 = Hh;
+      bBuild = { a: a0, b: Math.max(a0 + 2, b - a0 > vh * 0.9 ? a0 + (b - a0) * 0.9 : b) };
     } else if (first) {
-      // Vertical: la botella llega con su sección (entrada 1:1 desde abajo)
+      // Vertical: la botella llega con su sección (entrada 1:1 desde abajo) y se arma al entrar
       bKeys.push({ y: 0, v: OFF });
+      bBuild = { a: first.enter + vh * 0.25, b: Math.max(first.enter + vh * 0.25 + 2, first.pinned ? first.T + first.L * 0.22 : first.T + vh * 0.5) };
     }
     if (first) bKeys.push(...first.keys);
     bottleTrack = { keys: bKeys.length ? bKeys : [{ y: 0, v: OFF }] };
 
-    // Be Fresh: tarjeta y máquina entran 1:1 con su sección mientras la botella sale con la suya
+    // Be Fresh: la capa entra 1:1 con su sección mientras la botella sale con la suya
     const monos: { y: number; v: number }[] = [{ y: 0, v: 0 }];
-    if (cardStage) {
-      const c = stageKeys(cardStage, ['c1', 'c2', 'c3'], cp, -0.45, -0.25, true, -0.45 + PI * 2 - 0.35);
-      cardTrack = { keys: c.keys };
-      const k = stageKeys(cardStage, ['c1', 'c2', 'c3'], kp, -0.3, 0.3, true, -0.12);
+    if (capeStage) {
+      const k = stageKeys(capeStage, ['c1', 'c2', 'c3'], kp, -0.34, 0.4, true, -0.2);
       capeTrack = { keys: k.keys };
-      const pin = $('.pstage__pin', cardStage);
+      const pin = $('.pstage__pin', capeStage);
       const pinH = getComputedStyle(pin!).position === 'sticky' ? pin!.clientHeight : vh;
-      monos.push({ y: c.enter - 1, v: 0 }, { y: c.enter + pinH, v: 1 });
-      cardStageEnter = c.enter;
+      monos.push({ y: k.enter - 1, v: 0 }, { y: k.enter + pinH, v: 1 });
+      capeStageEnter = k.enter;
+      cBuild = { a: k.enter + vh * 0.3, b: Math.max(k.enter + vh * 0.3 + 2, k.pinned ? k.T + k.L * 0.22 : k.T + vh * 0.5) };
     }
     monoTrack = monos;
 
@@ -533,7 +584,7 @@ export async function startScene(): Promise<boolean> {
   /* ---------- Bucle: dibuja solo cuando hay cambios y algo visible ---------- */
   const snap = location.search.includes('snap');
   const K = snap ? 1e6 : 16;
-  const cur = { b: null as Pose | null, c: null as Pose | null, k: null as Pose | null, mono: 0, px: 0, py: 0, vib: 0 };
+  const cur = { b: null as Pose | null, k: null as Pose | null, mono: 0, px: 0, py: 0, vib: 0 };
   let raf = 0;
   let last = 0;
   let frames = 0, slow = 0;
@@ -541,6 +592,7 @@ export async function startScene(): Promise<boolean> {
   let firstRender = true;
   let prevY = scrollY;
   let running = !document.hidden;
+  let buildPhase = 0;
   const onScreen = (p: Pose, half: number) => p.y + half > -20 && p.y - half < H + 20 && p.x > -half * 2 && p.x < W + half * 2;
   const follow = (curP: Pose | null, tgt: Pose, half: number, dt: number, initRy?: number): Pose => {
     if (!curP) return { ...tgt, ry: initRy ?? tgt.ry };
@@ -578,18 +630,16 @@ export async function startScene(): Promise<boolean> {
     const vel = Math.abs(y - prevY) / Math.max(1, dt * 1000); // px/ms
     prevY = y;
 
-    // Cargas diferidas: dorso, tarjeta y máquina se preparan al acercarse
+    // Cargas diferidas: dorso y capa se preparan al acercarse
     if (bottleStage && y > bottleTop - innerHeight * 3) loadBack();
-    if (cardStage && y > cardStageEnter - innerHeight * 2.5) buildBarber();
+    if (capeStage && y > capeStageEnter - innerHeight * 2.5) buildBarber();
 
     const tn = sample(nameTrack, y);
     const tp = sample(portTrack, y);
     const tb = sample(bottleTrack, y);
-    const tc = card ? sample(cardTrack, y) : null;
     const tk = cape ? sample(capeTrack, y) : null;
     const heroTop = y < 40;
     cur.b = follow(cur.b, tb, tb.s / 2, dt, firstRender && heroTop ? 0 : undefined);
-    cur.c = tc ? follow(cur.c, tc, tc.s * 0.4, dt) : null;
     cur.k = tk ? follow(cur.k, tk, tk.s / 2, dt) : null;
     cur.mono = damp(cur.mono, monoAt(y), K * 0.6, dt);
     cur.px = damp(cur.px, ptr.x, 6, dt);
@@ -628,17 +678,32 @@ export async function startScene(): Promise<boolean> {
       shadowMat.opacity = 0.9;
     }
 
-    // Tarjeta y máquina; la máquina vibra con la velocidad del scroll (como si estuviera trabajando)
+    // Armado de la botella según el scroll (trazo → vidrio → etiqueta → acabado)
+    const pb = clamp((y - bBuild.a) / (bBuild.b - bBuild.a), 0, 1);
+    const lim = (t: number) => (t <= 0 ? 0 : t >= 1 ? 1.06 : t * 1.06);
+    const tW = part(0, 0.3, pb), tG = part(0.22, 0.55, pb), tL = part(0.5, 0.82, pb);
+    wU.uLim.value = lim(tW);
+    bU.uLim.value = lim(tG); bU.uGlow.value = tG > 0 && tG < 1 ? 1 : 0;
+    lU.uLim.value = lim(tL); lU.uGlow.value = tL > 0 && tL < 1 ? 1 : 0;
+    const fade = 1 - part(0.8, 0.98, pb);
+    wireMat.opacity = 0.85 * fade;
+    guideMat.opacity = 0.7 * fade;
+    wireMat.visible = guideMat.visible = pb < 0.985;
+    glass.envMapIntensity = 1.1 + 1.8 * part(0.5, 1, pb);
+    const phase = pb <= 0.001 ? 0 : pb < 0.22 ? 1 : pb < 0.5 ? 2 : pb < 0.97 ? 3 : 4;
+    if (phase !== buildPhase) {
+      if (!firstRender && Math.abs(phase - buildPhase) === 1) dispatchEvent(new CustomEvent('portfolio:build', { detail: { phase, dir: phase > buildPhase ? 1 : -1 } }));
+      buildPhase = phase;
+    }
+    if (note) {
+      const showNote = bOn && phase > 0 && phase < 4;
+      if (note.dataset.ph !== String(showNote ? phase : 0)) note.dataset.ph = String(showNote ? phase : 0);
+      note.style.setProperty('--bp', pb.toFixed(3));
+    }
+
+    // La capa vibra con la velocidad del scroll, como tela agitada por el aire
     const inBarber = cur.mono > 0.6;
     cur.vib = damp(cur.vib, inBarber ? clamp(vel / 1.6, 0, 1) : 0, inBarber ? 14 : 6, dt);
-    const cOn = !!cur.c && !!card && onScreen(cur.c, cur.c.s * 0.4) && cur.c.y > -9000;
-    if (card) card.visible = cOn;
-    if (cOn && cur.c && card) {
-      const p = cur.c;
-      card.position.set((p.x + cur.px * 10 - W / 2) / ppu, (H / 2 - p.y) / ppu, 0.9);
-      card.scale.setScalar(p.s / ppu);
-      card.rotation.set(p.rx + 0.16 - cur.py * 0.08, p.ry + cur.px * 0.16, p.rz);
-    }
     const kOn = !!cur.k && !!cape && onScreen(cur.k, cur.k.s / 2) && cur.k.y > -9000;
     if (cape) cape.visible = kOn;
     if (kOn && cur.k && cape) {
@@ -649,6 +714,13 @@ export async function startScene(): Promise<boolean> {
       cape.rotation.set(p.rx + cur.py * 0.06, p.ry + cur.px * 0.2, 0);
       capeU.uTime.value = snap ? 0 : now / 1000; // ?snap congela la ondulación (pruebas)
       capeU.uAmp.value = 0.32 + cur.vib * 1.1; // brisa suave en reposo; el desplazamiento la agita
+      const pc = clamp((y - cBuild.a) / (cBuild.b - cBuild.a), 0, 1);
+      const tg = part(0, 0.4, pc), tt = part(0.2, 0.85, pc);
+      gU.uLim.value = tg <= 0 ? 0 : tg >= 1 ? 1.06 : tg * 1.06;
+      cU.uLim.value = tt <= 0 ? 0 : tt >= 1 ? 1.06 : tt * 1.06;
+      cU.uGlow.value = tt > 0 && tt < 1 ? 1 : 0;
+      const gf = 1 - part(0.8, 1, pc);
+      capeGrid.forEach((m, i) => { m.opacity = (i ? 0.85 : 0.5) * gf; m.visible = pc < 0.995; });
     }
     // Iluminación: el rojo de Cordero pasa a luz blanca fría en Be Fresh
     rim.color.copy(redC).lerp(whiteC, cur.mono);
@@ -658,19 +730,18 @@ export async function startScene(): Promise<boolean> {
     rim.intensity = (130 + cur.mono * 120) * (1 + (1 - lk) * (1.2 - cur.mono));
     key.intensity = 420 * (1 - cur.mono * 0.55);
     fill.intensity = 1.0 + (1 - lk) * 1.4;
-    rake.intensity = cur.mono * 230 * lk * lk;
     scene.environmentIntensity = 0.62 - cur.mono * 0.2;
 
     // Fondo CSS: el halo sigue al objeto principal y vira a gris en Be Fresh
     const heroVisible = pOn || nOn;
-    const gp = heroVisible && tp.y > -9000 ? tp : cOn && cur.c && (!bOn || cur.mono > 0.5) ? cur.c : cur.b;
+    const gp = heroVisible && tp.y > -9000 ? tp : kOn && cur.k && (!bOn || cur.mono > 0.5) ? cur.k : cur.b;
     if (gp) {
       host!.style.setProperty('--gx', `${((gp.x / W) * 100).toFixed(2)}%`);
       host!.style.setProperty('--gy', `${((heroVisible && gp === tp ? gp.y - gp.s * 0.15 : gp.y) / H * 100).toFixed(2)}%`);
     }
     host!.style.setProperty('--mono', cur.mono.toFixed(3));
 
-    if (bOn || cOn || kOn || nOn || pOn) {
+    if (bOn || kOn || nOn || pOn) {
       renderer.render(scene, camera);
       if (firstRender) {
         firstRender = false;

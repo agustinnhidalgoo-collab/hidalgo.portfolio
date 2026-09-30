@@ -9,7 +9,7 @@ type: [Identidad visual, Logo e isologo]
 focus: [Branding, Sistema gráfico]
 category: [Barbería, Servicios]
 world: barber
-scene: card
+scene: cape
 concept: Elegancia, detalle y autenticidad
 titleTone: white
 titleLines: Be Fresh
@@ -17,8 +17,8 @@ cover:
   src: ../../assets/befresh/portada.jpg
   alt: Tarjeta negra sobre fondo negro, en perspectiva, con el isotipo BF en relieve y, en pequeño, las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
 stageImages:
-  - src: ../../assets/befresh/portada.jpg
-    alt: Tarjeta negra sobre fondo negro, en perspectiva, con el isotipo BF en relieve.
+  - src: ../../assets/befresh/capa.webp
+    alt: Capa de barbero negra con el logotipo befresh en blanco y las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
   - src: ../../assets/befresh/capa.webp
     alt: Capa de barbero negra con el logotipo befresh en blanco y las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
   - src: ../../assets/befresh/capa.webp

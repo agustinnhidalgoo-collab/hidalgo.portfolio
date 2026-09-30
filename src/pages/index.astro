@@ -5,7 +5,6 @@ import Base from '../layouts/Base.astro';
 import Contact from '../components/Contact.astro';
 import ProjectMeta from '../components/ProjectMeta.astro';
 import portrait from '../assets/portrait/agustin.webp';
-import botellaFrente from '../assets/3d/botella-frente.webp';
 import { person, contact, cv, copy, cvData } from '../data/site';
 import { getProjects, inline, titleLines } from '../lib/projects';
 
@@ -30,8 +29,15 @@ const numOf = (p: (typeof projects)[number]) => projects.indexOf(p) + 1;
 <Base title="Agustín Hidalgo — Portfolio de diseño gráfico" description={description} path="/" jsonLd={jsonLd}>
   <!-- Escena 3D (decorativa): halo de fondo + canvas. Todo el texto vive en el HTML. -->
   <div id="gl" class="gl" aria-hidden="true"><div class="gl__bg"></div><canvas></canvas></div>
+  <!-- Rótulo del armado de la botella (decorativo): se muestra mientras el scroll la construye -->
+  <div class="buildnote" aria-hidden="true" data-ph="0">
+    <span class="buildnote__step"><b>01</b> Trazo</span>
+    <span class="buildnote__step"><b>02</b> Volumen</span>
+    <span class="buildnote__step"><b>03</b> Etiqueta</span>
+    <i class="buildnote__bar"></i>
+  </div>
 
-  <!-- 00 · Portada: presentación personal primero. El nombre en 3D, el retrato en capas y la botella asomando -->
+  <!-- 00 · Portada: presentación personal primero. Solo identidad: nombre en 3D y retrato en capas -->
   <section class="hero" id="inicio" aria-labelledby="hero-title">
     <div class="hero__wrap wrap">
       <div class="hero__name-block">
@@ -42,9 +48,6 @@ const numOf = (p: (typeof projects)[number]) => projects.indexOf(p) + 1;
       </div>
       <div class="hero__portrait" data-slot="portrait">
         <Image class="slot__img" src={portrait} alt="Agustín Hidalgo, retrato en blanco y negro" format="webp" quality={90} widths={[520, 1000]} sizes="(min-width: 64rem) 45vw, 90vw" loading="eager" fetchpriority="high" />
-      </div>
-      <div class="hero__peek" data-slot="hero" aria-hidden="true">
-        <Image class="slot__img slot__img--shadow" src={botellaFrente} alt="" format="webp" quality={90} widths={[300, 520]} sizes="(min-width: 64rem) 25vw, 60vw" loading="eager" />
       </div>
       <div class="hero__info">
         <p class="label">Portfolio · {person.year}</p>

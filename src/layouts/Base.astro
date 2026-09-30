@@ -19,6 +19,14 @@ const { title, description, path, ogImage = '/og.jpg', jsonLd, robots, world } =
 const site = Astro.site; // solo existe si se define SITE_URL al compilar
 const abs = (p: string) => (site ? new URL(p, site).toString() : undefined);
 const canonical = abs(path);
+// Polvo de la bodega: valores fijos (sin azar) para que la compilación sea siempre idéntica
+const motes = Array.from({ length: 16 }, (_, i) => ({
+  x: (i * 37 + 11) % 97,
+  s: 3 + ((i * 5) % 7),
+  d: -((i * 2.3) % 22),
+  t: 20 + ((i * 7) % 15),
+  dx: ((i * 13) % 11) - 5,
+}));
 const ogAbs = abs(ogImage);
 ---
 
@@ -65,7 +73,11 @@ const ogAbs = abs(ogImage);
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
   </head>
   <body class={world ? 'has-world' : undefined}>
-    <div class="world-bg" aria-hidden="true"><i data-w="cellar"></i><i data-w="barber"></i></div>
+    <div class="world-bg" aria-hidden="true">
+      <i data-w="cellar">{motes.map((m) => <b style={`--x:${m.x}%;--s:${m.s}px;--d:${m.d}s;--t:${m.t}s;--dx:${m.dx}vw`}></b>)}</i>
+      <i data-w="barber"></i>
+    </div>
+    <div class="enter" id="enter" aria-hidden="true"><span class="enter__hand"></span><span class="display enter__title"></span><span class="enter__sub"></span></div>
     <a class="skip" href="#contenido">Saltar al contenido</a>
     <div class="progress" aria-hidden="true"></div>
     <Header current={path} />

@@ -83,6 +83,27 @@ if (stages.length) {
 
 /* ---------- Mundos: cada proyecto con 3D cambia el ambiente (fondo, cursor y sonido) ---------- */
 type WorldName = 'studio' | 'cellar' | 'barber';
+const ORDER: WorldName[] = ['studio', 'cellar', 'barber'];
+const ENTER = document.getElementById('enter');
+let enterT = 0;
+let lastEnter = -1e9;
+/** Cartel breve al cruzar a un mundo: «Entrando a la bodega». Decorativo, no bloquea y se omite con «reducir movimiento». */
+function announce(w: 'cellar' | 'barber') {
+  if (!ENTER || calm || !root.classList.contains('gl-try') || performance.now() - lastEnter < 4000) return;
+  lastEnter = performance.now();
+  const stage = document.querySelector<HTMLElement>(`.pstage[data-world="${w}"]`);
+  const name = [...(stage?.querySelectorAll('.ptitle > span') ?? [])].map((t) => t.textContent).join(' ').trim();
+  const [hand, title] = w === 'cellar' ? ['entrando a', 'La bodega'] : ['entrando a', 'La barbería'];
+  (ENTER.querySelector('.enter__hand') as HTMLElement).textContent = hand;
+  (ENTER.querySelector('.enter__title') as HTMLElement).textContent = title;
+  (ENTER.querySelector('.enter__sub') as HTMLElement).textContent = name;
+  ENTER.dataset.w = w;
+  ENTER.classList.remove('is-on');
+  void ENTER.offsetWidth; // reinicia la animación
+  ENTER.classList.add('is-on');
+  window.clearTimeout(enterT);
+  enterT = window.setTimeout(() => ENTER.classList.remove('is-on'), 1900);
+}
 const worldEls = [...document.querySelectorAll<HTMLElement>('.pstage[data-world]')];
 if (worldEls.length) {
   let cur: WorldName = 'studio';
@@ -106,6 +127,7 @@ if (worldEls.length) {
       const from = cur;
       cur = w;
       root.dataset.world = w;
+      if (w !== 'studio' && ORDER.indexOf(w) > ORDER.indexOf(from)) announce(w);
       dispatchEvent(new CustomEvent('portfolio:world', { detail: { world: w, from } }));
     }
   };
@@ -153,6 +175,13 @@ if (sndBtn && ('AudioContext' in window || 'webkitAudioContext' in window)) {
     wanted = !wanted;
     paint(wanted);
     apply(wanted);
+  });
+  // Atajo: «M» silencia / activa (no interfiere con campos de texto ni con combinaciones de teclas)
+  addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() !== 'm' || e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target as HTMLElement;
+    if (t.closest('input, textarea, select, [contenteditable]')) return;
+    sndBtn.click();
   });
 }
 
