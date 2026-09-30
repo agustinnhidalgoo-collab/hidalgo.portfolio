@@ -1,0 +1,174 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Contact from '../../components/Contact.astro';
+import ProjectMeta from '../../components/ProjectMeta.astro';
+import Fig from '../../components/Fig.astro';
+import { getProjects, titleLines, type Project } from '../../lib/projects';
+import { person } from '../../data/site';
+
+export async function getStaticPaths() {
+  const projects = await getProjects();
+  return projects.map((project, i) => ({
+    params: { slug: project.id },
+    props: { project, next: projects[(i + 1) % projects.length], index: i, total: projects.length },
+  }));
+}
+
+interface Props { project: Project; next: Project; index: number; total: number }
+const { project, next, index, total } = Astro.props;
+const { data } = project;
+const { Content } = await render(project);
+const lines = titleLines(project);
+const tone = data.titleTone === 'red' ? 'ptitle--red' : '';
+const title = data.seoTitle ?? `${data.title} — ${data.descriptor} · ${person.name}`;
+const description = data.seoDescription ?? data.summary;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'CreativeWork',
+  name: data.title,
+  description: data.summary,
+  creator: { '@type': 'Person', name: person.name },
+  ...(data.year ? { dateCreated: String(data.year) } : {}),
+  genre: [...(data.type ?? []), ...(data.category ?? [])],
+};
+const sizes = '(min-width: 64rem) 46vw, 100vw';
+---
+
+<Base title={title} description={description} path={`/proyectos/${project.id}`} jsonLd={jsonLd}>
+  <article aria-labelledby="case-title">
+    <header class="case-open on-dark">
+      <div class="wrap grid">
+        <div class="case-open__text">
+          <p class="crumbs reveal">
+            <a class="ulink" href="/#proyectos">← Portfolio</a>
+            <span aria-hidden="true"> / </span>
+            <span>{String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}</span>
+          </p>
+          <h1 id="case-title" class={`display ptitle mask ${tone}`}>
+            {lines.map((l, k) => <span class="line" style={`--i:${k}`}><span>{l}</span></span>)}
+          </h1>
+          <p class="descriptor reveal">{data.descriptor}</p>
+          <div class="reveal"><ProjectMeta project={project} /></div>
+        </div>
+        <div class="case-open__media">
+          <Image src={data.cover.src} alt={data.cover.alt} format="webp" quality={88} loading="eager" fetchpriority="high" sizes={sizes} />
+        </div>
+      </div>
+    </header>
+
+    <section class="case-block on-dark" aria-labelledby="concepto-title">
+      <div class="wrap grid">
+        <div class="case-block__head"><h2 id="concepto-title" class="display mask"><span class="line"><span>Contexto y concepto</span></span></h2></div>
+        <div class="case-block__body reveal"><div class="lead"><Content /></div></div>
+      </div>
+    </section>
+
+    {data.sections.map((s, i) => (
+      <section class="case-block on-dark" aria-labelledby={`s-${i}`}>
+        <div class="wrap grid">
+          {s.kind === 'figure' && (
+            <>
+              {s.title ? (
+                <div class="case-block__head">
+                  <h2 id={`s-${i}`} class="display h-side">{s.title}</h2>
+                  {s.body && <p class="prose">{s.body}</p>}
+                </div>
+              ) : (
+                <h2 id={`s-${i}`} class="sr-only">{s.caption ?? 'Detalle'}</h2>
+              )}
+              <div class="case-block__body" style={s.title ? '' : 'grid-column: 1 / -1'}>
+                <Fig src={s.image} alt={s.alt} caption={s.title ? undefined : s.caption} />
+              </div>
+            </>
+          )}
+          {s.kind === 'text' && (
+            <>
+              <div class="case-block__head"><h2 id={`s-${i}`} class="display">{s.title}</h2></div>
+              <div class="case-block__body prose reveal"><p>{s.body}</p></div>
+            </>
+          )}
+          {s.kind === 'gallery' && (
+            <>
+              <div class="case-block__head">
+                <h2 id={`s-${i}`} class="display h-side">{s.title}</h2>
+                {s.body && <p class="prose">{s.body}</p>}
+              </div>
+              <div class="case-block__body">
+                <div class="gallery">
+                  {s.items.map((it) => <Fig src={it.image} alt={it.alt} label={it.label} note={it.note} sizes="(min-width: 64rem) 12vw, 40vw" />)}
+                </div>
+              </div>
+            </>
+          )}
+          {s.kind === 'palette' && (
+            <>
+              <div class="case-block__head">
+                <h2 id={`s-${i}`} class="display h-side">{s.title}</h2>
+                {s.body && <p class="prose">{s.body}</p>}
+              </div>
+              <div class="case-block__body reveal">
+                <ul class="swatches">
+                  {s.colors.map((c) => (
+                    <li class="swatch">
+                      <div class="swatch__chip" style={`background:${c.hex}`} role="img" aria-label={`Color ${c.name ?? ''} ${c.hex}`.replace('  ', ' ')}></div>
+                      <code>{c.hex.toUpperCase()}</code>
+                      {c.name && <span>{c.name}</span>}
+                    </li>
+                  ))}
+                </ul>
+                <p class="notice">Paleta propia de este proyecto; no corresponde a los colores de este portfolio.</p>
+              </div>
+            </>
+          )}
+          {s.kind === 'type' && (
+            <>
+              <div class="case-block__head"><h2 id={`s-${i}`} class="display">{s.title}</h2></div>
+              <div class="case-block__body spec reveal">
+                <p class="display spec__family">{s.family}</p>
+                {s.body && <p class="prose">{s.body}</p>}
+                {s.uses && (
+                  <dl class="kv">
+                    {s.uses.map((u) => <div><dt>{u.label}</dt><dd>{u.value}</dd></div>)}
+                  </dl>
+                )}
+                {s.image && <Fig src={s.image} alt={s.alt ?? ''} />}
+              </div>
+            </>
+          )}
+          {s.kind === 'annotated' && (
+            <>
+              <div class="case-block__head"><h2 id={`s-${i}`} class="display">{s.title}</h2></div>
+              <div class="case-block__body annot">
+                <Fig src={s.image} alt={s.alt} />
+                <dl class="kv reveal">
+                  {s.notes.map((n) => <div><dt>{n.label}</dt><dd>{n.value}</dd></div>)}
+                </dl>
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+    ))}
+
+    {data.links && data.links.length > 0 && (
+      <section class="case-block on-dark" aria-labelledby="links-title">
+        <div class="wrap">
+          <h2 id="links-title" class="display" style="font-size: clamp(2.6rem, 6vw, 6rem); margin-bottom: 1.5rem">Enlaces</h2>
+          <ul>{data.links.map((l) => <li><a class="ulink" href={l.url} target="_blank" rel="noopener noreferrer">{l.label} ↗</a></li>)}</ul>
+        </div>
+      </section>
+    )}
+
+    {next.id !== project.id && (
+      <a class="next on-dark" href={`/proyectos/${next.id}`}>
+        <div class="wrap">
+          <span class="label">Siguiente proyecto</span>
+          <span class={`display next__title ${next.data.titleTone === 'red' ? 'ptitle--red' : ''}`} style="display:block">{next.data.title}</span>
+        </div>
+      </a>
+    )}
+  </article>
+  <Contact />
+</Base>

@@ -1,0 +1,62 @@
+---
+import '@fontsource/anton/latin-400.css';
+import '@fontsource-variable/inter/wght.css';
+import '@fontsource/reenie-beanie/latin-400.css';
+import '../styles/global.css';
+import antonUrl from '@fontsource/anton/files/anton-latin-400-normal.woff2?url';
+import interUrl from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { person } from '../data/site';
+
+interface Props {
+  title: string;
+  description: string;
+  path: string; // ruta interna, p. ej. "/sobre-mi"
+  ogImage?: string; // ruta en /public
+  jsonLd?: Record<string, unknown>;
+  robots?: string;
+}
+const { title, description, path, ogImage = '/og.jpg', jsonLd, robots } = Astro.props;
+const site = Astro.site; // solo existe si se define SITE_URL al compilar
+const abs = (p: string) => (site ? new URL(p, site).toString() : undefined);
+const canonical = abs(path);
+const ogAbs = abs(ogImage);
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#000000" />
+    {robots && <meta name="robots" content={robots} />}
+    {canonical && <link rel="canonical" href={canonical} />}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_AR" />
+    <meta property="og:site_name" content={`${person.name} — Portfolio`} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {canonical && <meta property="og:url" content={canonical} />}
+    {ogAbs && <meta property="og:image" content={ogAbs} />}
+    <meta name="twitter:card" content={ogAbs ? 'summary_large_image' : 'summary'} />
+    <link rel="preload" as="font" type="font/woff2" href={antonUrl} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={interUrl} crossorigin />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+  </head>
+  <body>
+    <a class="skip" href="#contenido">Saltar al contenido</a>
+    <Header current={path} />
+    <main id="contenido" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      import '../scripts/ui';
+    </script>
+  </body>
+</html>

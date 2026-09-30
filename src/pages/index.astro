@@ -1,0 +1,191 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Contact from '../components/Contact.astro';
+import ProjectMeta from '../components/ProjectMeta.astro';
+import portrait from '../assets/portrait/agustin.png';
+import { person, contact, cv, copy, cvData } from '../data/site';
+import { getProjects, inline, titleLines } from '../lib/projects';
+
+const projects = await getProjects();
+const description =
+  'Portfolio de Agustín Hidalgo, diseñador y comunicador visual: identidad visual, sistemas gráficos y dirección de arte. Proyectos, CV y contacto.';
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: person.name,
+  jobTitle: person.role,
+  email: contact.email,
+  alumniOf: { '@type': 'CollegeOrUniversity', name: 'Universidad de Belgrano' },
+  sameAs: [contact.instagramUrl],
+};
+const featured = cvData.experience.filter((e) => e.featured);
+---
+
+<Base title="Agustín Hidalgo — Portfolio de diseño gráfico" description={description} path="/" jsonLd={jsonLd}>
+  <!-- 00 · Portada -->
+  <section class="hero" aria-labelledby="hero-title">
+    <h1 id="hero-title">
+      <span class="hero__title display" aria-hidden="true">Portfolio</span>
+      <span class="sr-only">Portfolio de Agustín Hidalgo, diseño gráfico</span>
+    </h1>
+    <Image
+      class="hero__portrait"
+      src={portrait}
+      alt="Agustín Hidalgo, retrato en blanco y negro"
+      format="webp"
+      quality={90}
+      widths={[520, 1040]}
+      sizes="(max-width: 40rem) 118vw, 50vw"
+      loading="eager"
+      fetchpriority="high"
+    />
+    <span class="hero__note hero__note--a hand" aria-hidden="true"><span>Diseño</span></span>
+    <span class="hero__note hero__note--b hand" aria-hidden="true"><span>Gráfico</span></span>
+    <nav class="hero__links" aria-label="Accesos de la portada">
+      <a class="ulink" href="#proyectos">Proyectos</a>
+      <a class="ulink" href="#contacto">Contacto</a>
+      <a class="ulink" href={cv.href} download={cv.file}>CV</a>
+    </nav>
+  </section>
+
+  <!-- 01 · Introducción -->
+  <section class="sec on-dark" id="introduccion" aria-labelledby="introduccion-title">
+    <div class="wrap">
+      <p class="eyebrow reveal">{contact.instagramHandle}</p>
+      <h2 id="introduccion-title" class="display intro__title mask">
+        <span class="line"><span>Introducción</span></span>
+      </h2>
+      <div class="intro__body prose reveal" style="--d:120ms">
+        <p>
+          {copy.intro.before}
+          {copy.intro.marks.map((m, i) => (
+            <>
+              <mark class="pill">{m}</mark>{i === 0 ? ', ' : i === 1 ? ' y ' : '.'}
+            </>
+          ))}
+          {' '}{copy.intro.paragraphs[0].text}<strong class="hl">{copy.intro.paragraphs[0].strong}</strong>
+        </p>
+        <p>{copy.intro.paragraphs[1].text}</p>
+      </div>
+      <p class="folio" aria-hidden="true"><span>{person.wordmark}</span><span>{person.year}</span></p>
+    </div>
+  </section>
+
+  <!-- 02 · Filosofía creativa (pausa blanca) -->
+  <section class="on-light" id="filosofia" aria-labelledby="filosofia-title">
+    <div class="wrap manifesto-wrap">
+      <h2 id="filosofia-title" class="sr-only">Filosofía creativa</h2>
+      <p class="display manifesto mask" aria-label={copy.manifesto.join(' ')}>
+        {copy.manifesto.map((l, i) => (
+          <span class="line" style={`--i:${i}`} aria-hidden="true"><span>{l}</span></span>
+        ))}
+      </p>
+      <p class="manifesto-sig hand wipe" style="--d:500ms" aria-hidden="true">Agustín Hidalgo</p>
+    </div>
+  </section>
+
+  <!-- 03 · Apertura del portfolio + proyectos -->
+  <section class="sec on-light" id="proyectos" aria-labelledby="proyectos-title" style="padding-top: 0">
+    <div class="wrap">
+      <div class="opener__block">
+        <h2 id="proyectos-title" class="display opener__title mask">
+          <span class="line"><span>Portfolio</span></span>
+        </h2>
+        <div class="prose reveal" style="--d:100ms">
+          {copy.portfolio.map((p) => <p set:html={inline(p)} />)}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="on-dark">
+    {projects.map((p, i) => {
+      const lines = titleLines(p);
+      return (
+        <article class="spread" aria-labelledby={`p-${p.id}`}>
+          <div class="wrap grid">
+            <div class="spread__text">
+              <p class="pnum reveal" aria-hidden="true">
+                <span class="pnum__word">Project</span><span class="pnum__n">{i + 1}</span>
+              </p>
+              <h3 id={`p-${p.id}`} class={`display ptitle mask ${p.data.titleTone === 'red' ? 'ptitle--red' : ''}`}>
+                <a href={`/proyectos/${p.id}`}>
+                  {lines.map((l, k) => <span class="line" style={`--i:${k}`}><span>{l}</span></span>)}
+                </a>
+              </h3>
+              <p class="descriptor reveal">{p.data.descriptor}</p>
+              <p class="prose reveal">{p.data.summary}</p>
+              <div class="reveal"><ProjectMeta project={p} /></div>
+              <a class="ulink reveal" href={`/proyectos/${p.id}`}>
+                Ver proyecto <span class="arrow" aria-hidden="true">→</span>
+                <span class="sr-only">: {p.data.title}</span>
+              </a>
+            </div>
+            <a class="spread__media" href={`/proyectos/${p.id}`} tabindex="-1" aria-hidden="true">
+              <Image
+                src={p.data.cover.src}
+                alt=""
+                format="webp"
+                quality={88}
+                loading="lazy"
+                sizes="(min-width: 64rem) 46vw, 100vw"
+              />
+            </a>
+          </div>
+        </article>
+      );
+    })}
+  </div>
+
+  <!-- 04 · Sobre mí -->
+  <section class="sec on-dark about" id="sobre-mi" aria-labelledby="sobre-title" style="border-top: 1px solid var(--rule-dark)">
+    <div class="wrap">
+      <div class="grid">
+        <div class="about__figure reveal">
+          <Image src={portrait} alt="" format="webp" quality={90} widths={[520, 1040]} sizes="(min-width: 64rem) 40vw, 90vw" loading="lazy" />
+        </div>
+        <div class="about__text">
+          <h2 id="sobre-title" class="display about__name mask" aria-label={person.name}>
+            <span class="about__soy" aria-hidden="true">soy</span>
+            <span class="line" style="--i:0" aria-hidden="true"><span>Agustin</span></span>
+            <span class="line" style="--i:1" aria-hidden="true"><span>Hidalgo</span></span>
+          </h2>
+          <div class="prose reveal">
+            {copy.about.map((p) => <p set:html={inline(p)} />)}
+          </div>
+          <div class="about__cta reveal">
+            <a class="btn" href={cv.href} download={cv.file}>{cv.label} <span class="arrow" aria-hidden="true">↓</span></a>
+            <a class="ulink" href="/sobre-mi">Sobre mí en detalle <span class="arrow" aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </div>
+      <div class="cvgrid reveal">
+        <div>
+          <h3 class="label">Formación</h3>
+          <p><strong>{cvData.education.title}</strong></p>
+          <small>{cvData.education.org} · {cvData.education.period}</small>
+        </div>
+        <div>
+          <h3 class="label">Experiencia</h3>
+          <ul>
+            {featured.map((e) => (
+              <li>
+                <strong>{e.role}</strong>
+                <small>{e.org} · {e.period}</small>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h3 class="label">Herramientas</h3>
+          <p>Adobe Illustrator, Adobe Photoshop, Google Workspace y Microsoft Office.</p>
+          <small>Según CV.</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 · Contacto -->
+  <Contact />
+</Base>

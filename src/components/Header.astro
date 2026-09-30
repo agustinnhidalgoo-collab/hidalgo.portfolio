@@ -1,0 +1,49 @@
+---
+import { person, nav, cv } from '../data/site';
+interface Props { current: string }
+const { current } = Astro.props;
+---
+
+<header class="topbar">
+  <a class="topbar__mark" href="/" aria-label={`${person.name}, inicio`}>{person.wordmark}</a>
+  <nav class="topbar__right" aria-label="Acceso rápido">
+    <a class="topbar__link topbar__link--cv" href={cv.href} download={cv.file}>CV</a>
+    <a class="topbar__link" href="/#contacto">Contacto</a>
+  </nav>
+</header>
+
+<button class="menu-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="index-dialog" data-menu-open>
+  <span class="menu-btn__bars" aria-hidden="true"><i></i><i></i></span>
+  Índice
+</button>
+
+<dialog id="index-dialog" class="index on-red" aria-labelledby="index-title">
+  <div class="index__inner">
+    <button class="index__close" type="button" data-menu-close>
+      <span aria-hidden="true">✕</span> Cerrar
+    </button>
+    <div class="index__head">
+      <h2 id="index-title" class="index__title display">Índice</h2>
+      <nav aria-label="Índice">
+        <ol class="index__list">
+          {nav.map((item, i) => (
+            <li style={`--i:${i}`}>
+              <a href={item.href} aria-current={item.href === current ? 'page' : undefined}>
+                <span class={`t--${item.style}`}>{item.label}</span>
+                <span class="n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+              </a>
+            </li>
+          ))}
+          <li style={`--i:${nav.length}`}>
+            <a href={cv.href} download={cv.file}>
+              <span class="t--script">Currículum (PDF)</span>
+              <span class="n" aria-hidden="true">↓</span>
+            </a>
+          </li>
+        </ol>
+      </nav>
+    </div>
+    <div></div>
+    <p class="index__foot"><span>{person.wordmark}</span><span>{person.year}</span></p>
+  </div>
+</dialog>

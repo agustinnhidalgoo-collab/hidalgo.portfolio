@@ -1,0 +1,16 @@
+---
+import { person, nav, cv, contact } from '../data/site';
+---
+
+<footer class="foot on-dark">
+  <div class="wrap foot__row">
+    <p>{person.wordmark} · {person.year}</p>
+    <nav aria-label="Pie de página">
+      <ul>
+        {nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
+        <li><a href={cv.href} download={cv.file}>CV</a></li>
+        <li><a href={contact.whatsappUrl} rel="noopener">WhatsApp</a></li>
+      </ul>
+    </nav>
+  </div>
+</footer>

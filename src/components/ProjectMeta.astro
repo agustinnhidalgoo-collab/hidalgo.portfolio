@@ -1,0 +1,22 @@
+---
+import type { Project } from '../lib/projects';
+interface Props { project: Project }
+const { data } = Astro.props.project;
+const items = [
+  { k: 'Año', v: data.year ? [String(data.year)] : undefined },
+  { k: 'Tipo de proyecto', v: data.type },
+  { k: 'Enfoque', v: data.focus },
+  { k: 'Categoría', v: data.category },
+  { k: 'Rol', v: data.role ? [data.role] : undefined },
+  { k: 'Colaboradores', v: data.collaborators },
+].filter((i) => i.v && i.v.length);
+---
+
+<dl class="meta">
+  {items.map((i) => (
+    <div>
+      <dt>{i.k}</dt>
+      <dd>{i.v!.map((line) => <span>{line}</span>)}</dd>
+    </div>
+  ))}
+</dl>

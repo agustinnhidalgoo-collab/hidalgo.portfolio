@@ -1,0 +1,107 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Contact from '../components/Contact.astro';
+import portrait from '../assets/portrait/agustin.png';
+import { person, contact, cv, copy, cvData } from '../data/site';
+import { inline } from '../lib/projects';
+
+const description =
+  'Agustín Hidalgo, diseñador y comunicador visual. Estudiante de Comunicación Visual, Gráfica y Digital (Universidad de Belgrano): formación, experiencia y herramientas.';
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: person.name,
+  jobTitle: person.role,
+  email: contact.email,
+  alumniOf: { '@type': 'CollegeOrUniversity', name: 'Universidad de Belgrano' },
+  sameAs: [contact.instagramUrl],
+};
+---
+
+<Base title="Sobre mí — Agustín Hidalgo" description={description} path="/sobre-mi" jsonLd={jsonLd}>
+  <section class="sec on-dark aboutpage__head about" aria-labelledby="sobre-title" style="padding-bottom: clamp(3rem, 6vw, 5rem)">
+    <div class="wrap grid">
+      <div class="about__figure">
+        <Image src={portrait} alt="Agustín Hidalgo, retrato en blanco y negro" format="webp" quality={90} widths={[520, 1040]} sizes="(min-width: 64rem) 40vw, 90vw" loading="eager" fetchpriority="high" />
+      </div>
+      <div class="about__text">
+        <h1 id="sobre-title" class="display about__name mask" aria-label={person.name}>
+          <span class="about__soy" aria-hidden="true">soy</span>
+          <span class="line" style="--i:0" aria-hidden="true"><span>Agustin</span></span>
+          <span class="line" style="--i:1" aria-hidden="true"><span>Hidalgo</span></span>
+        </h1>
+        <div class="prose reveal">
+          {copy.about.map((p) => <p set:html={inline(p)} />)}
+        </div>
+        <div class="about__cta">
+          <a class="btn" href={cv.href} download={cv.file}>{cv.label} <span class="arrow" aria-hidden="true">↓</span></a>
+          <a class="ulink" href={cv.href} target="_blank" rel="noopener">Abrir en otra pestaña <span class="sr-only">(PDF)</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec on-dark" aria-labelledby="perfil-title" style="border-top: 1px solid var(--rule-dark)">
+    <div class="wrap grid">
+      <h2 id="perfil-title" class="display sech" style="grid-column: 1 / -1">Perfil</h2>
+      <p class="prose" style="grid-column: 1 / -1; max-inline-size: 44rem">{cvData.profile}</p>
+    </div>
+  </section>
+
+  <section class="sec on-dark" aria-labelledby="exp-title" style="padding-top: 0">
+    <div class="wrap">
+      <h2 id="exp-title" class="display sech">Experiencia</h2>
+      <ol class="rows">
+        {cvData.experience.map((e) => (
+          <li class="reveal">
+            <p class="period">{e.period}</p>
+            <div>
+              <h3>{e.role}</h3>
+              <p class="org">{e.org}</p>
+            </div>
+            <ul>{e.items.map((it) => <li>{it}</li>)}</ul>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="sec on-dark" aria-labelledby="form-title" style="padding-top: 0">
+    <div class="wrap">
+      <h2 id="form-title" class="display sech">Formación</h2>
+      <ol class="rows">
+        <li class="reveal">
+          <p class="period">{cvData.education.period}</p>
+          <div>
+            <h3>{cvData.education.title}</h3>
+            <p class="org">{cvData.education.org}</p>
+          </div>
+          <ul>{cvData.education.items.map((it) => <li>{it}</li>)}</ul>
+        </li>
+        {cvData.courses.map((c) => (
+          <li class="reveal">
+            <p class="period">{c.period}</p>
+            <div>
+              <h3>{c.title}</h3>
+              <p class="org">{c.org} · Cursos y capacitaciones</p>
+            </div>
+            <p></p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <section class="sec on-dark" aria-labelledby="skills-title" style="padding-top: 0">
+    <div class="wrap">
+      <h2 id="skills-title" class="display sech">Habilidades</h2>
+      <h3 class="label" style="margin-bottom: 1rem">Técnicas</h3>
+      <ul class="taglist" style="margin-bottom: 3rem">{cvData.tools.map((t) => <li>{t}</li>)}</ul>
+      <h3 class="label" style="margin-bottom: 1rem">Blandas</h3>
+      <ul class="taglist">{cvData.soft.map((t) => <li>{t}</li>)}</ul>
+    </div>
+  </section>
+
+  <Contact />
+</Base>
