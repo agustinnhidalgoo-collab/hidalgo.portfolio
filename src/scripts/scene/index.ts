@@ -323,44 +323,50 @@ export async function startScene(): Promise<boolean> {
   const hasCard = !!$('#stage-card');
   const firstStage = hasBottle ? '#stage-bottle' : '#stage-card';
   const mm = gsap.matchMedia();
-  const T = (trigger: string, start: string, end: string, vars: gsap.TweenVars) =>
-    gsap.to(S, { ...vars, ease: 'none', immediateRender: false, scrollTrigger: { trigger, start, end, scrub: 0.9 } });
+  // Todos los tramos declaran su valor inicial: el estado depende solo del scroll,
+  // no de la historia (recargar a mitad de página o saltar a un ancla da el mismo resultado).
+  const FT = (trigger: string, start: string, end: string, from: gsap.TweenVars, to: gsap.TweenVars) =>
+    gsap.fromTo(S, from, { ...to, ease: 'none', immediateRender: false, scrollTrigger: { trigger, start, end, scrub: 0.9 } });
   const stageTL = (id: string) =>
     gsap.timeline({ scrollTrigger: { trigger: id, start: 'top top', end: 'bottom bottom', scrub: 0.9 }, defaults: { ease: 'power1.inOut' } });
   const TAU = Math.PI * 2;
 
   const build = (desk: boolean) => {
-    T('#introduccion', 'top 90%', 'top 30%', desk ? { tx: 0.27, ty: 0.03, try: -0.5, ts: 0.5, to: 0.75 } : { tx: 0, ty: 0.34, try: 0, ts: 0.46, to: 0.8 });
-    T(firstStage, 'top 85%', 'top 30%', { tz: -4.5, to: 0 });
+    const introTo = desk ? { tx: 0.27, ty: 0.03, try: -0.5, ts: 0.5, to: 0.75 } : { tx: 0, ty: 0.34, try: 0, ts: 0.46, to: 0.8 };
+    FT('#introduccion', 'top 90%', 'top 30%', { tx: 0, ty: 0.02, try: 0, ts: 1, to: 1 }, introTo);
+    FT(firstStage, 'top 85%', 'top 30%', { tz: 0, to: introTo.to }, { tz: -4.5, to: 0 });
     if (hasBottle) {
-      T('#stage-bottle', 'top 85%', 'top 30%', desk ? { by: 0, bo: 1, bx: 0.26, bry: -0.32, glow: 1 } : { by: 0.2, bo: 1, bx: 0, bry: -0.3, bs: 0.82, glow: 1 });
-      // Frente (paso 1) → giro hasta el dorso (paso 2) → de vuelta al frente (paso 3)
-      stageTL('#stage-bottle')
-        .to(S, { bry: -0.08, duration: 2.8, ease: 'none' }, 0)
-        .to(S, desk ? { bx: 0, bry: Math.PI + 0.1, bs: 0.92, duration: 1.4 } : { bry: Math.PI + 0.1, bs: 0.74, duration: 1.4 }, 2.8)
+      const b0 = desk ? { by: -1.3, bo: 0, bx: 0.26, bry: -0.6, bs: 1, glow: 0 } : { by: 0.9, bo: 0, bx: 0, bry: -0.6, bs: 0.82, glow: 0 };
+      const b1 = desk ? { by: 0, bo: 1, bx: 0.26, bry: -0.32, bs: 1, glow: 1 } : { by: 0.2, bo: 1, bx: 0, bry: -0.3, bs: 0.82, glow: 1 };
+      FT('#stage-bottle', 'top 85%', 'top 30%', b0, b1);
+      const tl = stageTL('#stage-bottle');
+      const bs0 = desk ? 1 : 0.82;
+      tl.fromTo(S, { bry: b1.bry }, { bry: -0.08, duration: 2.8, ease: 'none', immediateRender: false }, 0)
+        .fromTo(S, desk ? { bx: 0.26, bs: bs0 } : { bs: bs0 }, desk ? { bx: 0, bry: Math.PI + 0.1, bs: 0.92, duration: 1.4, immediateRender: false } : { bry: Math.PI + 0.1, bs: 0.74, duration: 1.4, immediateRender: false }, 2.8)
         .to(S, { bry: Math.PI + 0.3, duration: 2.0, ease: 'none' }, 4.2)
         .to(S, desk ? { bx: 0.26, bry: TAU + 0.12, bs: 1, duration: 1.5 } : { bry: TAU + 0.12, bs: 0.82, duration: 1.5 }, 6.2)
         .to(S, { bry: TAU + 0.22, duration: 2.3, ease: 'none' }, 7.7);
     }
     if (hasCard) {
-      // La botella sale y la tarjeta entra; el ambiente pasa a monocromo (negro sobre negro)
-      T('#stage-card', 'top 90%', 'top 35%', {
-        ...(hasBottle ? { by: 1.4, bo: 0, glow: 0 } : {}),
-        mono: 1, cy: desk ? 0 : 0.2, co: 1, cx: desk ? 0.26 : 0, cry: -0.45, crx: 0.18, cs: desk ? 1 : 0.86,
-      });
-      stageTL('#stage-card')
-        .to(S, { cry: -0.25, crx: 0.16, duration: 2.8, ease: 'none' }, 0)
-        .to(S, desk ? { cx: -0.03, cry: 0.42, crx: 0.32, cs: 0.76, duration: 1.4 } : { cry: 0.42, crx: 0.32, cs: 0.8, duration: 1.4 }, 2.8)
+      const c1 = { cy: desk ? 0 : 0.2, co: 1, cx: desk ? 0.26 : 0, cry: -0.45, crx: 0.18, cs: desk ? 1 : 0.86, mono: 1 };
+      const c0 = { cy: desk ? -1.3 : 0.9, co: 0, cx: c1.cx, cry: -0.8, crx: 0.18, cs: c1.cs, mono: 0 };
+      FT('#stage-card', 'top 90%', 'top 35%', c0, c1);
+      if (hasBottle) {
+        const bEnd = { by: desk ? 0 : 0.2, bo: 1, glow: 1 };
+        FT('#stage-card', 'top 90%', 'top 35%', bEnd, { by: 1.4, bo: 0, glow: 0 });
+      }
+      const tl = stageTL('#stage-card');
+      tl.fromTo(S, { cry: c1.cry, crx: c1.crx }, { cry: -0.25, crx: 0.16, duration: 2.8, ease: 'none', immediateRender: false }, 0)
+        .fromTo(S, desk ? { cx: 0.26, cs: 1 } : { cs: 0.86 }, desk ? { cx: -0.03, cry: 0.42, crx: 0.32, cs: 0.76, duration: 1.4, immediateRender: false } : { cry: 0.42, crx: 0.32, cs: 0.8, duration: 1.4, immediateRender: false }, 2.8)
         .to(S, { cry: 0.55, duration: 2.0, ease: 'none' }, 4.2)
         .to(S, desk ? { cx: 0.26, cry: -0.2, crx: 0.14, cs: 1, duration: 1.5 } : { cry: -0.2, crx: 0.14, cs: 0.86, duration: 1.5 }, 6.2)
         .to(S, { cry: -0.1, duration: 2.3, ease: 'none' }, 7.7);
     }
-    const lastStage = hasCard ? '#stage-card' : '#stage-bottle';
     if ($('#scene-end')) {
       // Salida hacia el resto de la página
-      T('#scene-end', 'top bottom', 'top 30%', hasCard ? { cy: 1.4, co: 0 } : { by: 1.4, bo: 0, glow: 0 });
+      if (hasCard) FT('#scene-end', 'top bottom', 'top 30%', { cy: desk ? 0 : 0.2, co: 1 }, { cy: 1.4, co: 0 });
+      else FT('#scene-end', 'top bottom', 'top 30%', { by: desk ? 0 : 0.2, bo: 1, glow: 1 }, { by: 1.4, bo: 0, glow: 0 });
     }
-    void lastStage;
   };
   mm.add('(min-aspect-ratio: 17/20)', () => build(true));
   mm.add('(max-aspect-ratio: 16.99/20)', () => build(false));
@@ -414,7 +420,7 @@ export async function startScene(): Promise<boolean> {
       last = now;
       return;
     }
-    const dt = Math.min((now - last) / 1000, 0.05);
+    const dt = Math.min((now - last) / 1000, 0.12);
     last = now;
     // Calidad adaptable: si el dispositivo no sostiene ~40 fps, baja la resolución de render
     frames++;

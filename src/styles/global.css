@@ -1,3 +1,26 @@
+/* Fuentes locales (src/assets/fonts). Anton (display), Inter variable (lectura), Reenie Beanie (manuscrita). Licencias OFL. */
+@font-face {
+  font-family: 'Anton';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/anton-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/inter-latin-wght-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Reenie Beanie';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../assets/fonts/reenie-beanie-latin-400-normal.woff2') format('woff2');
+}
+
 /* =========================================================
    Tokens
    Colores muestreados del video (1024×576, comprimido):

@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import opentype from 'opentype.js';
 
-const src = 'node_modules/@fontsource/anton/files/anton-latin-400-normal.woff';
+const src = 'src/assets/fonts/anton-latin-400-normal.woff';
 const chars = ' ABCDEFGHIJKLMNOPQRSTUVWXYZÁÉÍÓÚÑ0123456789.,-/';
 const buf = fs.readFileSync(src);
 const font = opentype.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
