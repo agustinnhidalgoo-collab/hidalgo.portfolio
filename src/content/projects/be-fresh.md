@@ -15,10 +15,13 @@ titleLines: Be Fresh
 cover:
   src: ../../assets/befresh/portada.jpg
   alt: Tarjeta negra sobre fondo negro, en perspectiva, con el isotipo BF en relieve y, en pequeño, las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
-stagePhoto:
-  src: ../../assets/befresh/logo-blanco.png
-  alt: Logotipo «befresh» en blanco con las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
-  caption: Logotipo principal
+stageImages:
+  - src: ../../assets/befresh/portada.jpg
+    alt: Tarjeta negra sobre fondo negro, en perspectiva, con el isotipo BF en relieve.
+  - src: ../../assets/befresh/logo-blanco.png
+    alt: Logotipo «befresh» en blanco con las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
+  - src: ../../assets/befresh/isologo-blanco.png
+    alt: Isologo BF en blanco.
 seoDescription: Diseño de logo e identidad visual para Be Fresh, una barbería contemporánea. Sistema gráfico monocromático, isotipo en relieve y aplicaciones.
 sections:
   - kind: gallery

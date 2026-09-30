@@ -52,8 +52,8 @@ const sizes = '(min-width: 64rem) 46vw, 100vw';
           <p class="descriptor reveal">{data.descriptor}</p>
           <div class="reveal"><ProjectMeta project={project} /></div>
         </div>
-        <div class="case-open__media" data-clip>
-          <Image src={data.cover.src} alt={data.cover.alt} format="webp" quality={88} loading="eager" fetchpriority="high" data-parallax="4" sizes={sizes} />
+        <div class={`case-open__media${data.scene === 'bottle' ? ' is-cutout' : ''}`} {...(data.scene === 'bottle' ? {} : { 'data-clip': true })}>
+          <Image src={data.cover.src} alt={data.cover.alt} format="webp" quality={88} loading="eager" fetchpriority="high" {...(data.scene === 'bottle' ? {} : { 'data-parallax': 4 })} sizes={sizes} />
         </div>
       </div>
     </header>

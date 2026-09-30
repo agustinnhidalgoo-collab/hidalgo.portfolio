@@ -74,7 +74,8 @@ export const projects = defineCollection({
       concept: z.string().optional(),
       /** Nota breve del paso 2 de la escena (opcional). */
       stageNote: z.string().optional(),
-      stagePhoto: picture.extend({ caption: z.string().optional() }).optional(),
+      /** Imágenes reales para cada paso de la escena (vista previa mientras carga el 3D y alternativa sin WebGL). */
+      stageImages: z.array(picture).length(3).optional(),
       /** Color del título en la home y en el case study. */
       titleTone: z.enum(['red', 'white']).default('white'),
       /** Saltos de línea dirigidos del título (separados por "|"). */

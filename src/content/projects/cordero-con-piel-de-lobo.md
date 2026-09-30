@@ -14,12 +14,15 @@ stageNote: Al girar la botella, el dorso muestra la marca Mosquita Muerta Wines 
 titleTone: red
 titleLines: Cordero con|piel de lobo
 cover:
-  src: ../../assets/cordero/portada.jpg
-  alt: Botella de vino con la etiqueta Cordero con piel de lobo y, a la derecha, un detalle ampliado de la etiqueta desgastada con la ilustración de un lobo sobre un cordero.
-stagePhoto:
-  src: ../../assets/cordero/etiqueta-detalle.jpg
-  alt: Detalle ampliado de la etiqueta con el título en rojo sobre fondo negro, textura desgastada y la ilustración de un lobo sobre un cordero.
-  caption: Detalle de la etiqueta
+  src: ../../assets/3d/botella-frente.webp
+  alt: Botella de vino tinto Cordero con piel de lobo, vista de frente, sobre fondo negro.
+stageImages:
+  - src: ../../assets/3d/botella-frente.webp
+    alt: Botella de vino tinto Cordero con piel de lobo, vista de frente.
+  - src: ../../assets/3d/botella-dorso.webp
+    alt: Botella de vino tinto Cordero con piel de lobo, vista de dorso con la etiqueta de Mosquita Muerta Wines.
+  - src: ../../assets/3d/botella-frente.webp
+    alt: Botella de vino tinto Cordero con piel de lobo, vista de frente.
 seoDescription: "Rediseño conceptual de marca y sistema de envases para un vino tinto blend. Concepto «Verdad desgarrada»: ilustración, textura y tipografía al servicio de la tensión entre apariencia y esencia."
 sections:
   - kind: text
@@ -62,7 +65,7 @@ sections:
   - kind: annotated
     title: Composición
     image: ../../assets/cordero/composicion.jpg
-    alt: Etiqueta completa con título en la parte superior, ilustración del lobo en el centro y textura desgastada de fondo.
+    alt: "Etiqueta de frente: título en la parte superior, ilustración del lobo sobre el cordero en el centro y textura desgastada de fondo."
     notes:
       - label: "Título"
         value: "Jerarquía principal e impacto visual"
@@ -75,7 +78,7 @@ sections:
   - kind: gallery
     title: Aplicación
     size: l
-    body: Botella y caja como sistema. La caja lleva el título en relieve metalizado y la ilustración en grises sobre cartón.
+    body: Botella y caja como sistema. La caja lleva el título metalizado y la ilustración de un cordero en grises sobre cartón.
     items:
       - image: ../../assets/cordero/caja.jpg
         alt: Caja de cartón gris con el título Cordero con piel de lobo estampado y la ilustración de un cordero.
@@ -83,12 +86,6 @@ sections:
       - image: ../../assets/cordero/caja-tierra.jpg
         alt: La misma caja sobre un fondo marrón.
         label: Caja, fondo tierra
-      - image: ../../assets/cordero/detalle-etiqueta.jpg
-        alt: Detalle de la etiqueta sobre el vidrio de la botella.
-        label: Detalle de etiqueta
-      - image: ../../assets/cordero/capsula.jpg
-        alt: Cápsula roja de la botella.
-        label: Cápsula
   - kind: gallery
     title: Exploraciones
     size: m

@@ -1,7 +1,6 @@
 ---
 import { Image } from 'astro:assets';
 import { render } from 'astro:content';
-import Fig from './Fig.astro';
 import ProjectMeta from './ProjectMeta.astro';
 import { titleLines, type Project } from '../lib/projects';
 
@@ -10,11 +9,14 @@ const { project, n } = Astro.props;
 const { data } = project;
 const { Content } = await render(project);
 const scene = data.scene ?? 'bottle';
+const prefix = scene === 'card' ? 'c' : 'b';
+const imgs = data.stageImages ?? [];
 const links = data.sections.map((s, i) => ({ s, i })).filter(({ s }) => 'title' in s && s.title);
 const palette = data.sections.find((s) => s.kind === 'palette');
+const shadow = scene === 'bottle';
 ---
 
-<section id={`stage-${scene}`} class="pstage clear" data-step="1" aria-labelledby={`p-${project.id}`}>
+<section id={`stage-${scene}`} class="pstage clear" data-scene={scene} data-step="1" aria-labelledby={`p-${project.id}`}>
   <div class="pstage__pin">
     <!-- Paso 1 · presentación -->
     <div class="pstage__step step-1">
@@ -29,12 +31,12 @@ const palette = data.sections.find((s) => s.kind === 'palette');
           <div style="margin-top:1.5rem"><ProjectMeta project={project} /></div>
           <p style="margin-top:1rem"><a class="ulink" href={`/proyectos/${project.id}`}>Ver proyecto <span class="arrow" aria-hidden="true">→</span><span class="sr-only">: {data.title}</span></a></p>
         </div>
-        <div class="pstage__cover" style="grid-column: 1 / -1; margin-top: 2rem">
-          <Image src={data.cover.src} alt={data.cover.alt} format="webp" quality={88} loading="lazy" sizes="100vw" />
+        <div class="slot" data-slot={`${prefix}1`}>
+          {imgs[0] && <Image class={`slot__img ${shadow ? 'slot__img--shadow' : ''}`} src={imgs[0].src} alt={imgs[0].alt} format="webp" quality={88} loading="lazy" sizes="(min-width: 64rem) 30vw, 60vw" />}
         </div>
       </div>
     </div>
-    <!-- Paso 2 · concepto y detalle real -->
+    <!-- Paso 2 · concepto -->
     <div class="pstage__step step-2">
       <div class="wrap grid step-grid">
         <div class="pstage__text">
@@ -42,8 +44,8 @@ const palette = data.sections.find((s) => s.kind === 'palette');
           <div class="lead"><Content /></div>
           {data.stageNote && <p class="notice">{data.stageNote}</p>}
         </div>
-        <div class="pstage__photo">
-          {data.stagePhoto && <Fig src={data.stagePhoto.src} alt={data.stagePhoto.alt} caption={data.stagePhoto.caption} />}
+        <div class="slot" data-slot={`${prefix}2`}>
+          {imgs[1] && <Image class={`slot__img ${shadow ? 'slot__img--shadow' : ''}`} src={imgs[1].src} alt={imgs[1].alt} format="webp" quality={88} loading="lazy" sizes="(min-width: 64rem) 30vw, 60vw" />}
         </div>
       </div>
     </div>
@@ -69,6 +71,9 @@ const palette = data.sections.find((s) => s.kind === 'palette');
             ))}
           </ol>
           <p style="margin-top:1.5rem"><a class="btn" href={`/proyectos/${project.id}`}>Ver proyecto completo <span class="arrow" aria-hidden="true">→</span></a></p>
+        </div>
+        <div class="slot" data-slot={`${prefix}3`}>
+          {imgs[2] && <Image class={`slot__img ${shadow ? 'slot__img--shadow' : ''}`} src={imgs[2].src} alt={imgs[2].alt} format="webp" quality={88} loading="lazy" sizes="(min-width: 64rem) 30vw, 60vw" />}
         </div>
       </div>
     </div>
