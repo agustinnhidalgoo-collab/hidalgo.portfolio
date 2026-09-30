@@ -1501,6 +1501,12 @@ html.gl-try .pstage[data-step='3'] .pstage__prog i:nth-child(3) {
   gap: 2rem var(--col-gap);
   align-items: end;
 }
+.gallery--m {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+}
+.gallery--l {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+}
 .gallery .fig {
   padding-top: 0;
 }
@@ -1743,5 +1749,13 @@ html.has-cursor .cursor {
   html.gl-try .step-3 .pstage__swatches,
   html.gl-try .step-3 .label {
     display: none;
+  }
+}
+
+@media (max-width: 63.99rem) {
+  html.gl-try .pstage__links a {
+    min-height: 2.4rem;
+    padding-block: 0.3rem;
+    grid-template-columns: 1.8rem 1fr auto;
   }
 }

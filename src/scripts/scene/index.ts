@@ -12,6 +12,8 @@ import {
   Color,
   CylinderGeometry,
   DirectionalLight,
+  ExtrudeGeometry,
+  Float32BufferAttribute,
   Group,
   LatheGeometry,
   Mesh,
@@ -23,16 +25,23 @@ import {
   PlaneGeometry,
   PointLight,
   Scene,
+  Shape,
   SRGBColorSpace,
   SpotLight,
   TextureLoader,
   Vector2,
+  Vector3,
+  Box3,
   WebGLRenderer,
 } from 'three';
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import fontJson from '../../assets/3d/anton-subset.json';
-import labelUrl from '../../assets/3d/etiqueta-cordero.jpg?url';
+import bottleProfile from '../../assets/3d/bottle-profile.json';
+import labelFrontUrl from '../../assets/3d/label-front.png?url';
+import labelBackUrl from '../../assets/3d/label-back.png?url';
+import bfSvg from '../../assets/3d/bf-isologo.svg?raw';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -46,6 +55,9 @@ const S = {
   tx: 0, ty: 0.02, tz: 0, try: 0, ts: 1, to: 1,
   // botella
   bx: 0.27, by: -1.3, bry: -0.35, bs: 1, bo: 0,
+  // tarjeta (Be Fresh)
+  cx: 0.26, cy: -1.3, crx: 0.18, cry: -0.45, cs: 1, co: 0,
+  mono: 0,
   // ambiente
   wall: 1, glow: 0.4,
 };
@@ -118,6 +130,11 @@ export async function startScene(): Promise<boolean> {
   const rim = new PointLight(0xff1e14, 70, 22, 2);
   rim.position.set(9, 1, -0.6);
   scene.add(rim);
+  // Luz rasante para el relieve de la tarjeta (solo se enciende en Be Fresh)
+  const rake = new SpotLight(0xffffff, 0, 60, 0.42, 1, 1.4);
+  rake.position.set(-11, -4, 5);
+  rake.target.position.set(0, 0, 0);
+  scene.add(rake, rake.target);
   const fill = new DirectionalLight(0xffffff, 0.35);
   fill.position.set(4, 3, 10);
   scene.add(fill);
@@ -164,45 +181,94 @@ export async function startScene(): Promise<boolean> {
   });
   scene.add(letters);
 
-  /* ---------- Botella de Cordero (modelo simplificado provisional) ---------- */
+  /* ---------- Botella de Cordero ----------
+     Geometría: perfil de revolución medido sobre la fotografía real del frente (silueta).
+     Etiquetas: recortes fotográficos reales del PDF (frente y dorso) con su borde rasgado. */
   const bottle = new Group();
-  const H = 1; // altura unitaria
-  const prof = [
-    [0.0, 0.0], [0.104, 0.0], [0.111, 0.008], [0.1135, 0.02], [0.1135, 0.5],
-    [0.111, 0.53], [0.102, 0.57], [0.086, 0.612], [0.068, 0.655], [0.053, 0.7],
-    [0.0455, 0.74], [0.0435, 0.78], [0.0435, 0.9], [0.0435, 0.93], [0.0, 0.93],
-  ].map(([r, y]) => new Vector2(r, y * H));
+  const H = 1;
+  const prof = (bottleProfile as [number, number][]).map(([y, r]) => new Vector2(r, y * H));
+  const CAP_Y = 0.79;
   const glass = new MeshPhysicalMaterial({
     color: 0x070908, roughness: 0.06, metalness: 0.0, clearcoat: 1, clearcoatRoughness: 0.04,
     envMapIntensity: 2.8, ior: 1.5, specularIntensity: 1,
   });
-  const body = new Mesh(new LatheGeometry(prof, 64), glass);
+  const bodyPts = [new Vector2(0, 0), new Vector2(prof[0].x * 0.85, 0), ...prof.filter((p) => p.y <= CAP_Y + 0.01)];
+  const body = new Mesh(new LatheGeometry(bodyPts, 72), glass);
   body.castShadow = shadows;
   bottle.add(body);
-  // Cápsula (color tomado de la cápsula fotografiada)
-  const capMat = new MeshPhysicalMaterial({ color: 0x4a0a12, roughness: 0.32, metalness: 0.15, clearcoat: 0.8, clearcoatRoughness: 0.25 });
-  const cap = new Mesh(new CylinderGeometry(0.0495, 0.0495, 0.19, 48), capMat);
-  cap.position.y = 0.89;
+  const capMat = new MeshPhysicalMaterial({ color: 0x4a0f22, roughness: 0.34, metalness: 0.12, clearcoat: 0.8, clearcoatRoughness: 0.25 });
+  const capPts = [...prof.filter((p) => p.y >= CAP_Y).map((p) => new Vector2(p.x * 1.035, p.y)), new Vector2(prof[prof.length - 1].x * 1.035, 1), new Vector2(0, 1)];
+  const cap = new Mesh(new LatheGeometry(capPts, 48), capMat);
   cap.castShadow = shadows;
   bottle.add(cap);
-  const capTop = new Mesh(new CylinderGeometry(0.0495, 0.0495, 0.004, 48), capMat);
-  capTop.position.y = 0.985;
-  bottle.add(capTop);
-  // Etiqueta: textura provisional recortada del video (solo cara frontal)
-  const tex = await new TextureLoader().loadAsync(labelUrl);
-  tex.colorSpace = SRGBColorSpace;
-  tex.anisotropy = 4;
-  const labelH = 0.31;
-  const labelW = labelH * (112 / 225);
-  const arc = labelW / 0.1145;
-  const labelMat = new MeshStandardMaterial({ map: tex, roughness: 0.78, metalness: 0, bumpMap: tex, bumpScale: 1.4 });
-  const label = new Mesh(new CylinderGeometry(0.1145, 0.1145, labelH, 48, 1, true, -arc / 2, arc), labelMat);
-  label.position.y = 0.3;
-  bottle.add(label);
+
+  const loader = new TextureLoader();
+  const [texF, texB] = await Promise.all([loader.loadAsync(labelFrontUrl), loader.loadAsync(labelBackUrl)]);
+  [texF, texB].forEach((t) => {
+    t.colorSpace = SRGBColorSpace;
+    t.anisotropy = 4;
+  });
+  const bodyR = Math.max(...bodyPts.map((p) => p.x));
+  const makeLabel = (tex: typeof texF, y0: number, y1: number, half: number, flip: boolean) => {
+    const arc = half * 2;
+    const g = new CylinderGeometry(bodyR + 0.0012, bodyR + 0.0012, y1 - y0, 64, 1, true, -half, arc);
+    // La foto es una proyección del cilindro: u = sen(ángulo) reproduce fielmente la curvatura.
+    const pos = g.attributes.position;
+    const uv: number[] = [];
+    for (let i = 0; i < pos.count; i++) {
+      const phi = Math.atan2(pos.getX(i), pos.getZ(i));
+      uv.push((Math.sin(phi) / Math.sin(half) + 1) / 2, (pos.getY(i) / (y1 - y0) + 0.5));
+    }
+    g.setAttribute('uv', new Float32BufferAttribute(uv, 2));
+    const m = new Mesh(g, new MeshStandardMaterial({ map: tex, roughness: 0.82, metalness: 0, bumpMap: tex, bumpScale: 1.2, alphaTest: 0.4 }));
+    m.position.y = (y0 + y1) / 2;
+    if (flip) m.rotation.y = Math.PI;
+    return m;
+  };
+  bottle.add(makeLabel(texF, 0.1664, 0.6352, 1.36, false)); // frente
+  bottle.add(makeLabel(texB, 0.1754, 0.6365, 1.36, true)); // dorso
   bottle.position.y = -H * 0.5;
   const bottleRoot = new Group();
   bottleRoot.add(bottle);
   scene.add(bottleRoot);
+
+  /* ---------- Tarjeta de Be Fresh: isologo vectorial extruido (archivo original) ---------- */
+  const cardMat = new MeshStandardMaterial({ color: 0x060607, roughness: 0.88, metalness: 0.04, transparent: true, envMapIntensity: 0.3 });
+  const bfMat = new MeshStandardMaterial({ color: 0x2a2a2d, roughness: 0.2, metalness: 0.7, transparent: true });
+  const card = new Group();
+  const CW = 1, CH = 0.78, CD = 0.03;
+  const cs = new Shape();
+  cs.moveTo(-CW / 2, -CH / 2); cs.lineTo(CW / 2, -CH / 2); cs.lineTo(CW / 2, CH / 2); cs.lineTo(-CW / 2, CH / 2); cs.closePath();
+  const cardGeo = new ExtrudeGeometry(cs, { depth: CD, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.004, bevelSegments: 2 });
+  cardGeo.translate(0, 0, -CD / 2);
+  const cardMesh = new Mesh(cardGeo, cardMat);
+  cardMesh.castShadow = shadows;
+  cardMesh.receiveShadow = shadows;
+  card.add(cardMesh);
+  const svg = new SVGLoader().parse(bfSvg);
+  const bfGroup = new Group();
+  svg.paths.forEach((p) => {
+    p.toShapes().forEach((shape) => {
+      const g = new ExtrudeGeometry(shape, { depth: 5, bevelEnabled: true, bevelThickness: 0.8, bevelSize: 0.7, bevelSegments: 3, curveSegments: 10 });
+      const m = new Mesh(g, bfMat);
+      m.castShadow = shadows;
+      bfGroup.add(m);
+    });
+  });
+  {
+    // Centrar y escalar el isologo (el SVG tiene el eje Y hacia abajo → se invierte al escalar)
+    const box = new Box3().setFromObject(bfGroup);
+    const size = box.getSize(new Vector3());
+    const center = box.getCenter(new Vector3());
+    bfGroup.children.forEach((c) => c.position.sub(center));
+    const k = (CW * 0.5) / size.x;
+    bfGroup.scale.set(k, -k, k);
+    bfGroup.position.z = CD / 2 + 0.001;
+  }
+  card.add(bfGroup);
+  const cardRoot = new Group();
+  cardRoot.add(card);
+  scene.add(cardRoot);
 
   // Halo de luz bajo la botella (decal aditivo, no una superficie inventada)
   const glowCv = document.createElement('canvas');
@@ -220,7 +286,7 @@ export async function startScene(): Promise<boolean> {
   scene.add(glow);
 
   /* ---------- Tamaño / composición por dispositivo ---------- */
-  let vw = 10, vh = 10, mobile = false, baseScale = 1, bottleScale = 1, lk = 1;
+  let vw = 10, vh = 10, mobile = false, baseScale = 1, bottleScale = 1, cardScale = 1, lk = 1;
   const resize = () => {
     const w = host.clientWidth || innerWidth;
     const h = host.clientHeight || innerHeight;
@@ -236,6 +302,7 @@ export async function startScene(): Promise<boolean> {
     const fitH = (vh * (mobile ? 0.3 : 0.64)) / blockH;
     baseScale = Math.min(fitW, fitH);
     bottleScale = vh * (mobile ? 0.5 : 0.74);
+    cardScale = Math.min(vh * (mobile ? 0.4 : 0.62), vw * (mobile ? 0.8 : 0.4));
     ScrollTrigger.refresh();
   };
   addEventListener('resize', resize);
@@ -250,48 +317,67 @@ export async function startScene(): Promise<boolean> {
     });
   }
 
-  /* ---------- Recorrido: estados vinculados al scroll ---------- */
+  /* ---------- Recorrido: estados vinculados al scroll ----------
+     nombre → introducción → botella (frente, dorso) → tarjeta Be Fresh → salida. */
+  const hasBottle = !!$('#stage-bottle');
+  const hasCard = !!$('#stage-card');
+  const firstStage = hasBottle ? '#stage-bottle' : '#stage-card';
   const mm = gsap.matchMedia();
-  const T = (trigger: string, start: string, end: string, vars: gsap.TweenVars, at?: string) =>
-    gsap.to(S, { ...vars, ease: 'none', immediateRender: false, scrollTrigger: { trigger, start, end, scrub: 0.9, ...(at ? {} : {}) } });
+  const T = (trigger: string, start: string, end: string, vars: gsap.TweenVars) =>
+    gsap.to(S, { ...vars, ease: 'none', immediateRender: false, scrollTrigger: { trigger, start, end, scrub: 0.9 } });
+  const stageTL = (id: string) =>
+    gsap.timeline({ scrollTrigger: { trigger: id, start: 'top top', end: 'bottom bottom', scrub: 0.9 }, defaults: { ease: 'power1.inOut' } });
+  const TAU = Math.PI * 2;
 
-  mm.add('(min-aspect-ratio: 17/20)', () => {
-    // Escritorio / horizontal
-    T('#introduccion', 'top 90%', 'top 30%', { tx: 0.27, ty: 0.03, try: -0.5, ts: 0.5, to: 0.75 });
-    T('#cordero', 'top 85%', 'top 30%', { tz: -4.5, to: 0, by: 0, bo: 1, bx: 0.26, bry: -0.32, glow: 1 });
-    const st = { trigger: '#cordero', start: 'top top', end: 'bottom bottom', scrub: 0.9 };
-    gsap.timeline({ scrollTrigger: st, defaults: { ease: 'power1.inOut' } })
-      .to(S, { bry: -0.08, duration: 2.8, ease: 'none' }, 0)
-      .to(S, { bx: 0.0, bry: 0.42, bs: 0.92, duration: 1.3 }, 2.8)
-      .to(S, { bry: 0.5, duration: 2.1, ease: 'none' }, 4.1)
-      .to(S, { bx: 0.26, bry: 0.12, bs: 1, duration: 1.3 }, 6.2)
-      .to(S, { bry: 0.2, duration: 2.5, ease: 'none' }, 7.5);
-    T('#cordero-end', 'top bottom', 'top 30%', { by: 1.4, bo: 0, glow: 0 });
-  });
-  mm.add('(max-aspect-ratio: 16.99/20)', () => {
-    // Móvil vertical: composición propia (nombre arriba, botella arriba y texto abajo)
-    T('#introduccion', 'top 90%', 'top 35%', { tx: 0, ty: 0.34, try: 0, ts: 0.46, to: 0.8 });
-    T('#cordero', 'top 85%', 'top 30%', { tz: -4.5, to: 0, by: 0.2, bo: 1, bx: 0, bry: -0.3, bs: 0.82, glow: 1 });
-    const st = { trigger: '#cordero', start: 'top top', end: 'bottom bottom', scrub: 0.9 };
-    gsap.timeline({ scrollTrigger: st, defaults: { ease: 'power1.inOut' } })
-      .to(S, { bry: -0.08, duration: 2.8, ease: 'none' }, 0)
-      .to(S, { bry: 0.42, bs: 0.74, duration: 1.3 }, 2.8)
-      .to(S, { bry: 0.5, duration: 2.1, ease: 'none' }, 4.1)
-      .to(S, { bry: 0.12, bs: 0.82, duration: 1.3 }, 6.2)
-      .to(S, { bry: 0.2, duration: 2.5, ease: 'none' }, 7.5);
-    T('#cordero-end', 'top bottom', 'top 30%', { by: 1.4, bo: 0, glow: 0 });
-  });
+  const build = (desk: boolean) => {
+    T('#introduccion', 'top 90%', 'top 30%', desk ? { tx: 0.27, ty: 0.03, try: -0.5, ts: 0.5, to: 0.75 } : { tx: 0, ty: 0.34, try: 0, ts: 0.46, to: 0.8 });
+    T(firstStage, 'top 85%', 'top 30%', { tz: -4.5, to: 0 });
+    if (hasBottle) {
+      T('#stage-bottle', 'top 85%', 'top 30%', desk ? { by: 0, bo: 1, bx: 0.26, bry: -0.32, glow: 1 } : { by: 0.2, bo: 1, bx: 0, bry: -0.3, bs: 0.82, glow: 1 });
+      // Frente (paso 1) → giro hasta el dorso (paso 2) → de vuelta al frente (paso 3)
+      stageTL('#stage-bottle')
+        .to(S, { bry: -0.08, duration: 2.8, ease: 'none' }, 0)
+        .to(S, desk ? { bx: 0, bry: Math.PI + 0.1, bs: 0.92, duration: 1.4 } : { bry: Math.PI + 0.1, bs: 0.74, duration: 1.4 }, 2.8)
+        .to(S, { bry: Math.PI + 0.3, duration: 2.0, ease: 'none' }, 4.2)
+        .to(S, desk ? { bx: 0.26, bry: TAU + 0.12, bs: 1, duration: 1.5 } : { bry: TAU + 0.12, bs: 0.82, duration: 1.5 }, 6.2)
+        .to(S, { bry: TAU + 0.22, duration: 2.3, ease: 'none' }, 7.7);
+    }
+    if (hasCard) {
+      // La botella sale y la tarjeta entra; el ambiente pasa a monocromo (negro sobre negro)
+      T('#stage-card', 'top 90%', 'top 35%', {
+        ...(hasBottle ? { by: 1.4, bo: 0, glow: 0 } : {}),
+        mono: 1, cy: desk ? 0 : 0.2, co: 1, cx: desk ? 0.26 : 0, cry: -0.45, crx: 0.18, cs: desk ? 1 : 0.86,
+      });
+      stageTL('#stage-card')
+        .to(S, { cry: -0.25, crx: 0.16, duration: 2.8, ease: 'none' }, 0)
+        .to(S, desk ? { cx: -0.03, cry: 0.42, crx: 0.32, cs: 0.76, duration: 1.4 } : { cry: 0.42, crx: 0.32, cs: 0.8, duration: 1.4 }, 2.8)
+        .to(S, { cry: 0.55, duration: 2.0, ease: 'none' }, 4.2)
+        .to(S, desk ? { cx: 0.26, cry: -0.2, crx: 0.14, cs: 1, duration: 1.5 } : { cry: -0.2, crx: 0.14, cs: 0.86, duration: 1.5 }, 6.2)
+        .to(S, { cry: -0.1, duration: 2.3, ease: 'none' }, 7.7);
+    }
+    const lastStage = hasCard ? '#stage-card' : '#stage-bottle';
+    if ($('#scene-end')) {
+      // Salida hacia el resto de la página
+      T('#scene-end', 'top bottom', 'top 30%', hasCard ? { cy: 1.4, co: 0 } : { by: 1.4, bo: 0, glow: 0 });
+    }
+    void lastStage;
+  };
+  mm.add('(min-aspect-ratio: 17/20)', () => build(true));
+  mm.add('(max-aspect-ratio: 16.99/20)', () => build(false));
 
-  // Paso activo del tramo fijado (solo cambia texto HTML)
-  const stage = $('#cordero');
-  ScrollTrigger.create({
-    trigger: '#cordero',
-    start: 'top top',
-    end: 'bottom bottom',
-    onUpdate: (self) => {
-      const step = self.progress < 0.34 ? '1' : self.progress < 0.68 ? '2' : '3';
-      if (stage && stage.dataset.step !== step) stage.dataset.step = step;
-    },
+  // Paso activo de cada tramo fijado (solo cambia texto HTML)
+  ['#stage-bottle', '#stage-card'].forEach((id) => {
+    const el = $(id);
+    if (!el) return;
+    ScrollTrigger.create({
+      trigger: id,
+      start: 'top top',
+      end: 'bottom bottom',
+      onUpdate: (self) => {
+        const step = self.progress < 0.34 ? '1' : self.progress < 0.68 ? '2' : '3';
+        if (el.dataset.step !== step) el.dataset.step = step;
+      },
+    });
   });
 
   /* ---------- Bucle ---------- */
@@ -300,8 +386,9 @@ export async function startScene(): Promise<boolean> {
   let visible = true;
   let last = performance.now();
   let slow = 0, frames = 0;
+  const redC = new Color(0x1b0505), greyC = new Color(0x0d0d0e), rimRed = new Color(0xff1e14), rimWhite = new Color(0xdfe4ff);
   const updateVisibility = () => {
-    const end = $('#cordero-end');
+    const end = $('#scene-end');
     const past = end ? end.getBoundingClientRect().top < -innerHeight * 0.2 : false;
     visible = !past;
     host.classList.toggle('is-off', past);
@@ -359,12 +446,25 @@ export async function startScene(): Promise<boolean> {
     glow.position.set(cur.bx * vw, cur.by * vh - bottleScale * cur.bs * 0.5, -1.4);
     glow.scale.setScalar(bottleScale * 1.6);
     glowMat.opacity = cur.bo * cur.glow * 0.55;
+    // Tarjeta
+    cardRoot.visible = cur.co > 0.01;
+    cardRoot.position.set(cur.cx * vw, cur.cy * vh, 0);
+    cardRoot.scale.setScalar(cardScale * cur.cs);
+    cardRoot.rotation.set(cur.crx - ptr.y * 0.08, cur.cry + ptr.x * 0.16, 0);
+    cardMat.opacity = bfMat.opacity = cur.co;
+    // Ambiente: rojo (Cordero) → monocromo (Be Fresh)
+    wallMat.color.copy(redC).lerp(greyC, cur.mono);
+    rim.color.copy(rimRed).lerp(rimWhite, cur.mono);
     // Luz clave: sigue suavemente al puntero para "barrer" el material
     key.position.x = (-8 + ptr.x * 4.5) * (0.35 + 0.65 * lk);
     rim.position.x = 9 * (0.28 + 0.72 * lk);
     key.position.y = 7 - ptr.y * 2.5;
-    rim.intensity = (70 + cur.bo * 70) * (1 + (1 - lk) * 1.4);
-    fill.intensity = 0.35 + cur.bo * (1.9 + (1 - lk) * 1.6);
+    const objects = Math.max(cur.bo, cur.co);
+    rim.intensity = (70 + objects * 70 + cur.co * 60) * (1 + (1 - lk) * (1.4 - cur.mono * 1.1));
+    key.intensity = 420 * (1 - cur.co * 0.65);
+    scene.environmentIntensity = 0.55 - cur.mono * 0.22;
+    rake.intensity = cur.co * 230 * lk * lk;
+    fill.intensity = 0.35 + cur.bo * (1.9 + (1 - lk) * 1.6) + cur.co * 0.5 * lk;
     renderer.render(scene, camera);
   }
   requestAnimationFrame(frame);

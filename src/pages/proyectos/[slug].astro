@@ -66,17 +66,17 @@ const sizes = '(min-width: 64rem) 46vw, 100vw';
     </section>
 
     {data.sections.map((s, i) => (
-      <section class="case-block on-dark" aria-labelledby={`s-${i}`}>
+      <section class="case-block on-dark" aria-labelledby={`s-${i + 1}`}>
         <div class="wrap grid">
           {s.kind === 'figure' && (
             <>
               {s.title ? (
                 <div class="case-block__head">
-                  <h2 id={`s-${i}`} class="display h-side">{s.title}</h2>
+                  <h2 id={`s-${i + 1}`} class="display h-side">{s.title}</h2>
                   {s.body && <p class="prose">{s.body}</p>}
                 </div>
               ) : (
-                <h2 id={`s-${i}`} class="sr-only">{s.caption ?? 'Detalle'}</h2>
+                <h2 id={`s-${i + 1}`} class="sr-only">{s.caption ?? 'Detalle'}</h2>
               )}
               <div class="case-block__body" style={s.title ? '' : 'grid-column: 1 / -1'}>
                 <Fig src={s.image} alt={s.alt} caption={s.title ? undefined : s.caption} />
@@ -85,18 +85,18 @@ const sizes = '(min-width: 64rem) 46vw, 100vw';
           )}
           {s.kind === 'text' && (
             <>
-              <div class="case-block__head"><h2 id={`s-${i}`} class="display">{s.title}</h2></div>
+              <div class="case-block__head"><h2 id={`s-${i + 1}`} class="display">{s.title}</h2></div>
               <div class="case-block__body prose reveal"><p>{s.body}</p></div>
             </>
           )}
           {s.kind === 'gallery' && (
             <>
               <div class="case-block__head">
-                <h2 id={`s-${i}`} class="display h-side">{s.title}</h2>
+                <h2 id={`s-${i + 1}`} class="display h-side">{s.title}</h2>
                 {s.body && <p class="prose">{s.body}</p>}
               </div>
               <div class="case-block__body">
-                <div class="gallery">
+                <div class={`gallery gallery--${s.size}`}>
                   {s.items.map((it) => <Fig src={it.image} alt={it.alt} label={it.label} note={it.note} sizes="(min-width: 64rem) 12vw, 40vw" />)}
                 </div>
               </div>
@@ -105,7 +105,7 @@ const sizes = '(min-width: 64rem) 46vw, 100vw';
           {s.kind === 'palette' && (
             <>
               <div class="case-block__head">
-                <h2 id={`s-${i}`} class="display h-side">{s.title}</h2>
+                <h2 id={`s-${i + 1}`} class="display h-side">{s.title}</h2>
                 {s.body && <p class="prose">{s.body}</p>}
               </div>
               <div class="case-block__body reveal">
@@ -124,7 +124,7 @@ const sizes = '(min-width: 64rem) 46vw, 100vw';
           )}
           {s.kind === 'type' && (
             <>
-              <div class="case-block__head"><h2 id={`s-${i}`} class="display">{s.title}</h2></div>
+              <div class="case-block__head"><h2 id={`s-${i + 1}`} class="display">{s.title}</h2></div>
               <div class="case-block__body spec reveal">
                 <p class="display spec__family">{s.family}</p>
                 {s.body && <p class="prose">{s.body}</p>}
@@ -139,7 +139,7 @@ const sizes = '(min-width: 64rem) 46vw, 100vw';
           )}
           {s.kind === 'annotated' && (
             <>
-              <div class="case-block__head"><h2 id={`s-${i}`} class="display">{s.title}</h2></div>
+              <div class="case-block__head"><h2 id={`s-${i + 1}`} class="display">{s.title}</h2></div>
               <div class="case-block__body annot">
                 <Fig src={s.image} alt={s.alt} />
                 <dl class="kv reveal">

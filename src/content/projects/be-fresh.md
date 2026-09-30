@@ -8,18 +8,25 @@ year: 2026
 type: [Identidad visual, Logo e isologo]
 focus: [Branding, Sistema gráfico]
 category: [Barbería, Servicios]
+scene: card
+concept: Elegancia, detalle y autenticidad
 titleTone: white
 titleLines: Be Fresh
 cover:
   src: ../../assets/befresh/portada.jpg
   alt: Tarjeta negra sobre fondo negro, en perspectiva, con el isotipo BF en relieve y, en pequeño, las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
+stagePhoto:
+  src: ../../assets/befresh/logo-blanco.png
+  alt: Logotipo «befresh» en blanco con las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
+  caption: Logotipo principal
 seoDescription: Diseño de logo e identidad visual para Be Fresh, una barbería contemporánea. Sistema gráfico monocromático, isotipo en relieve y aplicaciones.
 sections:
   - kind: gallery
     title: Sistema de logo
+    size: m
     body: La identidad se construye sobre un sistema sólido y minimalista, donde la tipografía y el isologotipo trabajan en conjunto para transmitir elegancia, precisión y una mirada distinta dentro del mundo de la barbería. El contraste, la simplicidad y el detalle marcan cada decisión de diseño.
     items:
-      - image: "../../assets/befresh/v-principal.jpg"
+      - image: "../../assets/befresh/logo-blanco.png"
         alt: "Logotipo «befresh» en blanco sobre negro."
         label: "Versión principal"
         note: "Equilibrio y modernidad"
@@ -27,7 +34,7 @@ sections:
         alt: "Logotipo «BE FRESH» en mayúsculas espaciadas."
         label: "Versión alternativa"
         note: "Aplicación en espacios más reducidos"
-      - image: "../../assets/befresh/v-isotipo.jpg"
+      - image: "../../assets/befresh/isologo-blanco.png"
         alt: "Isotipo BF en blanco sobre negro."
         label: "Versión isotipo"
         note: "Símbolo fuerte y reconocible"

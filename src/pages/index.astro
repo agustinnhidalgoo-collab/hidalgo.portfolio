@@ -1,7 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import { render } from 'astro:content';
-import Fig from '../components/Fig.astro';
+import ProjectStage from '../components/ProjectStage.astro';
 import Base from '../layouts/Base.astro';
 import Contact from '../components/Contact.astro';
 import Marquee from '../components/Marquee.astro';
@@ -23,13 +22,8 @@ const jsonLd = {
   sameAs: [contact.instagramUrl],
 };
 const featured = cvData.experience.filter((e) => e.featured);
-const stageProject = projects.find((p) => p.data.scene === 'bottle');
-const others = projects.filter((p) => p !== stageProject);
-const StageContent = stageProject ? (await render(stageProject)).Content : null;
-const stageLinks = stageProject
-  ? stageProject.data.sections.map((s, i) => ({ s, i })).filter(({ s }) => 'title' in s && s.title)
-  : [];
-const stagePalette = stageProject?.data.sections.find((s) => s.kind === 'palette');
+const staged = projects.filter((p) => p.data.scene);
+const others = projects.filter((p) => !p.data.scene);
 const numOf = (p: (typeof projects)[number]) => projects.indexOf(p) + 1;
 ---
 
@@ -85,7 +79,7 @@ const numOf = (p: (typeof projects)[number]) => projects.indexOf(p) + 1;
       <ol class="pindex__list reveal">
         {projects.map((p, i) => (
           <li>
-            <a href={p === stageProject ? '#cordero' : `/proyectos/${p.id}`}>
+            <a href={p.data.scene ? `#stage-${p.data.scene}` : `/proyectos/${p.id}`}>
               <span class="pindex__n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
               <span class="pindex__t">{p.data.title}</span>
               <span class="pindex__d">{p.data.descriptor} · {p.data.year}</span>
@@ -96,72 +90,9 @@ const numOf = (p: (typeof projects)[number]) => projects.indexOf(p) + 1;
     </div>
   </section>
 
-  <!-- 03 · Proyecto con escena 3D: botella (tramo fijado breve, 3 pasos) -->
-  {stageProject && (
-    <section id="cordero" class="pstage clear" data-step="1" aria-labelledby={`p-${stageProject.id}`}>
-      <div class="pstage__pin">
-        <!-- Paso 1 · presentación -->
-        <div class="pstage__step step-1">
-          <div class="wrap grid step-grid">
-            <div class="pstage__text">
-              <p class="pnum" aria-hidden="true" style="margin-bottom:1.25rem"><span class="pnum__word">Project</span><span class="pnum__n">{numOf(stageProject)}</span></p>
-              <h2 id={`p-${stageProject.id}`} class={`display ptitle ${stageProject.data.titleTone === 'red' ? 'ptitle--red' : ''}`}>
-                {titleLines(stageProject).map((l) => <span style="display:block">{l}</span>)}
-              </h2>
-              <p class="descriptor" style="margin-top:1.5rem">{stageProject.data.descriptor}</p>
-              <p class="prose" style="margin-top:1.25rem">{stageProject.data.summary}</p>
-              <div style="margin-top:1.5rem"><ProjectMeta project={stageProject} /></div>
-              <p style="margin-top:1rem"><a class="ulink" href={`/proyectos/${stageProject.id}`}>Ver proyecto <span class="arrow" aria-hidden="true">→</span><span class="sr-only">: {stageProject.data.title}</span></a></p>
-            </div>
-            <div class="pstage__cover" style="grid-column: 1 / -1; margin-top: 2rem">
-              <Image src={stageProject.data.cover.src} alt={stageProject.data.cover.alt} format="webp" quality={88} loading="lazy" sizes="100vw" />
-            </div>
-          </div>
-        </div>
-        <!-- Paso 2 · concepto y detalle real de la etiqueta -->
-        <div class="pstage__step step-2">
-          <div class="wrap grid step-grid">
-            <div class="pstage__text">
-              <p class="label" style="margin-bottom:1rem">Contexto y concepto</p>
-              <div class="lead">{StageContent && <StageContent />}</div>
-            </div>
-            <div class="pstage__photo">
-              {stageProject.data.sections[0]?.kind === 'figure' && (
-                <Fig src={stageProject.data.sections[0].image} alt={stageProject.data.sections[0].alt} caption="Detalle de la etiqueta" />
-              )}
-            </div>
-          </div>
-        </div>
-        <!-- Paso 3 · hacia ilustración, textura, paleta y aplicaciones -->
-        <div class="pstage__step step-3">
-          <div class="wrap grid step-grid">
-            <div class="pstage__text">
-              <p class="label" style="margin-bottom:0.75rem">Dentro del proyecto</p>
-              {stagePalette && stagePalette.kind === 'palette' && (
-                <div class="pstage__swatches" role="list" aria-label="Paleta del proyecto">
-                  {stagePalette.colors.map((c) => <i role="listitem" style={`background:${c.hex}`} title={c.hex.toUpperCase()}></i>)}
-                </div>
-              )}
-              <ol class="pstage__links">
-                {stageLinks.map(({ s, i }, k) => (
-                  <li>
-                    <a href={`/proyectos/${stageProject.id}#s-${i}`}>
-                      <span class="k">{String(k + 1).padStart(2, '0')}</span>
-                      <span class="t">{'title' in s ? s.title : ''}</span>
-                      <span class="arrow" aria-hidden="true">→</span>
-                    </a>
-                  </li>
-                ))}
-              </ol>
-              <p style="margin-top:1.5rem"><a class="btn" href={`/proyectos/${stageProject.id}`}>Ver proyecto completo <span class="arrow" aria-hidden="true">→</span></a></p>
-            </div>
-          </div>
-        </div>
-        <div class="pstage__prog" aria-hidden="true"><i></i><i></i><i></i></div>
-      </div>
-    </section>
-    <div id="cordero-end" aria-hidden="true"></div>
-  )}
+  <!-- 03 · Proyectos con escena 3D (tramos fijados breves, 3 pasos cada uno) -->
+  {staged.map((p) => <ProjectStage project={p} n={numOf(p)} />)}
+  {staged.length > 0 && <div id="scene-end" aria-hidden="true"></div>}
 
   <!-- 04 · Resto de proyectos -->
   <div class="on-dark">

@@ -29,6 +29,8 @@ export const projects = defineCollection({
       z.object({
         kind: z.literal('gallery'),
         title: z.string(),
+        /** Tamaño de las miniaturas: s (detalles), m, l (fotografías completas). */
+        size: z.enum(['s', 'm', 'l']).default('s'),
         body: z.string().optional(),
         items: z.array(z.object({ image: image(), alt: z.string().min(3), label: z.string().optional(), note: z.string().optional() })).min(1),
       }),
@@ -68,6 +70,11 @@ export const projects = defineCollection({
       collaborators: z.array(z.string()).optional(),
       /** Escena 3D propia del proyecto (opcional): 'bottle' usa el tramo fijado con botella. */
       scene: z.enum(['bottle', 'card']).optional(),
+      /** Idea central del proyecto (rótulo corto) y foto de apoyo para la escena. */
+      concept: z.string().optional(),
+      /** Nota breve del paso 2 de la escena (opcional). */
+      stageNote: z.string().optional(),
+      stagePhoto: picture.extend({ caption: z.string().optional() }).optional(),
       /** Color del título en la home y en el case study. */
       titleTone: z.enum(['red', 'white']).default('white'),
       /** Saltos de línea dirigidos del título (separados por "|"). */
