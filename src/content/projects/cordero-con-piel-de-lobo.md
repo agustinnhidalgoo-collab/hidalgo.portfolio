@@ -8,6 +8,7 @@ year: 2025
 type: [Rediseño de marca, Packaging]
 focus: [Identidad de producto, Sistema gráfico aplicado]
 category: [Vino tinto, Blend]
+scene: bottle
 titleTone: red
 titleLines: Cordero con|piel de lobo
 cover:

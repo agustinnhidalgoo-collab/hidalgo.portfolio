@@ -51,11 +51,20 @@ const ogAbs = abs(ogImage);
         d.classList.add('js');
         try {
           var calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-          if (!calm && (location.pathname === '/' || location.pathname === '/index.html') && !sessionStorage.getItem('pre')) d.classList.add('has-pre');
           if (!calm && sessionStorage.getItem('curtain')) d.classList.add('curtain-on');
+          // Escena 3D solo en la home, con WebGL disponible y sin "reducir movimiento".
+          if (!calm && (location.pathname === '/' || location.pathname === '/index.html')) {
+            var c = document.createElement('canvas');
+            var g = c.getContext('webgl2') || c.getContext('webgl');
+            if (g) {
+              d.classList.add('gl-try');
+              var x = g.getExtension('WEBGL_lose_context');
+              if (x) x.loseContext();
+            }
+          }
         } catch (e) {}
-        // Red de seguridad: si el JS de movimiento no llega, todo queda visible.
-        setTimeout(function () { d.classList.remove('has-pre', 'curtain-on'); d.classList.add('motion-timeout'); }, 6000);
+        // Red de seguridad: si la capa de movimiento no llega, el contenido queda accesible.
+        setTimeout(function () { d.classList.remove('curtain-on'); }, 6000);
       })();
     </script>
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
@@ -63,11 +72,6 @@ const ogAbs = abs(ogImage);
   <body>
     <a class="skip" href="#contenido">Saltar al contenido</a>
     <div class="progress" aria-hidden="true"></div>
-    <div class="pre" aria-hidden="true">
-      <p class="pre__w display">Portfolio</p>
-      <p class="pre__count"><span class="pre__n">0</span><span>%</span></p>
-      <p class="pre__name">{person.wordmark} · {person.year}</p>
-    </div>
     <div class="curtain" aria-hidden="true"></div>
     <Header current={path} />
     <main id="contenido" tabindex="-1">

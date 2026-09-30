@@ -56,69 +56,26 @@ function splitWords(el: HTMLElement) {
   return out;
 }
 
-/* ---------- Entrada del hero ---------- */
-function heroIn() {
-  const title = $('.hero__title');
-  if (!title) return;
-  const chars = splitChars(title);
-  gsap.set(['.hero__title', '.hero__portrait', '.hero__note span', '.hero__links'], { visibility: 'visible' });
-  const tl = gsap.timeline({ defaults: { ease: 'expo.out' } });
-  tl.fromTo(chars, { yPercent: 115 }, { yPercent: 0, duration: 1.3, stagger: 0.055 }, 0)
-    .fromTo('.hero__portrait', { yPercent: 14, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.6 }, 0.15)
-    .fromTo('.hero__note span', { clipPath: 'inset(-10% 100% -10% 0)' }, { clipPath: 'inset(-10% -6% -10% -6%)', duration: 1.1, stagger: 0.35, ease: 'power3.inOut' }, 0.9)
-    .fromTo('.hero__links, .topbar', { opacity: 0 }, { opacity: 1, duration: 0.9, ease: 'power2.out' }, 1.3);
-
-  // Profundidad con el puntero: retrato, título y anotaciones se desplazan a distinto ritmo.
-  if (fine) {
-    const layers: [string, number][] = [['.hero__portrait', 16], ['.hero__title', -22], ['.hero__note--a', 34], ['.hero__note--b', -30]];
-    const setters = layers.map(([s, k]) => ({
-      k,
-      x: gsap.quickTo(s, 'x', { duration: 0.9, ease: 'power3.out' }),
-      y: gsap.quickTo(s, 'y', { duration: 0.9, ease: 'power3.out' }),
-    }));
-    const hero = $('.hero')!;
-    hero.addEventListener('pointermove', (e) => {
-      const nx = e.clientX / innerWidth - 0.5;
-      const ny = e.clientY / innerHeight - 0.5;
-      setters.forEach(({ k, x, y }) => {
-        x(nx * k);
-        y(ny * k * 0.6);
-      });
-    });
-  }
-  // Al bajar, título y retrato se separan.
-  gsap.to('.hero__title', { yPercent: -18, scale: 1.05, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
-  gsap.to('.hero__portrait', { yPercent: 9, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } });
-}
-
-/* ---------- Preloader / cortina de página ---------- */
-const pre = $('.pre');
+/* ---------- Entrada de la portada y cortina de página ---------- */
 const curtain = $('.curtain');
 
+function heroIn() {
+  const items = $$('.hero3d__role, .hero3d__links, .topbar');
+  if (!items.length) return;
+  gsap.fromTo(items, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 1, stagger: 0.12, ease: 'power3.out', delay: 0.3, clearProps: 'transform' });
+  gsap.fromTo('.hero3d__note', { clipPath: 'inset(-10% 100% -10% 0)' }, { clipPath: 'inset(-10% -6% -10% -6%)', duration: 1.2, stagger: 0.4, ease: 'power3.inOut', delay: 0.9 });
+  if (!root.classList.contains('gl-try')) {
+    // Sin escena 3D: el nombre tipográfico entra por máscara.
+    gsap.fromTo('.hero3d__fb span', { yPercent: 40, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 1.1, stagger: 0.12, ease: 'expo.out' });
+  }
+}
+
 function afterIntro() {
-  root.classList.remove('has-pre');
   heroIn();
   ScrollTrigger.refresh();
 }
 
-if (root.classList.contains('has-pre') && pre) {
-  lenis.stop();
-  const n = $('.pre__n')!;
-  const counter = { v: 0 };
-  const chars = splitChars($('.pre__w')!);
-  gsap.set(chars, { yPercent: 115 });
-  const tl = gsap.timeline({
-    onComplete: () => {
-      sessionStorage.setItem('pre', '1');
-      lenis.start();
-    },
-  });
-  tl.to(chars, { yPercent: 0, duration: 0.9, stagger: 0.04, ease: 'expo.out' }, 0)
-    .to(counter, { v: 100, duration: 1.4, ease: 'power2.inOut', onUpdate: () => (n.textContent = String(Math.round(counter.v))) }, 0)
-    .to(chars, { yPercent: -115, duration: 0.6, stagger: 0.03, ease: 'expo.in' }, 1.5)
-    .to(pre, { clipPath: 'inset(0 0 100% 0)', duration: 1, ease: 'power4.inOut' }, 1.8)
-    .add(afterIntro, 2.35);
-} else if (root.classList.contains('curtain-on') && curtain) {
+if (root.classList.contains('curtain-on') && curtain) {
   sessionStorage.removeItem('curtain');
   gsap.to(curtain, {
     clipPath: 'inset(0 0 100% 0)',

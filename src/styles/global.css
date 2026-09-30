@@ -579,101 +579,382 @@ dialog.index::backdrop {
   }
 }
 
-/* ---------- Hero ---------- */
-.hero {
+/* ---------- Escena 3D: lienzo fijo y capas de contenido ---------- */
+main {
+  position: relative;
+  z-index: 1;
+}
+.gl {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 900ms var(--ease);
+}
+.gl canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+html.gl-on .gl {
+  opacity: 1;
+  visibility: visible;
+}
+html.gl-on .gl.is-off {
+  opacity: 0;
+  visibility: hidden;
+}
+.clear {
+  background: transparent;
+}
+
+/* ---------- Hero: el nombre como pieza 3D ---------- */
+.hero3d {
   position: relative;
   min-height: 100svh;
-  overflow: clip;
-  background: var(--black);
-  color: var(--white);
-  isolation: isolate;
-}
-.hero__title {
-  position: absolute;
-  z-index: 1;
-  left: 0;
-  right: 0;
-  top: 30%;
-  text-align: center;
-  white-space: nowrap;
-  font-size: min(21.6vw, 50svh);
-  line-height: 0.86;
+  display: grid;
+  grid-template-rows: 1fr auto;
   color: var(--white);
 }
-.hero__portrait {
+.hero3d__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 5.5rem var(--gutter) 1rem;
+}
+/* Nombre tipográfico real: es el texto accesible y la versión previa/alternativa del 3D */
+.hero3d__fb {
+  position: relative;
+  font-size: min(23vw, 31svh);
+  line-height: 0.9;
+  text-align: left;
+  color: var(--white);
+  text-shadow:
+    1px 1px 0 var(--red), 2px 2px 0 var(--red), 3px 3px 0 var(--red), 4px 4px 0 var(--red),
+    5px 5px 0 var(--red), 6px 6px 0 var(--red), 7px 7px 0 var(--red), 8px 8px 0 var(--red);
+  transition: opacity 700ms var(--ease);
+}
+.hero3d__fb span {
+  display: block;
+}
+html.gl-on .hero3d__fb {
+  opacity: 0;
+}
+.hero3d__note {
   position: absolute;
   z-index: 2;
-  bottom: 0;
-  left: 28.3%;
-  width: min(49.8vw, 88svh);
-  max-width: none;
-  height: auto;
-  pointer-events: none;
-}
-.hero__note {
-  position: absolute;
-  z-index: 3;
   color: var(--red-display);
-  font-size: min(9.4vw, 20svh);
+  font-size: clamp(2.6rem, 7.6vw, 8.5rem);
+  text-transform: uppercase;
   pointer-events: none;
   white-space: nowrap;
-  text-transform: uppercase;
 }
-.hero__note--a {
-  left: 9%;
-  top: calc(30% - min(8.2vw, 17svh));
-  transform: rotate(-9deg);
+.hero3d__note--a {
+  left: 6%;
+  top: 12%;
+  transform: rotate(-8deg);
 }
-.hero__note--b {
-  right: 9%;
-  top: calc(30% + min(17.5vw, 41svh));
-  transform: rotate(-7deg);
+.hero3d__note--b {
+  right: 6%;
+  bottom: 6%;
+  transform: rotate(-6deg);
 }
-.hero__sig {
-  position: absolute;
-  z-index: 4;
-  left: var(--gutter);
-  bottom: 1.25rem;
-  font-size: 0.8125rem;
-  text-transform: uppercase;
+.hero3d__foot {
+  align-items: end;
+  padding-bottom: 1rem;
+  row-gap: 0.5rem;
 }
-.hero__links {
-  position: absolute;
-  z-index: 4;
-  right: var(--gutter);
-  bottom: 0.75rem;
+.hero3d__role {
+  grid-column: 1 / -1;
+  max-inline-size: 30rem;
+  font-size: clamp(0.9375rem, 0.85rem + 0.4vw, 1.125rem);
+  line-height: 1.45;
+}
+.hero3d__role .label {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+.hero3d__links {
+  grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
   gap: 0 1.5rem;
 }
-.hero__links a {
+@media (min-width: 52rem) {
+  .hero3d__role {
+    grid-column: 1 / 7;
+  }
+  .hero3d__links {
+    grid-column: 8 / -1;
+    justify-content: flex-end;
+  }
+}
+@media (max-width: 40rem) {
+  .hero3d__stage {
+    place-items: center start;
+  }
+  .hero3d__fb {
+    font-size: min(27vw, 22svh);
+  }
+  .hero3d__note--a {
+    top: 24%;
+    left: 4%;
+  }
+  .hero3d__note--b {
+    bottom: 12%;
+    right: 4%;
+  }
+}
+
+/* ---------- Introducción sobre la escena ---------- */
+.intro3d {
+  padding-block: var(--section-y);
+}
+.intro3d__col {
+  max-inline-size: 40rem;
+}
+.intro3d .intro__title {
+  font-size: clamp(3rem, 8.4vw, 9.5rem);
+  margin-bottom: 1.5rem;
+}
+.intro3d .intro__body {
+  margin-left: 0;
+}
+@media (max-width: 52rem) {
+  .intro3d {
+    padding-top: clamp(11rem, 44svh, 20rem); /* deja el aire donde el nombre 3D se ubica arriba */
+  }
+}
+
+/* ---------- Índice de proyectos (acceso directo) ---------- */
+.pindex {
+  padding-block: clamp(3rem, 8vw, 7rem);
+}
+.pindex__title {
+  font-size: clamp(3rem, 8.4vw, 9.5rem);
+  color: var(--white);
+  margin-bottom: 1.5rem;
+}
+.pindex__list {
+  margin-top: clamp(2rem, 5vw, 4rem);
+  border-top: 1px solid var(--rule-dark);
+  max-inline-size: 60rem;
+}
+.pindex__list a {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 1rem clamp(1rem, 3vw, 2.5rem);
+  min-height: 4.5rem;
+  padding-block: 1rem;
+  border-bottom: 1px solid var(--rule-dark);
+  text-decoration: none;
+  transition: padding var(--dur-ui) var(--ease), background var(--dur-ui) var(--ease);
+}
+.pindex__list a:hover {
+  padding-inline: 0.9rem;
+  background: var(--red);
+}
+.pindex__n {
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  min-width: 2.2ch;
+}
+.pindex__t {
+  font-family: var(--f-display);
+  text-transform: uppercase;
+  font-size: clamp(1.75rem, 4.2vw, 3.6rem);
+  line-height: 1;
+}
+.pindex__d {
+  font-size: 0.875rem;
+  color: var(--dim);
+  text-align: right;
+}
+.pindex__list a:hover .pindex__d {
   color: var(--white);
 }
 @media (max-width: 40rem) {
-  .hero__title {
-    top: 33%;
-    font-size: 21.4vw;
+  .pindex__list a {
+    grid-template-columns: auto 1fr;
   }
-  .hero__portrait {
-    left: -25vw;
-    width: min(150vw, 122svh);
-  }
-  .hero__note {
-    font-size: 15vw;
-  }
-  .hero__note--a {
-    left: 3%;
-    top: calc(33% - 11.5vw);
-  }
-  .hero__note--b {
-    right: 3%;
-    top: calc(33% + 22vw);
-  }
-  .hero__links {
-    bottom: 0.5rem;
+  .pindex__d {
+    grid-column: 2;
+    text-align: left;
   }
 }
+
+/* ---------- Escena de proyecto: botella (tramo fijado breve) ---------- */
+.pstage {
+  position: relative;
+}
+.pstage__cover {
+  display: block;
+}
+html.gl-try .pstage__cover {
+  display: none;
+}
+.pstage__pin {
+  position: relative;
+}
+.pstage__step {
+  padding: clamp(3.5rem, 8vw, 6rem) var(--gutter);
+}
+.pstage__step > .wrap {
+  padding-inline: 0;
+}
+.pstage__step .step-grid {
+  align-items: center;
+}
+.pstage__text {
+  grid-column: 1 / -1;
+}
+.pstage__photo {
+  grid-column: 1 / -1;
+}
+.pstage__photo .fig img {
+  width: min(100%, 20rem);
+}
+.pstage__links {
+  border-top: 1px solid var(--rule-dark);
+}
+.pstage__links li {
+  border-bottom: 1px solid var(--rule-dark);
+}
+.pstage__links a {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr auto;
+  align-items: baseline;
+  gap: 0.75rem;
+  min-height: 3rem;
+  padding-block: 0.65rem;
+  text-decoration: none;
+  transition: padding var(--dur-ui) var(--ease), background var(--dur-ui) var(--ease);
+}
+.pstage__links a:hover {
+  padding-inline: 0.6rem;
+  background: var(--red);
+}
+.pstage__links .k {
+  font-size: 0.8125rem;
+  color: var(--dim);
+}
+.pstage__links .t {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.9375rem;
+}
+.pstage__swatches {
+  display: flex;
+  gap: 0.5rem;
+  margin-block: 1.25rem;
+}
+.pstage__swatches i {
+  display: block;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid rgb(255 255 255 / 0.4);
+}
+.pstage__prog {
+  display: none;
+}
+
+html.gl-try .pstage {
+  height: 380vh;
+}
+html.gl-try .pstage__pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+html.gl-try .pstage__step {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(1.5rem);
+  transition: opacity 650ms var(--ease), transform 650ms var(--ease), visibility 0s linear 650ms;
+}
+html.gl-try .pstage[data-step='1'] .step-1,
+html.gl-try .pstage[data-step='2'] .step-2,
+html.gl-try .pstage[data-step='3'] .step-3 {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+html.gl-try .pstage__prog {
+  position: absolute;
+  z-index: 3;
+  right: var(--gutter);
+  top: 50%;
+  display: grid;
+  gap: 0.6rem;
+  transform: translateY(-50%);
+}
+html.gl-try .pstage__prog i {
+  display: block;
+  width: 2px;
+  height: 1.75rem;
+  background: rgb(255 255 255 / 0.3);
+  transition: background var(--dur-ui);
+}
+html.gl-try .pstage[data-step='1'] .pstage__prog i:nth-child(1),
+html.gl-try .pstage[data-step='2'] .pstage__prog i:nth-child(2),
+html.gl-try .pstage[data-step='3'] .pstage__prog i:nth-child(3) {
+  background: var(--red-display);
+}
+/* Escritorio: texto a la izquierda, botella a la derecha / centro */
+@media (min-width: 64rem) {
+  html.gl-try .pstage__step .pstage__text {
+    grid-column: 1 / 7;
+  }
+  html.gl-try .pstage__step.step-2 .pstage__text {
+    grid-column: 1 / 5;
+  }
+  html.gl-try .pstage__step.step-2 .pstage__photo {
+    grid-column: 9 / 12;
+  }
+  html.gl-try .pstage__step.step-3 .pstage__text {
+    grid-column: 1 / 6;
+  }
+  html.gl-try .pstage__step .ptitle {
+    font-size: clamp(3.4rem, 7.4vw, 9rem);
+  }
+}
+/* Móvil / vertical: botella arriba (canvas), texto abajo sobre degradado */
+@media (max-width: 63.99rem) {
+  html.gl-try .pstage__step {
+    align-content: end;
+    padding-bottom: 2.25rem;
+    background: linear-gradient(to bottom, transparent 0%, transparent 44%, rgb(0 0 0 / 0.88) 58%, #000 72%);
+    padding-top: 50svh;
+  }
+  html.gl-try .pstage__step .ptitle {
+    font-size: clamp(2.6rem, 12.5vw, 5rem);
+  }
+  html.gl-try .pstage__step .prose,
+  html.gl-try .pstage__step .lead {
+    font-size: 1rem;
+  }
+  html.gl-try .pstage__step .meta {
+    display: none;
+  }
+  html.gl-try .pstage__photo {
+    display: none;
+  }
+}
+.step-2 .lead {
+  font-size: clamp(1.1rem, 0.9rem + 1vw, 1.75rem);
+}
+
 
 /* ---------- Introducción ---------- */
 .intro__title {
@@ -1353,7 +1634,6 @@ html.lenis body {
   color: rgb(124 0 0 / 0.14);
 }
 
-.pre,
 .curtain,
 .progress,
 .cursor {
@@ -1373,60 +1653,9 @@ html.lenis body {
   .js .progress {
     display: block;
   }
-  .js .hero__title,
-  .js .hero__portrait,
-  .js .hero__note span,
-  .js .hero__links {
-    visibility: hidden;
-  }
-  html.motion-timeout .hero__title,
-  html.motion-timeout .hero__portrait,
-  html.motion-timeout .hero__note span,
-  html.motion-timeout .hero__links {
-    visibility: visible;
-  }
-  html.has-pre {
-    overflow: hidden;
-  }
-  html.has-pre .pre {
-    display: grid;
-  }
   html.curtain-on .curtain {
     display: block;
   }
-}
-.pre {
-  position: fixed;
-  z-index: 200;
-  inset: 0;
-  place-items: center;
-  align-content: center;
-  background: var(--red);
-  color: var(--white);
-  clip-path: inset(0);
-}
-.pre__w {
-  font-size: clamp(3.5rem, 17vw, 20rem);
-  white-space: nowrap;
-}
-.pre__count {
-  position: absolute;
-  left: var(--gutter);
-  bottom: 1.25rem;
-  display: flex;
-  align-items: baseline;
-  gap: 0.15em;
-  font-weight: 800;
-  font-size: clamp(1.5rem, 3vw, 2.75rem);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
-}
-.pre__name {
-  position: absolute;
-  right: var(--gutter);
-  bottom: 1.5rem;
-  font-size: 0.8125rem;
-  text-transform: uppercase;
 }
 .curtain {
   position: fixed;
@@ -1508,4 +1737,11 @@ html.has-cursor .cursor {
   font-style: normal;
   opacity: 0.55;
   padding-left: 0.5em;
+}
+
+@media (max-width: 63.99rem) {
+  html.gl-try .step-3 .pstage__swatches,
+  html.gl-try .step-3 .label {
+    display: none;
+  }
 }

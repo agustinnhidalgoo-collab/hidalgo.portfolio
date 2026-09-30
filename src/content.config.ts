@@ -66,6 +66,8 @@ export const projects = defineCollection({
       category: z.array(z.string()).optional(),
       role: z.string().optional(),
       collaborators: z.array(z.string()).optional(),
+      /** Escena 3D propia del proyecto (opcional): 'bottle' usa el tramo fijado con botella. */
+      scene: z.enum(['bottle', 'card']).optional(),
       /** Color del título en la home y en el case study. */
       titleTone: z.enum(['red', 'white']).default('white'),
       /** Saltos de línea dirigidos del título (separados por "|"). */

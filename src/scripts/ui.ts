@@ -42,3 +42,21 @@ if ('IntersectionObserver' in window) {
 
 // Capa de movimiento: se carga aparte y solo si el usuario no pidió menos movimiento.
 if (!matchMedia('(prefers-reduced-motion: reduce)').matches) import('./motion');
+
+// Escena 3D (solo home). Se carga después del primer pintado; si falla, queda el diseño tipográfico.
+if (document.getElementById('gl') && document.documentElement.classList.contains('gl-try')) {
+  const boot = () =>
+    import('./scene')
+      .then((m) => m.startScene())
+      .then((ok) => {
+        const d = document.documentElement;
+        if (ok) {
+          d.classList.add('gl-on');
+          dispatchEvent(new Event('resize'));
+        }
+        else d.classList.replace('gl-try', 'gl-fail');
+      })
+      .catch(() => document.documentElement.classList.replace('gl-try', 'gl-fail'));
+  if ('requestIdleCallback' in window) (window as unknown as { requestIdleCallback: (f: () => void) => void }).requestIdleCallback(boot);
+  else setTimeout(boot, 200);
+}
