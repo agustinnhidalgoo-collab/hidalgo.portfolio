@@ -70,6 +70,8 @@ export const projects = defineCollection({
       collaborators: z.array(z.string()).optional(),
       /** Escena 3D propia del proyecto (opcional): 'bottle' usa el tramo fijado con botella. */
       scene: z.enum(['bottle', 'card']).optional(),
+      /** Ambiente del proyecto (fondo, cursor y sonido): bodega o barbería. */
+      world: z.enum(['cellar', 'barber']).optional(),
       /** Idea central del proyecto (rótulo corto) y foto de apoyo para la escena. */
       concept: z.string().optional(),
       /** Nota breve del paso 2 de la escena (opcional). */

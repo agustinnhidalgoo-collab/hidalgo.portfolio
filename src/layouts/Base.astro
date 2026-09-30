@@ -13,8 +13,9 @@ interface Props {
   ogImage?: string; // ruta en /public
   jsonLd?: Record<string, unknown>;
   robots?: string;
+  world?: 'cellar' | 'barber';
 }
-const { title, description, path, ogImage = '/og.jpg', jsonLd, robots } = Astro.props;
+const { title, description, path, ogImage = '/og.jpg', jsonLd, robots, world } = Astro.props;
 const site = Astro.site; // solo existe si se define SITE_URL al compilar
 const abs = (p: string) => (site ? new URL(p, site).toString() : undefined);
 const canonical = abs(path);
@@ -22,7 +23,7 @@ const ogAbs = abs(ogImage);
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang="es" data-world={world}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -63,7 +64,8 @@ const ogAbs = abs(ogImage);
     </script>
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
   </head>
-  <body>
+  <body class={world ? 'has-world' : undefined}>
+    <div class="world-bg" aria-hidden="true"><i data-w="cellar"></i><i data-w="barber"></i></div>
     <a class="skip" href="#contenido">Saltar al contenido</a>
     <div class="progress" aria-hidden="true"></div>
     <Header current={path} />

@@ -31,63 +31,100 @@ const numOf = (p: (typeof projects)[number]) => projects.indexOf(p) + 1;
   <!-- Escena 3D (decorativa): halo de fondo + canvas. Todo el texto vive en el HTML. -->
   <div id="gl" class="gl" aria-hidden="true"><div class="gl__bg"></div><canvas></canvas></div>
 
-  <!-- 00 · Portada: la botella de Cordero como protagonista; el nombre y la especialidad, como apoyo -->
+  <!-- 00 · Portada: presentación personal primero. El nombre en 3D, el retrato en capas y la botella asomando -->
   <section class="hero" id="inicio" aria-labelledby="hero-title">
-    <span class="hero__word display" aria-hidden="true" data-word="Portfolio"></span>
     <div class="hero__wrap wrap">
-      <div class="hero__slot" data-slot="hero">
-        <Image class="slot__img slot__img--shadow" src={botellaFrente} alt="Botella de vino tinto Cordero con piel de lobo, vista de frente." format="webp" quality={90} widths={[300, 520]} sizes="(min-width: 64rem) 25vw, 60vw" loading="eager" fetchpriority="high" />
-      </div>
       <div class="hero__name-block">
         <span class="hero__note hand" aria-hidden="true">Diseño gráfico</span>
-        <h1 id="hero-title" class="display hero__name">
+        <h1 id="hero-title" class="display hero__name" data-slot="name">
           <span>Agustín</span><span>Hidalgo</span>
         </h1>
       </div>
+      <div class="hero__portrait" data-slot="portrait">
+        <Image class="slot__img" src={portrait} alt="Agustín Hidalgo, retrato en blanco y negro" format="webp" quality={90} widths={[520, 1000]} sizes="(min-width: 64rem) 45vw, 90vw" loading="eager" fetchpriority="high" />
+      </div>
+      <div class="hero__peek" data-slot="hero" aria-hidden="true">
+        <Image class="slot__img slot__img--shadow" src={botellaFrente} alt="" format="webp" quality={90} widths={[300, 520]} sizes="(min-width: 64rem) 25vw, 60vw" loading="eager" />
+      </div>
       <div class="hero__info">
         <p class="label">Portfolio · {person.year}</p>
-        <p class="hero__role">{person.role}. Identidad visual, sistemas gráficos y dirección de arte.</p>
+        <p class="hero__role">{person.role}. <span class="hero__study">Estudiante de Comunicación Visual, Gráfica y Digital · Universidad de Belgrano.</span></p>
         <nav class="hero__links" aria-label="Accesos de la portada">
           <a class="ulink" href="#proyectos">Proyectos</a>
           <a class="ulink" href="#contacto">Contacto</a>
           <a class="ulink" href={cv.href} download={cv.file}>CV</a>
         </nav>
-        {staged[0] && (
-          <a class="hero__cap" href={`#stage-${staged[0].data.scene}`}>
-            <span aria-hidden="true">01 —</span> {staged[0].data.title} · {staged[0].data.year} <span class="arrow" aria-hidden="true">→</span>
-          </a>
-        )}
       </div>
     </div>
   </section>
 
-  <!-- 01 · Introducción (el nombre se corre y deja lugar) -->
-  <section class="sec clear intro3d" id="introduccion" aria-labelledby="introduccion-title">
-    <div class="intro3d__slot" data-slot="intro" aria-hidden="true"></div>
-    <div class="wrap">
-      <div class="intro3d__col">
-        <p class="eyebrow reveal">{contact.instagramHandle}</p>
-        <h2 id="introduccion-title" class="display intro__title mask">
-          <span class="line"><span>Introducción</span></span>
-        </h2>
-        <div class="intro__body prose reveal" style="--d:120ms">
-          <p>
-            {copy.intro.before}
-            {copy.intro.marks.map((m, i) => (
-              <>
-                <mark class="pill">{m}</mark>{i === 0 ? ', ' : i === 1 ? ' y ' : '.'}
-              </>
-            ))}
-            {' '}{copy.intro.paragraphs[0].text}<strong class="hl">{copy.intro.paragraphs[0].strong}</strong>
-          </p>
-          <p>{copy.intro.paragraphs[1].text}</p>
+  <!-- 01 · Sobre mí e introducción (la botella se estaciona a la derecha) -->
+  <div class="parkwrap">
+    <div class="park__slot" data-slot="park" aria-hidden="true"></div>
+    <section class="sec clear about3d" id="sobre-mi" aria-labelledby="sobre-title" data-snd-section>
+      <div class="wrap">
+        <div class="about3d__col">
+          <p class="eyebrow reveal">{contact.instagramHandle}</p>
+          <h2 id="sobre-title" class="display intro__title mask"><span class="line"><span>Sobre mí</span></span></h2>
+          <div class="prose reveal" style="--d:120ms">
+            {copy.about.map((p) => <p set:html={inline(p)} />)}
+          </div>
+          <div class="about__cta reveal">
+            <a class="btn" href={cv.href} download={cv.file}>{cv.label} <span class="arrow" aria-hidden="true">↓</span></a>
+            <a class="ulink" href="/sobre-mi">Sobre mí en detalle <span class="arrow" aria-hidden="true">→</span></a>
+          </div>
+          <div class="cvgrid about3d__cv reveal">
+            <div>
+              <h3 class="label">Formación</h3>
+              <p><strong>{cvData.education.title}</strong></p>
+              <small>{cvData.education.org} · {cvData.education.period}</small>
+            </div>
+            <div>
+              <h3 class="label">Experiencia</h3>
+              <ul>
+                {featured.map((e) => (
+                  <li>
+                    <strong>{e.role}</strong>
+                    <small>{e.org} · {e.period}</small>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h3 class="label">Herramientas</h3>
+              <p>Adobe Illustrator, Adobe Photoshop, Google Workspace y Microsoft Office.</p>
+              <small>Según CV.</small>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <section class="sec clear intro3d" id="introduccion" aria-labelledby="introduccion-title" data-snd-section>
+      <div class="wrap">
+        <div class="intro3d__col">
+          <h2 id="introduccion-title" class="display intro__title mask">
+            <span class="line"><span>Introducción</span></span>
+          </h2>
+          <div class="intro__body prose reveal" style="--d:120ms">
+            <p>
+              {copy.intro.before}
+              {copy.intro.marks.map((m, i) => (
+                <>
+                  <mark class="pill">{m}</mark>{i === 0 ? ', ' : i === 1 ? ' y ' : '.'}
+                </>
+              ))}
+              {' '}{copy.intro.paragraphs[0].text}<strong class="hl">{copy.intro.paragraphs[0].strong}</strong>
+            </p>
+            <p>{copy.intro.paragraphs[1].text}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 
   <!-- 02 · Portfolio: apertura y acceso directo -->
-  <section class="clear pindex" id="proyectos" aria-labelledby="proyectos-title">
+  <section class="clear pindex" id="proyectos" aria-labelledby="proyectos-title" data-snd-section>
     <div class="wrap">
       <h2 id="proyectos-title" class="display pindex__title mask"><span class="line"><span>Portfolio</span></span></h2>
       <div class="prose reveal">{copy.portfolio.map((p) => <p set:html={inline(p)} />)}</div>
@@ -142,7 +179,7 @@ const numOf = (p: (typeof projects)[number]) => projects.indexOf(p) + 1;
   </div>
 
   <!-- 05 · Filosofía creativa (pausa luminosa) -->
-  <section class="on-light" id="filosofia" aria-labelledby="filosofia-title">
+  <section class="on-light" id="filosofia" aria-labelledby="filosofia-title" data-snd-section>
     <div class="wrap manifesto-wrap">
       <h2 id="filosofia-title" class="sr-only">Filosofía creativa</h2>
       <p class="display manifesto" data-scrub>
@@ -152,54 +189,6 @@ const numOf = (p: (typeof projects)[number]) => projects.indexOf(p) + 1;
         ))}
       </p>
       <p class="manifesto-sig hand wipe" style="--d:500ms" aria-hidden="true">Agustín Hidalgo</p>
-    </div>
-  </section>
-
-  <!-- 04 · Sobre mí -->
-  <section class="sec on-dark about" id="sobre-mi" aria-labelledby="sobre-title" style="border-top: 1px solid var(--rule-dark)">
-    <div class="wrap">
-      <div class="grid">
-        <div class="about__figure" data-clip>
-          <Image src={portrait} alt="" format="webp" quality={90} widths={[520, 1040]} sizes="(min-width: 64rem) 40vw, 90vw" loading="lazy" />
-        </div>
-        <div class="about__text">
-          <h2 id="sobre-title" class="display about__name mask" aria-label={person.name} data-drift="2">
-            <span class="about__soy" aria-hidden="true">soy</span>
-            <span class="line" style="--i:0" aria-hidden="true"><span>Agustin</span></span>
-            <span class="line" style="--i:1" aria-hidden="true"><span>Hidalgo</span></span>
-          </h2>
-          <div class="prose reveal">
-            {copy.about.map((p) => <p set:html={inline(p)} />)}
-          </div>
-          <div class="about__cta reveal">
-            <a class="btn" data-magnetic href={cv.href} download={cv.file}>{cv.label} <span class="arrow" aria-hidden="true">↓</span></a>
-            <a class="ulink" href="/sobre-mi">Sobre mí en detalle <span class="arrow" aria-hidden="true">→</span></a>
-          </div>
-        </div>
-      </div>
-      <div class="cvgrid reveal">
-        <div>
-          <h3 class="label">Formación</h3>
-          <p><strong>{cvData.education.title}</strong></p>
-          <small>{cvData.education.org} · {cvData.education.period}</small>
-        </div>
-        <div>
-          <h3 class="label">Experiencia</h3>
-          <ul>
-            {featured.map((e) => (
-              <li>
-                <strong>{e.role}</strong>
-                <small>{e.org} · {e.period}</small>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <h3 class="label">Herramientas</h3>
-          <p>Adobe Illustrator, Adobe Photoshop, Google Workspace y Microsoft Office.</p>
-          <small>Según CV.</small>
-        </div>
-      </div>
     </div>
   </section>
 

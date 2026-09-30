@@ -8,6 +8,7 @@ year: 2025
 type: [Rediseño de marca, Packaging]
 focus: [Identidad de producto, Sistema gráfico aplicado]
 category: [Vino tinto, Blend]
+world: cellar
 scene: bottle
 concept: Verdad desgarrada
 stageNote: Al girar la botella, el dorso muestra la marca Mosquita Muerta Wines y el contenido neto (750 mL).

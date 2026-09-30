@@ -1,0 +1,86 @@
+---
+import Base from '../layouts/Base.astro';
+import { CUE_VOLUME, WORLD_PACK } from '../data/sound-map';
+
+const cues = Object.keys(CUE_VOLUME);
+const packs = [
+  { id: 'studio', name: 'Studio', where: 'Apertura, Sobre mí, introducción' },
+  { id: 'organic', name: 'Organic', where: 'Bodega (Cordero con piel de lobo)' },
+  { id: 'mechanical', name: 'Mechanical', where: 'Barbería (Be Fresh)' },
+];
+---
+
+<Base title="Prueba de sonidos — Agustín Hidalgo" description="Página interna para escuchar los sonidos del portfolio." path="/sonidos" robots="noindex, nofollow">
+  <section class="sec on-dark" style="padding-top: 7rem">
+    <div class="wrap">
+      <p class="label">Página interna · no está enlazada</p>
+      <h1 class="display" style="font-size: clamp(3rem, 9vw, 8rem); margin-block: 0.5rem 1.5rem">Sonidos</h1>
+      <p class="prose">
+        Acá podés escuchar cada sonido y cada ambiente antes de decidir. Los efectos son archivos de dominio público (CC0) de la biblioteca uisfx;
+        los ambientes y el roce de la capa se generan en el navegador. Todo se ajusta en <code>src/data/sound-map.ts</code>.
+      </p>
+      <p style="margin-top: 1.5rem"><button class="btn" type="button" id="snd-start" data-no-sound>Activar audio de prueba</button></p>
+
+      <h2 class="label" style="margin-top: 3rem">Ambientes (suenan en bucle; el roce de la capa depende del scroll)</h2>
+      <div class="snd-row">
+        <button class="btn btn--ghost" type="button" data-world="studio" data-no-sound>Apertura</button>
+        <button class="btn btn--ghost" type="button" data-world="cellar" data-no-sound>Bodega</button>
+        <button class="btn btn--ghost" type="button" data-world="barber" data-no-sound>Barbería</button>
+      </div>
+
+      {packs.map((p) => (
+        <div style="margin-top: 2.5rem">
+          <h2 class="label">Pack {p.name} — {p.where}</h2>
+          <div class="snd-row">
+            {cues.map((c) => <button class="btn btn--ghost snd-cue" type="button" data-pack={p.id} data-cue={c} data-no-sound>{c}</button>)}
+          </div>
+        </div>
+      ))}
+
+      <div style="margin-top: 2.5rem">
+        <h2 class="label">Transiciones entre mundos (pack cinematic)</h2>
+        <div class="snd-row">
+          {['unlock', 'checkpoint', 'swipe'].map((c) => <button class="btn btn--ghost snd-cue" type="button" data-pack="cinematic" data-cue={c} data-big data-no-sound>{c}</button>)}
+        </div>
+      </div>
+      <p class="notice" style="margin-top: 2.5rem">
+        Packs por mundo: {Object.entries(WORLD_PACK).map(([w, p]) => `${w} → ${p}`).join(' · ')}. Audio: CC0 1.0, ver <a href="/audio/CREDITS.txt">créditos</a>.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .snd-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  .snd-cue {
+    min-height: 2.5rem;
+    padding-inline: 0.9rem;
+    letter-spacing: 0.04em;
+  }
+</style>
+
+<script>
+  import { setEnabled, play, setWorld } from '../scripts/sound';
+  const start = document.getElementById('snd-start') as HTMLButtonElement;
+  start.addEventListener('click', async () => {
+    await setEnabled(true, { remember: false });
+    start.textContent = 'Audio de prueba activo';
+  });
+  document.querySelectorAll<HTMLButtonElement>('.snd-cue').forEach((b) =>
+    b.addEventListener('click', async () => {
+      await setEnabled(true, { remember: false, silent: true });
+      play(b.dataset.cue!, { pack: b.dataset.pack, force: true, big: b.hasAttribute('data-big') });
+    }),
+  );
+  document.querySelectorAll<HTMLButtonElement>('[data-world]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      await setEnabled(true, { remember: false, silent: true });
+      setWorld(b.dataset.world as 'studio' | 'cellar' | 'barber');
+    }),
+  );
+</script>

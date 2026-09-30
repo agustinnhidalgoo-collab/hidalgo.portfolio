@@ -394,7 +394,7 @@ a:hover > .arrow,
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  margin-right: 6.75rem; /* deja lugar al botón Índice fijo */
+  margin-right: 19.5rem; /* deja lugar a los botones fijos de Sonido e Índice */
 }
 .topbar__link {
   display: inline-flex;
@@ -413,11 +413,16 @@ a:hover > .arrow,
 .topbar__link[aria-current='page'] {
   background-size: calc(100% - 1.5rem) 1px;
 }
-.menu-btn {
+.tools {
   position: fixed;
   z-index: 30;
   top: 0.75rem;
   right: var(--gutter);
+  display: flex;
+  gap: 0.5rem;
+}
+.menu-btn,
+.snd-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
@@ -433,6 +438,37 @@ a:hover > .arrow,
   text-transform: uppercase;
   cursor: pointer;
   transition: background var(--dur-ui) var(--ease), border-color var(--dur-ui) var(--ease);
+}
+.snd-btn:hover {
+  background: var(--red);
+  border-color: var(--red);
+}
+.snd-btn[aria-pressed='true'] {
+  border-color: var(--red-text);
+}
+.snd-btn__w,
+.snd-btn__x {
+  transition: opacity var(--dur-ui);
+}
+.snd-btn[aria-pressed='false'] .snd-btn__w,
+.snd-btn[aria-pressed='true'] .snd-btn__x {
+  opacity: 0;
+}
+html:not(.js) .snd-btn {
+  display: none;
+}
+@media (max-width: 40rem) {
+  .snd-btn {
+    padding: 0 0.8rem;
+  }
+  .snd-btn__t {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 .menu-btn:hover {
   background: var(--red);
@@ -454,8 +490,8 @@ html:not(.js) .menu-btn {
 html:not(.js) .topbar__right {
   margin-right: 0;
 }
-@media (max-width: 30rem) {
-  .topbar__link--cv {
+@media (max-width: 34rem) {
+  .topbar__right {
     display: none;
   }
 }
@@ -657,18 +693,18 @@ html.gl-on .gl canvas {
   background: transparent;
 }
 
-/* Sin 3D (movimiento reducido o sin WebGL): halo estático detrás de la botella de la portada */
+/* Sin 3D (movimiento reducido o sin WebGL): halo estático detrás del retrato de la portada */
 html:not(.gl-try) .hero::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(38% 55% at 50% 48%, rgb(150 0 0 / 0.5), transparent 72%);
+  background: radial-gradient(60% 70% at 72% 60%, rgb(150 0 0 / 0.45), transparent 72%);
 }
 @media (max-aspect-ratio: 11/10), (max-width: 39.99rem) {
   html:not(.gl-try) .hero::before {
-    background: radial-gradient(70% 40% at 50% 30%, rgb(150 0 0 / 0.5), transparent 72%);
+    background: radial-gradient(80% 40% at 50% 55%, rgb(150 0 0 / 0.45), transparent 72%);
   }
 }
 
@@ -694,88 +730,106 @@ html.gl-on .slot__img {
   filter: drop-shadow(0 1.5rem 1.5rem rgb(0 0 0 / 0.55));
 }
 
-/* ---------- Hero: la botella al centro, el nombre y la especialidad como apoyo ---------- */
+/* ---------- Portada: presentación personal primero ----------
+   Nombre en 3D (dos filas a distinta profundidad), retrato en medio, botella asomando abajo.
+   Los elementos con [data-slot] definen dónde se colocan los objetos 3D; aquí se compone cada pantalla. */
 .hero {
   position: relative;
   color: var(--white);
 }
-.hero__word::before {
-  content: attr(data-word);
-}
-.hero__word {
-  position: absolute;
-  z-index: 0;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  font-size: min(22.5vw, 46svh);
-  line-height: 0.8;
-  color: rgb(124 0 0 / 0.6);
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
+html:not(.gl-try) .hero {
+  overflow: clip;
 }
 .hero__wrap {
   position: relative;
   z-index: 2;
   min-height: 100svh;
   display: grid;
-  grid-template-rows: minmax(13rem, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
   row-gap: 0.75rem;
   padding-top: 4.75rem;
   padding-bottom: 1.25rem;
 }
-.hero__slot {
-  align-self: center;
-  justify-self: center;
-  width: 100%;
-  height: 100%;
-  max-height: 720px;
-  min-height: 0;
-}
 .hero__name-block {
   position: relative;
+  grid-row: 1;
   width: fit-content;
   max-width: 100%;
 }
 .hero__name {
   position: relative;
-  font-size: clamp(2.8rem, min(20vw, 11.5svh), 9rem);
+  font-size: clamp(3rem, min(21vw, 12.5svh), 7.5rem);
   line-height: 0.9;
   color: var(--white);
+  text-shadow:
+    1px 1px 0 var(--red), 2px 2px 0 var(--red), 3px 3px 0 var(--red), 4px 4px 0 var(--red),
+    5px 5px 0 var(--red), 6px 6px 0 var(--red);
 }
 .hero__name span {
   display: block;
 }
+/* Con 3D el nombre real sigue en el DOM (accesible y seleccionable) pero se dibuja en la escena */
+html.gl-on .hero__name {
+  color: transparent;
+  text-shadow: none;
+}
 .hero__note {
   display: block;
-  margin-bottom: 0.4em;
+  margin-bottom: 0.3em;
   color: var(--red-display);
   font-size: clamp(2rem, 10vw, 3.2rem);
   text-transform: uppercase;
-  text-align: left;
   transform: rotate(-4deg);
   transform-origin: 0 100%;
   pointer-events: none;
   white-space: nowrap;
 }
+.hero__portrait {
+  grid-row: 2;
+  justify-self: center;
+  align-self: end;
+  width: min(100%, 30rem);
+  aspect-ratio: 1.3 / 1;
+  min-height: 0;
+  max-height: 38svh;
+  margin-bottom: -0.5rem;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+.hero__portrait .slot__img {
+  object-fit: cover;
+  object-position: 50% 0;
+  -webkit-mask-image: linear-gradient(#000 72%, transparent);
+  mask-image: linear-gradient(#000 72%, transparent);
+}
+.hero__peek {
+  display: none;
+}
 .hero__info {
+  grid-row: 3;
   display: grid;
-  gap: 0.75rem;
+  gap: 0.6rem;
   align-content: end;
+  position: relative;
+  z-index: 3;
 }
 .hero__role {
-  max-inline-size: 26rem;
+  max-inline-size: 30rem;
   font-size: clamp(0.9375rem, 0.85rem + 0.4vw, 1.125rem);
   line-height: 1.45;
+}
+.hero__study {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.875em;
+  color: var(--dim);
 }
 .hero__links {
   display: flex;
   flex-wrap: wrap;
   gap: 0 1.5rem;
-}
-.hero__cap {
-  display: none;
 }
 @media (prefers-reduced-motion: no-preference) {
   .hero__name-block,
@@ -793,109 +847,134 @@ html.gl-on .slot__img {
   }
 }
 @media (max-height: 700px) and (max-aspect-ratio: 11/10) {
-  .hero__role {
+  .hero__study {
     display: none;
+  }
+  .hero__portrait {
+    max-height: 32svh;
   }
 }
 
-/* Pantallas anchas: nombre a la izquierda, botella al centro, información a la derecha */
+/* Pantallas anchas: nombre a la izquierda; el retrato entra por la derecha y se cruza con las letras;
+   la botella asoma abajo, en el centro */
 @media (min-aspect-ratio: 11/10) and (min-width: 40rem) {
   .hero__wrap {
     grid-template-columns: repeat(12, minmax(0, 1fr));
-    grid-template-rows: 1fr;
+    grid-template-rows: 1fr auto;
     column-gap: var(--col-gap);
-    align-items: center;
     padding-top: 5rem;
-    padding-bottom: 2.25rem;
-  }
-  .hero__slot {
-    grid-column: 5 / 9;
-    grid-row: 1;
-    height: min(78svh, 720px);
+    padding-bottom: 2rem;
   }
   .hero__name-block {
-    grid-column: 1 / 6;
+    grid-column: 1 / 9;
     grid-row: 1;
-    align-self: end;
+    align-self: center;
     z-index: 2;
-    padding-bottom: 1.4rem;
   }
   .hero__name {
-    font-size: clamp(3.4rem, min(9.2vw, 17.5svh), 11rem);
+    font-size: clamp(3.4rem, min(14.8vw, 29svh), 15rem);
   }
   .hero__note {
     font-size: clamp(2.2rem, 4.2vw, 4.8rem);
-    margin-bottom: 0.45em;
+    margin-bottom: 0.15em;
+  }
+  .hero__portrait {
+    grid-column: 6 / 13;
+    grid-row: 1 / 3;
+    justify-self: end;
+    align-self: end;
+    width: auto;
+    height: min(90svh, 62vw, 980px);
+    aspect-ratio: 999 / 1146;
+    max-height: none;
+    margin-bottom: -2rem;
+  }
+  .hero__portrait .slot__img {
+    object-fit: contain;
+    object-position: 50% 100%;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .hero__peek {
+    display: block;
+    position: absolute;
+    left: 41%;
+    bottom: -55svh;
+    width: min(18vw, 20svh);
+    height: min(74svh, 720px);
+    pointer-events: none;
   }
   .hero__info {
-    grid-column: 9 / 13;
-    grid-row: 1;
+    grid-column: 1 / 5;
+    grid-row: 2;
     align-self: end;
-    justify-items: start;
-  }
-  .hero__cap {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    min-height: 2.75rem;
-    margin-top: 0.5rem;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--red-text);
-  }
-  .hero__cap:hover {
-    color: var(--white);
-  }
-  .hero__word {
-    top: 33%;
-    font-size: min(23vw, 46svh);
   }
 }
-/* Pantallas bajas (notebook con barras del navegador, móvil horizontal) */
 @media (min-aspect-ratio: 11/10) and (max-height: 640px) {
+  .hero__role .hero__study,
   .hero__role {
     display: none;
   }
-  .hero__slot {
-    height: min(80svh, 720px);
-  }
-}
-@media (min-aspect-ratio: 11/10) and (max-height: 640px) and (max-width: 60rem) {
-  .hero__wrap {
-    padding-top: 4.25rem;
+  .hero__info .label {
+    display: none;
   }
 }
 
-/* ---------- Introducción sobre la escena ---------- */
-.intro3d {
+/* ---------- Sobre mí e introducción sobre la escena ---------- */
+.parkwrap {
   position: relative;
-  padding-block: var(--section-y);
 }
-.intro3d__col {
-  max-inline-size: 40rem;
-}
-.intro3d .intro__title {
-  font-size: clamp(3rem, min(8.4vw, 16svh), 9.5rem);
-  margin-bottom: 1.5rem;
-}
-.intro3d .intro__body {
-  margin-left: 0;
-}
-.intro3d__slot {
+.park__slot {
   display: none;
 }
 @media (min-aspect-ratio: 11/10) and (min-width: 40rem) {
-  .intro3d__slot {
+  .park__slot {
     display: block;
     position: absolute;
     top: 0;
     bottom: 0;
-    left: 62%;
-    width: 30%;
+    left: 66%;
+    width: 26%;
+    pointer-events: none;
   }
+}
+.about3d,
+.intro3d {
+  position: relative;
+  padding-block: var(--section-y);
+}
+.about3d {
+  padding-bottom: clamp(2rem, 4vw, 4rem);
+}
+.about3d__col,
+.intro3d__col {
+  max-inline-size: 40rem;
+}
+.about3d .intro__title,
+.intro3d .intro__title {
+  font-size: clamp(3rem, min(8.4vw, 16svh), 9.5rem);
+  margin-bottom: 1.5rem;
+}
+.about3d .prose {
+  max-inline-size: 34rem;
+}
+.about3d__cv {
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  grid-template-columns: 1fr;
+}
+.about3d__cv > div {
+  border-left: 0 !important;
+  padding-left: 0 !important;
+}
+.about__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+  margin-top: 2rem;
+}
+.intro3d .intro__body {
+  margin-left: 0;
 }
 
 /* ---------- Índice de proyectos (acceso directo) ---------- */
@@ -1035,6 +1114,7 @@ html.gl-try .pstage {
   height: 360svh;
 }
 html.gl-try .pstage__pin {
+  z-index: 1;
   position: sticky;
   top: 0;
   height: 100svh;
@@ -1991,5 +2071,129 @@ html.has-cursor .cursor {
   }
   .js [data-clip].is-in > * {
     clip-path: inset(0 0 0 0);
+  }
+}
+
+/* =========================================================
+   Mundos por proyecto: fondo, textura, cursor
+   html[data-world] lo define la sección activa (home) o el caso (página de proyecto)
+   ========================================================= */
+.world-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.world-bg i {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 900ms var(--ease);
+}
+html[data-world='cellar'] .world-bg i[data-w='cellar'],
+html[data-world='barber'] .world-bg i[data-w='barber'] {
+  opacity: var(--wa, 1);
+}
+/* Bodega: luz de vela desde abajo, tablones verticales de barrica y grano de madera */
+.world-bg i[data-w='cellar'] {
+  background:
+    radial-gradient(60% 45% at 50% 108%, rgb(176 92 26 / 0.42), transparent 70%),
+    radial-gradient(90% 70% at 50% 40%, rgb(74 22 10 / 0.5), transparent 75%),
+    repeating-linear-gradient(90deg, rgb(255 210 160 / 0.045) 0 1px, transparent 1px 152px),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.75  0 0 0 0 0.45  0 0 0 0 0.2  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-blend-mode: normal, normal, normal, soft-light;
+}
+/* Barbería: frío, espejo con reflejo oblicuo, rayas finas de poste de barbero */
+.world-bg i[data-w='barber'] {
+  background:
+    linear-gradient(112deg, transparent 38%, rgb(255 255 255 / 0.055) 46%, transparent 54%),
+    linear-gradient(112deg, transparent 58%, rgb(255 255 255 / 0.03) 61%, transparent 64%),
+    repeating-linear-gradient(-58deg, rgb(255 255 255 / 0.028) 0 2px, transparent 2px 26px),
+    radial-gradient(80% 60% at 70% 40%, rgb(40 44 56 / 0.55), transparent 75%);
+}
+/* Los capítulos con mundo se funden con el fondo negro de las secciones vecinas */
+.pstage[data-world]::before,
+.pstage[data-world]::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: min(26svh, 14rem);
+  pointer-events: none;
+  z-index: 0;
+}
+.pstage[data-world]::before {
+  top: 0;
+  background: linear-gradient(#000, transparent);
+}
+.pstage[data-world]::after {
+  bottom: 0;
+  background: linear-gradient(transparent, #000);
+}
+/* Páginas de proyecto: el mundo es el fondo de todo el caso */
+.has-world .on-dark,
+.has-world .foot {
+  background: transparent;
+}
+html.has-world-on body {
+  background: var(--black);
+}
+
+/* ---------- Cursor según el mundo ---------- */
+html[data-world='cellar'] .cursor__c {
+  background: transparent;
+  border: 1.5px solid #e8c79a;
+  mix-blend-mode: normal;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgb(176 92 26 / 0.25);
+}
+html[data-world='cellar'] .cursor__c.is-label {
+  background: #e8c79a;
+  color: #2a0d06;
+  box-shadow: none;
+}
+html[data-world='barber'] .cursor__c {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  mix-blend-mode: difference;
+  outline: 1px solid #fff;
+}
+html[data-world='barber'] .cursor__c::before,
+html[data-world='barber'] .cursor__c::after {
+  content: '';
+  position: absolute;
+  background: #fff;
+}
+html[data-world='barber'] .cursor__c::before {
+  left: 50%;
+  top: -7px;
+  bottom: -7px;
+  width: 1px;
+}
+html[data-world='barber'] .cursor__c::after {
+  top: 50%;
+  left: -7px;
+  right: -7px;
+  height: 1px;
+}
+html[data-world='barber'] .cursor__c.is-label {
+  background: #fff;
+  color: #000;
+  outline: 0;
+  mix-blend-mode: normal;
+}
+html[data-world='barber'] .cursor__c.is-label::before,
+html[data-world='barber'] .cursor__c.is-label::after {
+  display: none;
+}
+
+/* Be Fresh: la capa necesita más ancho que la botella; ocupa desde la columna 7 */
+@media (min-aspect-ratio: 11/10) and (min-width: 40rem) {
+  .pstage[data-scene='card'] .slot {
+    grid-column: 7 / 13;
+  }
+  .pstage[data-scene='card'] .pstage__text {
+    grid-column: 1 / 7;
   }
 }

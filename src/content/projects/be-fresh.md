@@ -8,6 +8,7 @@ year: 2026
 type: [Identidad visual, Logo e isologo]
 focus: [Branding, Sistema gráfico]
 category: [Barbería, Servicios]
+world: barber
 scene: card
 concept: Elegancia, detalle y autenticidad
 titleTone: white
@@ -18,10 +19,10 @@ cover:
 stageImages:
   - src: ../../assets/befresh/portada.jpg
     alt: Tarjeta negra sobre fondo negro, en perspectiva, con el isotipo BF en relieve.
-  - src: ../../assets/befresh/logo-blanco.png
-    alt: Logotipo «befresh» en blanco con las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
-  - src: ../../assets/befresh/isologo-blanco.png
-    alt: Isologo BF en blanco.
+  - src: ../../assets/befresh/capa.webp
+    alt: Capa de barbero negra con el logotipo befresh en blanco y las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
+  - src: ../../assets/befresh/capa.webp
+    alt: Capa de barbero negra con el logotipo befresh en blanco.
 seoDescription: Diseño de logo e identidad visual para Be Fresh, una barbería contemporánea. Sistema gráfico monocromático, isotipo en relieve y aplicaciones.
 sections:
   - kind: gallery
@@ -83,8 +84,8 @@ sections:
       - image: "../../assets/befresh/cartel.jpg"
         alt: "Cartel exterior negro con el logotipo, sobre una pared de ladrillo."
         label: "Cartel exterior"
-      - image: "../../assets/befresh/uniforme.jpg"
-        alt: "Capa de barbero negra con el isotipo BF."
-        label: "Uniforme"
+      - image: "../../assets/befresh/capa.webp"
+        alt: "Capa de barbero negra con el logotipo befresh en blanco y las leyendas Exclusive Studio, ESTD 2026 y The detail by detail."
+        label: "Capa de barbero"
 ---
 Be Fresh es una barbería que redefine la experiencia desde la **elegancia, el detalle y la autenticidad**. La identidad visual busca transmitir sofisticación y precisión, alejándose de los códigos tradicionales para construir una marca contemporánea y distintiva.

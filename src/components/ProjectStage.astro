@@ -16,7 +16,7 @@ const palette = data.sections.find((s) => s.kind === 'palette');
 const shadow = scene === 'bottle';
 ---
 
-<section id={`stage-${scene}`} class="pstage clear" data-scene={scene} data-step="1" aria-labelledby={`p-${project.id}`}>
+<section id={`stage-${scene}`} class="pstage clear" data-scene={scene} data-world={data.world} data-snd-section data-step="1" aria-labelledby={`p-${project.id}`}>
   <div class="pstage__pin">
     <!-- Paso 1 · presentación -->
     <div class="pstage__step step-1">
