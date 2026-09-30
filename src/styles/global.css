@@ -1982,13 +1982,14 @@ html.has-cursor .cursor {
   filter: drop-shadow(0 1.5rem 1.5rem rgb(0 0 0 / 0.55));
 }
 
-/* Revelado de imágenes por máscara (una vez, al entrar en pantalla) */
+/* Revelado de imágenes por máscara (una vez, al entrar en pantalla).
+   La máscara va en el hijo: el observador mide el contenedor, que nunca se recorta. */
 @media (prefers-reduced-motion: no-preference) {
-  .js [data-clip] {
+  .js [data-clip] > * {
     clip-path: inset(100% 0 0 0);
     transition: clip-path 1000ms var(--ease);
   }
-  .js [data-clip].is-in {
+  .js [data-clip].is-in > * {
     clip-path: inset(0 0 0 0);
   }
 }
