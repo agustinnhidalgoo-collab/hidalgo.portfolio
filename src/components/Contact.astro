@@ -1,47 +1,64 @@
 ---
+/* Contacto. En la home es el cierre de la escena (`stage`): vuelve tu muñeco, ahora con el teléfono en la oreja
+   (lo dibuja la escena 3D: se inclina hacia la opción que señalás, el teléfono suena en WhatsApp y asiente al
+   elegir). En el resto de las páginas es la misma sección, sin escena. */
+import { Image } from 'astro:assets';
+import avatarTel from '../assets/portrait/avatar-tel.webp';
 import { contact, cv } from '../data/site';
+
+interface Props { stage?: boolean }
+const { stage = false } = Astro.props;
 ---
 
-<section class="sec on-dark" id="contacto" aria-labelledby="contacto-title" data-snd-section>
-  <div class="wrap grid">
-    <div class="contact__lead">
-      <h2 id="contacto-title" class="display contact__title mask reveal-h">
-        <span class="line" style="--i:0"><span>Muchas</span></span>
-        <span class="line" style="--i:1"><span>gracias</span></span>
-      </h2>
-      <p class="prose reveal" style="margin-top: clamp(1.25rem, 3vw, 2.5rem)">
-        ¿Tienes un proyecto en mente o quieres conversar sobre diseño? Escríbeme por el medio que prefieras.
-      </p>
+<section class:list={['sec contact', stage ? 'contact--stage clear' : 'on-dark']} id="contacto" aria-labelledby="contacto-title" data-snd-section>
+  <div class="wrap contact__grid">
+    {stage && (
+      <div class="contact__stage">
+        <div class="contact__avatar" data-slot="portrait-contact" aria-hidden="true">
+          <Image class="slot__img" src={avatarTel} alt="" format="webp" quality={88} widths={[560, 1100]} sizes="(min-width: 64rem) 45vw, 90vw" loading="lazy" />
+          <!-- ondas de llamada junto al teléfono (cuando señalás WhatsApp) -->
+          <span class="contact__ring"><i></i><i></i><i></i></span>
+        </div>
+      </div>
+    )}
+
+    <div class="contact__body">
+      <h2 id="contacto-title" class="label contact__label">Contacto</h2>
+      <p class="contact__lead">¿Tenés un proyecto en mente o querés charlar de diseño? Escribime por donde te quede más cómodo.</p>
+
+      <a class="btn btn--red contact__wa" href={contact.whatsappUrl} target="_blank" rel="noopener noreferrer" data-look data-magnet data-ring>
+        <span class="contact__wa-label">Escribime por WhatsApp</span>
+        <span class="contact__wa-num">{contact.phoneDisplay}</span>
+        <span class="contact__wa-go" aria-hidden="true">↗</span>
+      </a>
+
+      <ul class="contact__list">
+        <li class="contact__item">
+          <a href={`mailto:${contact.email}`} data-look>
+            <span class="k">Email</span>
+            <span class="v">{contact.email}</span>
+          </a>
+          <button class="contact__copy" type="button" data-copy={contact.email} data-look>
+            <span class="contact__copy-t">Copiar</span>
+            <span class="sr-only"> el email</span>
+          </button>
+        </li>
+        <li class="contact__item">
+          <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer" data-look>
+            <span class="k">Instagram</span>
+            <span class="v">{contact.instagramHandle}</span>
+            <span class="go" aria-hidden="true">↗</span>
+          </a>
+        </li>
+        <li class="contact__item">
+          <a href={cv.href} download={cv.file} data-look>
+            <span class="k">Currículum</span>
+            <span class="v">{cv.label} (PDF)</span>
+            <span class="go" aria-hidden="true">↓</span>
+          </a>
+        </li>
+      </ul>
+      <p class="contact__toast" role="status" aria-live="polite"></p>
     </div>
-    <ul class="contact__list reveal">
-      <li>
-        <a href={contact.whatsappUrl} target="_blank" rel="noopener noreferrer">
-          <span class="k">WhatsApp</span>
-          <span class="v">{contact.phoneDisplay}</span>
-          <span class="go arrow" aria-hidden="true">↗</span>
-        </a>
-      </li>
-      <li>
-        <a href={`mailto:${contact.email}`}>
-          <span class="k">Email</span>
-          <span class="v">{contact.email}</span>
-          <span class="go arrow" aria-hidden="true">→</span>
-        </a>
-      </li>
-      <li>
-        <a href={contact.instagramUrl} target="_blank" rel="noopener noreferrer">
-          <span class="k">Instagram</span>
-          <span class="v">{contact.instagramHandle}</span>
-          <span class="go arrow" aria-hidden="true">↗</span>
-        </a>
-      </li>
-      <li>
-        <a href={cv.href} download={cv.file}>
-          <span class="k">Currículum</span>
-          <span class="v">{cv.label} (PDF)</span>
-          <span class="go arrow" aria-hidden="true">↓</span>
-        </a>
-      </li>
-    </ul>
   </div>
 </section>

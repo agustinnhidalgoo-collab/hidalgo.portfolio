@@ -1,12 +1,14 @@
 ---
 import { Image } from 'astro:assets';
 import ProjectStage from '../components/ProjectStage.astro';
+import Skills from '../components/Skills.astro';
 import Base from '../layouts/Base.astro';
 import Contact from '../components/Contact.astro';
 import ProjectMeta from '../components/ProjectMeta.astro';
-import portrait from '../assets/portrait/agustin.webp';
-import { person, contact, cv, copy, cvData } from '../data/site';
-import { getProjects, inline, titleLines } from '../lib/projects';
+import avatar from '../assets/portrait/avatar.webp';
+import avatarWink from '../assets/portrait/avatar-guino.webp';
+import { person, contact, copy } from '../data/site';
+import { getProjects, titleLines } from '../lib/projects';
 
 const projects = await getProjects();
 const description =
@@ -20,10 +22,24 @@ const jsonLd = {
   alumniOf: { '@type': 'CollegeOrUniversity', name: 'Universidad de Belgrano' },
   sameAs: [contact.instagramUrl],
 };
-const featured = cvData.experience.filter((e) => e.featured);
 const staged = projects.filter((p) => p.data.scene);
 const others = projects.filter((p) => !p.data.scene);
 const numOf = (p: (typeof projects)[number]) => projects.indexOf(p) + 1;
+const pad = (n: number) => String(n).padStart(2, '0');
+// «Sobre mí» de la portada: el párrafo se revela palabra por palabra con el scroll (las **negritas** se respetan)
+const bio: { w: string; b: boolean; tight?: boolean }[] = [];
+copy.about[0].split('**').forEach((seg, i, all) => {
+  // tramos pegados sin espacio entre medio («Hidalgo**, estudiante…»): la palabra anterior no lleva espacio
+  if (bio.length && seg && !/^\s/.test(seg) && !/\s$/.test(all[i - 1])) bio[bio.length - 1].tight = true;
+  seg.split(/\s+/).filter(Boolean).forEach((w) => bio.push({ w, b: i % 2 === 1 }));
+});
+// Disciplinas que rotan junto a «Diseño de»
+const crafts = ['Identidad', 'Packaging', 'Marcas'];
+// Índice lateral 01 / 02 de los mundos (nombre corto: «Cordero», «Be Fresh»)
+const shortTitle = (t: string) => (t.split(' ').length <= 2 ? t : t.split(' ')[0]);
+const rail = staged.map((p) => ({ id: p.id, n: pad(numOf(p)), short: shortTitle(p.data.title), scene: p.data.scene }));
+// Vista previa del índice: la pieza del primer mundo (con 3D, la botella se empieza a armar ahí)
+const preview = staged[0]?.data.stageImages?.[0];
 ---
 
 <Base title="Agustín Hidalgo — Portfolio de diseño gráfico" description={description} path="/" jsonLd={jsonLd}>
@@ -37,138 +53,96 @@ const numOf = (p: (typeof projects)[number]) => projects.indexOf(p) + 1;
     <i class="buildnote__bar"></i>
   </div>
 
-  <!-- 00 · Portada: presentación personal primero. Solo identidad: nombre en 3D y retrato en capas -->
-  <section class="hero" id="inicio" aria-labelledby="hero-title">
-    <div class="hero__wrap wrap">
-      <div class="hero__name-block">
-        <span class="hero__note hand" aria-hidden="true">Diseño gráfico</span>
-        <h1 id="hero-title" class="display hero__name" data-slot="name">
-          <span>Agustín</span><span>Hidalgo</span>
-        </h1>
-      </div>
-      <div class="hero__portrait" data-slot="portrait">
-        <Image class="slot__img" src={portrait} alt="Agustín Hidalgo, retrato en blanco y negro" format="webp" quality={90} widths={[520, 1000]} sizes="(min-width: 64rem) 45vw, 90vw" loading="eager" fetchpriority="high" />
-      </div>
-      <div class="hero__info">
-        <p class="label">Portfolio · {person.year}</p>
-        <p class="hero__role">{person.role}. <span class="hero__study">Estudiante de Comunicación Visual, Gráfica y Digital · Universidad de Belgrano.</span></p>
-        <nav class="hero__links" aria-label="Accesos de la portada">
-          <a class="ulink" href="#proyectos">Proyectos</a>
-          <a class="ulink" href="#contacto">Contacto</a>
-          <a class="ulink" href={cv.href} download={cv.file}>CV</a>
-        </nav>
+  <!-- 1 · Portada: el avatar al centro, el saludo a la izquierda y lo que hago a la derecha.
+       Al bajar (pantalla fijada) el texto se va, el avatar se corre a la izquierda y mira, y se despliega «Sobre mí». -->
+  <section class="hero intro" id="inicio" aria-labelledby="hero-title">
+    <div class="intro__pin">
+      <div class="intro__stage wrap">
+        <div class="intro__hello">
+          <p class="intro__hi hand">Hola, soy</p>
+          <h1 id="hero-title" class="display intro__name"><span>Agustín</span> <span>Hidalgo</span></h1>
+        </div>
+        <div class="intro__portrait" data-slot="portrait" data-wink>
+          <Image class="slot__img" src={avatar} alt="Agustín Hidalgo en versión 3D, sonriendo" format="webp" quality={90} widths={[560, 1100]} sizes="(min-width: 64rem) 50vw, 100vw" loading="eager" fetchpriority="high" />
+          <Image class="slot__img slot__img--wink" src={avatarWink} alt="" format="webp" quality={90} widths={[560, 1100]} sizes="(min-width: 64rem) 50vw, 100vw" loading="lazy" />
+        </div>
+        <div class="intro__role">
+          <p class="intro__pre">Diseño de <span class="sr-only">{crafts.join(', ').toLowerCase()}</span></p>
+          <!-- Rueda de palabras: arriba la anterior (solo contorno), abajo la actual; la lista se repite para girar sin fin -->
+          <div class="intro__words display" data-words aria-hidden="true">
+            <div class="intro__wheel">{[...crafts, ...crafts, ...crafts].map((w) => <span>{w}</span>)}</div>
+          </div>
+        </div>
+        <!-- Lugar del avatar cuando se despliega «Sobre mí» (la escena lo lleva hasta acá) -->
+        <div class="intro__portrait-to" data-slot="portrait-about" data-wink-to aria-hidden="true"></div>
+        <div class="intro__about" data-look>
+          <p class="label intro__label">Sobre mí</p>
+          <p class="intro__bio">{bio.map(({ w, b, tight }) => (b ? <strong class:list={['w', { tight }]}>{w}</strong> : <span class:list={['w', { tight }]}>{w}</span>))}</p>
+          <p class="intro__study">{person.role} · Universidad de Belgrano</p>
+          <p class="intro__cta"><a class="btn btn--red" href="#trabajos">Ver proyectos <span class="arrow" aria-hidden="true">↓</span></a></p>
+        </div>
+        <p class="intro__cue" aria-hidden="true">Bajá <span>↓</span></p>
       </div>
     </div>
   </section>
 
-  <!-- 01 · Sobre mí e introducción (la botella se estaciona a la derecha) -->
-  <div class="parkwrap">
-    <div class="park__slot" data-slot="park" aria-hidden="true"></div>
-    <section class="sec clear about3d" id="sobre-mi" aria-labelledby="sobre-title" data-snd-section>
-      <div class="wrap">
-        <div class="about3d__col">
-          <p class="eyebrow reveal">{contact.instagramHandle}</p>
-          <h2 id="sobre-title" class="display intro__title mask"><span class="line"><span>Sobre mí</span></span></h2>
-          <div class="prose reveal" style="--d:120ms">
-            {copy.about.map((p) => <p set:html={inline(p)} />)}
-          </div>
-          <div class="about__cta reveal">
-            <a class="btn" href={cv.href} download={cv.file}>{cv.label} <span class="arrow" aria-hidden="true">↓</span></a>
-            <a class="ulink" href="/sobre-mi">Sobre mí en detalle <span class="arrow" aria-hidden="true">→</span></a>
-          </div>
-          <div class="cvgrid about3d__cv reveal">
-            <div>
-              <h3 class="label">Formación</h3>
-              <p><strong>{cvData.education.title}</strong></p>
-              <small>{cvData.education.org} · {cvData.education.period}</small>
-            </div>
-            <div>
-              <h3 class="label">Experiencia</h3>
-              <ul>
-                {featured.map((e) => (
-                  <li>
-                    <strong>{e.role}</strong>
-                    <small>{e.org} · {e.period}</small>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h3 class="label">Herramientas</h3>
-              <p>Adobe Illustrator, Adobe Photoshop, Google Workspace y Microsoft Office.</p>
-              <small>Según CV.</small>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+  <!-- Habilidades: la botonera 3D, después de saber quién sos y antes de ver lo que hiciste -->
+  <Skills />
 
-    <section class="sec clear intro3d" id="introduccion" aria-labelledby="introduccion-title" data-snd-section>
-      <div class="wrap">
-        <div class="intro3d__col">
-          <h2 id="introduccion-title" class="display intro__title mask">
-            <span class="line"><span>Introducción</span></span>
-          </h2>
-          <div class="intro__body prose reveal" style="--d:120ms">
-            <p>
-              {copy.intro.before}
-              {copy.intro.marks.map((m, i) => (
-                <>
-                  <mark class="pill">{m}</mark>{i === 0 ? ', ' : i === 1 ? ' y ' : '.'}
-                </>
-              ))}
-              {' '}{copy.intro.paragraphs[0].text}<strong class="hl">{copy.intro.paragraphs[0].strong}</strong>
-            </p>
-            <p>{copy.intro.paragraphs[1].text}</p>
-          </div>
-        </div>
+  <!-- 2 · Trabajos: el índice es la pantalla central. La pieza del primer mundo empieza a armarse a la derecha -->
+  <section class="works clear" id="trabajos" aria-labelledby="trabajos-title" data-snd-section>
+    <div class="wrap grid works__grid">
+      <div class="works__text">
+        <p class="label">Portfolio</p>
+        <h2 id="trabajos-title" class="display works__title mask"><span class="line"><span>Trabajos</span></span></h2>
+        <ol class="works__list reveal">
+          {projects.map((p) => (
+            <li>
+              <a href={p.data.scene ? `#stage-${p.data.scene}` : `/proyectos/${p.id}`} data-row={p.data.scene}>
+                <span class="works__n" aria-hidden="true">{pad(numOf(p))}</span>
+                <span class="works__t">{p.data.title}</span>
+                <span class="works__d">{p.data.descriptor}{p.data.year && ` · ${p.data.year}`}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
       </div>
-    </section>
-  </div>
-
-  <!-- 02 · Portfolio: apertura y acceso directo -->
-  <section class="clear pindex" id="proyectos" aria-labelledby="proyectos-title" data-snd-section>
-    <div class="wrap">
-      <h2 id="proyectos-title" class="display pindex__title mask"><span class="line"><span>Portfolio</span></span></h2>
-      <div class="prose reveal">{copy.portfolio.map((p) => <p set:html={inline(p)} />)}</div>
-      <ol class="pindex__list reveal">
-        {projects.map((p, i) => (
-          <li>
-            <a href={p.data.scene ? `#stage-${p.data.scene}` : `/proyectos/${p.id}`}>
-              <span class="pindex__n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
-              <span class="pindex__t">{p.data.title}</span>
-              <span class="pindex__d">{p.data.descriptor} · {p.data.year}</span>
-            </a>
-          </li>
-        ))}
-      </ol>
+      <div class="works__preview" data-slot="preview" aria-hidden="true">
+        {preview && <Image class="slot__img slot__img--shadow" src={preview.src} alt="" format="webp" quality={88} loading="lazy" sizes="(min-width: 64rem) 22vw, 50vw" />}
+      </div>
     </div>
   </section>
 
-  <!-- 03 · Proyectos con escena 3D (tramos fijados breves, 3 pasos cada uno) -->
-  {staged.map((p) => <ProjectStage project={p} n={numOf(p)} />)}
-  
-  <!-- 04 · Resto de proyectos -->
-  <div class="on-dark">
-    {others.map((p) => {
-      const lines = titleLines(p);
-      return (
+  <!-- 3 · Un mundo por proyecto con 3D: una sola pantalla fijada; la pieza se arma al entrar -->
+  {staged.map((p, i) => (
+    <>
+      <ProjectStage project={p} n={numOf(p)} rail={rail} />
+      {/* Entre la bodega y la barbería: la botella estalla y el vino se vuelve la capa (lo dibuja la escena 3D).
+          Tramo fijado sin texto: nada compite con la transformación. Sin 3D no existe. */}
+      {p.data.scene === 'bottle' && staged[i + 1]?.data.scene === 'cape' && (
+        <section class="burst" id="estallido" aria-hidden="true"><div class="burst__pin"></div></section>
+      )}
+    </>
+  ))}
+
+  <!-- Proyectos sin escena 3D: bloque editorial -->
+  {others.length > 0 && (
+    <div class="on-dark">
+      {others.map((p) => (
         <article class="spread" aria-labelledby={`p-${p.id}`}>
           <div class="wrap grid">
             <div class="spread__text">
-              <p class="pnum reveal" aria-hidden="true">
-                <span class="pnum__word">Project</span><span class="pnum__n">{numOf(p)}</span>
-              </p>
+              <p class="label reveal">Proyecto {pad(numOf(p))}</p>
               <h3 id={`p-${p.id}`} class={`display ptitle mask ${p.data.titleTone === 'red' ? 'ptitle--red' : ''}`}>
                 <a href={`/proyectos/${p.id}`}>
-                  {lines.map((l, k) => <span class="line" style={`--i:${k}`}><span>{l}</span></span>)}
+                  {titleLines(p).map((l, k) => <span class="line" style={`--i:${k}`}><span>{l}</span></span>)}
                 </a>
               </h3>
               <p class="descriptor reveal">{p.data.descriptor}</p>
               <p class="prose reveal">{p.data.summary}</p>
               <div class="reveal"><ProjectMeta project={p} /></div>
-              <a class="ulink reveal" href={`/proyectos/${p.id}`}>
-                Ver proyecto <span class="arrow" aria-hidden="true">→</span>
+              <a class="btn btn--red reveal" href={`/proyectos/${p.id}`}>
+                Ver proyecto completo <span class="arrow" aria-hidden="true">→</span>
                 <span class="sr-only">: {p.data.title}</span>
               </a>
             </div>
@@ -177,24 +151,10 @@ const numOf = (p: (typeof projects)[number]) => projects.indexOf(p) + 1;
             </a>
           </div>
         </article>
-      );
-    })}
-  </div>
-
-  <!-- 05 · Filosofía creativa (pausa luminosa) -->
-  <section class="on-light" id="filosofia" aria-labelledby="filosofia-title" data-snd-section>
-    <div class="wrap manifesto-wrap">
-      <h2 id="filosofia-title" class="sr-only">Filosofía creativa</h2>
-      <p class="display manifesto" data-scrub>
-        <span class="sr-only">{copy.manifesto.join(' ')}</span>
-        {copy.manifesto.map((l, i) => (
-          <span class="line" style={`--i:${i}`} aria-hidden="true"><span>{l}</span></span>
-        ))}
-      </p>
-      <p class="manifesto-sig hand wipe" style="--d:500ms" aria-hidden="true">Agustín Hidalgo</p>
+      ))}
     </div>
-  </section>
+  )}
 
-  <!-- 05 · Contacto -->
-  <Contact />
+  <!-- 4 · Contacto -->
+  <Contact stage />
 </Base>

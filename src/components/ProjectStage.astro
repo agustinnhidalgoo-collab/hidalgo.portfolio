@@ -1,82 +1,47 @@
 ---
 import { Image } from 'astro:assets';
-import { render } from 'astro:content';
 import ProjectMeta from './ProjectMeta.astro';
 import { titleLines, type Project } from '../lib/projects';
 
-interface Props { project: Project; n: number }
-const { project, n } = Astro.props;
+interface Props { project: Project; n: number; rail: { id: string; n: string; short: string; scene?: string }[] }
+const { project, n, rail } = Astro.props;
 const { data } = project;
-const { Content } = await render(project);
 const scene = data.scene ?? 'bottle';
 const prefix = scene === 'cape' ? 'c' : 'b';
-const imgs = data.stageImages ?? [];
-const links = data.sections.map((s, i) => ({ s, i })).filter(({ s }) => 'title' in s && s.title);
-const palette = data.sections.find((s) => s.kind === 'palette');
+const img = data.stageImages?.[0];
 const shadow = scene === 'bottle';
 ---
 
+<!-- Mundo de un proyecto: una sola pantalla (fijada con 3D). La pieza se arma al entrar y, al seguir bajando, gira -->
 <section id={`stage-${scene}`} class="pstage clear" data-scene={scene} data-world={data.world} data-snd-section data-step="1" aria-labelledby={`p-${project.id}`}>
   <div class="pstage__pin">
-    <!-- Paso 1 · presentación -->
-    <div class="pstage__step step-1">
+    <div class="pstage__step">
       <div class="wrap grid step-grid">
         <div class="pstage__text">
-          <p class="pnum" aria-hidden="true" style="margin-bottom:1.25rem"><span class="pnum__word">Project</span><span class="pnum__n">{n}</span></p>
+          <p class="pstage__num">Proyecto <b>{String(n).padStart(2, '0')}</b></p>
           <h2 id={`p-${project.id}`} class={`display ptitle ${data.titleTone === 'red' ? 'ptitle--red' : ''}`}>
             {titleLines(project).map((l) => <span style="display:block">{l}</span>)}
           </h2>
-          <p class="descriptor" style="margin-top:1.5rem">{data.descriptor}</p>
-          <p class="prose" style="margin-top:1.25rem">{data.summary}</p>
-          <div style="margin-top:1.5rem"><ProjectMeta project={project} /></div>
-          <p style="margin-top:1rem"><a class="ulink" href={`/proyectos/${project.id}`}>Ver proyecto <span class="arrow" aria-hidden="true">→</span><span class="sr-only">: {data.title}</span></a></p>
+          <p class="descriptor">{data.descriptor}</p>
+          <p class="prose">{data.summary}</p>
+          <p class="pstage__cta">
+            <a class="btn btn--red" href={`/proyectos/${project.id}`}>Ver proyecto completo <span class="arrow" aria-hidden="true">→</span><span class="sr-only">: {data.title}</span></a>
+          </p>
+          <div class="pstage__meta"><ProjectMeta project={project} compact /></div>
         </div>
         <div class="slot" data-slot={`${prefix}1`}>
-          {imgs[0] && <Image class={`slot__img ${shadow ? 'slot__img--shadow' : ''}`} src={imgs[0].src} alt={imgs[0].alt} format="webp" quality={88} loading="lazy" sizes="(min-width: 64rem) 30vw, 60vw" />}
+          {img && <Image class={`slot__img ${shadow ? 'slot__img--shadow' : ''}`} src={img.src} alt={img.alt} format="webp" quality={88} loading="lazy" sizes="(min-width: 64rem) 30vw, 60vw" />}
         </div>
       </div>
     </div>
-    <!-- Paso 2 · concepto -->
-    <div class="pstage__step step-2">
-      <div class="wrap grid step-grid">
-        <div class="pstage__text">
-          <p class="label" style="margin-bottom:1rem">{data.concept ? `Concepto · ${data.concept}` : 'Contexto y concepto'}</p>
-          <div class="lead"><Content /></div>
-          {data.stageNote && <p class="notice">{data.stageNote}</p>}
-        </div>
-        <div class="slot" data-slot={`${prefix}2`}>
-          {imgs[1] && <Image class={`slot__img ${shadow ? 'slot__img--shadow' : ''}`} src={imgs[1].src} alt={imgs[1].alt} format="webp" quality={88} loading="lazy" sizes="(min-width: 64rem) 30vw, 60vw" />}
-        </div>
-      </div>
-    </div>
-    <!-- Paso 3 · hacia el detalle del proyecto -->
-    <div class="pstage__step step-3">
-      <div class="wrap grid step-grid">
-        <div class="pstage__text">
-          <p class="label" style="margin-bottom:0.75rem">Dentro del proyecto</p>
-          {palette && palette.kind === 'palette' && (
-            <div class="pstage__swatches" role="list" aria-label="Paleta del proyecto">
-              {palette.colors.map((c) => <i role="listitem" style={`background:${c.hex}`} title={c.hex.toUpperCase()}></i>)}
-            </div>
-          )}
-          <ol class="pstage__links">
-            {links.map(({ s, i }, k) => (
-              <li>
-                <a href={`/proyectos/${project.id}#s-${i + 1}`}>
-                  <span class="k">{String(k + 1).padStart(2, '0')}</span>
-                  <span class="t">{'title' in s ? s.title : ''}</span>
-                  <span class="arrow" aria-hidden="true">→</span>
-                </a>
-              </li>
-            ))}
-          </ol>
-          <p style="margin-top:1.5rem"><a class="btn" href={`/proyectos/${project.id}`}>Ver proyecto completo <span class="arrow" aria-hidden="true">→</span></a></p>
-        </div>
-        <div class="slot" data-slot={`${prefix}3`}>
-          {imgs[2] && <Image class={`slot__img ${shadow ? 'slot__img--shadow' : ''}`} src={imgs[2].src} alt={imgs[2].alt} format="webp" quality={88} loading="lazy" sizes="(min-width: 64rem) 30vw, 60vw" />}
-        </div>
-      </div>
-    </div>
-    <div class="pstage__prog" aria-hidden="true"><i></i><i></i><i></i></div>
+    {rail.length > 1 && (
+      <nav class="pstage__rail" aria-label="Mundos">
+        <ol>
+          {rail.map((r) => (
+            <li><a href={`#stage-${r.scene}`} data-rail={r.id} aria-current={r.id === project.id ? 'true' : undefined}>{r.n} {r.short}</a></li>
+          ))}
+        </ol>
+      </nav>
+    )}
   </div>
 </section>

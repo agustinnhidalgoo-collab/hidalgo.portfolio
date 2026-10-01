@@ -1,0 +1,94 @@
+---
+/* Una sección del caso. En la columna derecha del mitad y mitad (split) o a ancho completo (full). */
+import Fig from './Fig.astro';
+import type { Project } from '../lib/projects';
+
+type Section = Project['data']['sections'][number];
+interface Props { s: Section; i: number; full?: boolean }
+const { s, i, full = false } = Astro.props;
+const id = `s-${i + 1}`;
+// A ancho completo, las galerías chicas o medianas son una tira que se arrastra; las grandes, dos fotos amplias.
+const strip = full && s.kind === 'gallery' && s.size !== 'l';
+---
+
+{s.kind === 'text' && (
+  <>
+    <h2 id={id} class="display cs-h">{s.title}</h2>
+    <div class="prose cs-prose"><p>{s.body}</p></div>
+  </>
+)}
+
+{s.kind === 'figure' && (
+  <>
+    {s.title ? <h2 id={id} class="display cs-h">{s.title}</h2> : <h2 id={id} class="sr-only">{s.caption ?? 'Detalle'}</h2>}
+    {s.body && <p class="prose cs-prose">{s.body}</p>}
+    <Fig src={s.image} alt={s.alt} caption={s.title ? undefined : s.caption} sizes={full ? '100vw' : '(min-width: 64rem) 40vw, 100vw'} />
+  </>
+)}
+
+{s.kind === 'gallery' && (
+  <>
+    <div class="cs-head">
+      <h2 id={id} class="display cs-h">{s.title}</h2>
+      {strip && <p class="cs-hint" aria-hidden="true">Arrastrá <span class="arrow">→</span></p>}
+    </div>
+    {s.body && <p class="prose cs-prose">{s.body}</p>}
+    {strip ? (
+      <ul class="strip" tabindex="0" aria-label={`${s.title}: imágenes (desplazamiento horizontal)`}>
+        {s.items.map((it) => <li><Fig src={it.image} alt={it.alt} label={it.label} note={it.note} sizes="(min-width: 64rem) 28vw, 75vw" /></li>)}
+      </ul>
+    ) : (
+      <div class={`gallery gallery--${full ? 'wide' : s.size}`}>
+        {s.items.map((it) => <Fig src={it.image} alt={it.alt} label={it.label} note={it.note} sizes={full ? '(min-width: 64rem) 46vw, 100vw' : '(min-width: 64rem) 18vw, 45vw'} />)}
+      </div>
+    )}
+  </>
+)}
+
+{s.kind === 'palette' && (
+  <>
+    <h2 id={id} class="display cs-h">{s.title}</h2>
+    {s.body && <p class="prose cs-prose">{s.body}</p>}
+    <ul class="swatches">
+      {s.colors.map((c) => (
+        <li class="swatch">
+          <div class="swatch__chip" style={`background:${c.hex}`} role="img" aria-label={`Color ${c.name ?? ''} ${c.hex}`.replace('  ', ' ')}></div>
+          <code>{c.hex.toUpperCase()}</code>
+          {c.name && <span>{c.name}</span>}
+        </li>
+      ))}
+    </ul>
+    <p class="notice">Paleta propia de este proyecto; no corresponde a los colores de este portfolio.</p>
+  </>
+)}
+
+{s.kind === 'type' && (
+  <>
+    <h2 id={id} class="display cs-h">{s.title}</h2>
+    <div class="spec">
+      <p class="display spec__family">{s.family}</p>
+      {s.body && <p class="prose">{s.body}</p>}
+      {s.uses && (
+        <dl class="kv">
+          {s.uses.map((u) => <div><dt>{u.label}</dt><dd>{u.value}</dd></div>)}
+        </dl>
+      )}
+      {s.image && <Fig src={s.image} alt={s.alt ?? ''} />}
+    </div>
+  </>
+)}
+
+{s.kind === 'annotated' && (
+  <>
+    <h2 id={id} class="display cs-h">{s.title}</h2>
+    {full && <Fig src={s.image} alt={s.alt} />}
+    <ol class="notes">
+      {s.notes.map((n, k) => (
+        <li data-note={k}>
+          <span class="notes__n" aria-hidden="true">{k + 1}</span>
+          <span><strong>{n.label}</strong> {n.value}</span>
+        </li>
+      ))}
+    </ol>
+  </>
+)}

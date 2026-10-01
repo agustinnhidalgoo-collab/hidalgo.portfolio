@@ -287,6 +287,76 @@ addEventListener('portfolio:build', (e) => {
   if (c && d.dir > 0) play(c);
 });
 
+/* Estallido de la botella (entre la bodega y la barbería): crack de vidrio sintetizado (ruido agudo y astillas
+   que tintinean), la copa que se quiebra y el vino que salpica. Solo hacia adelante. */
+function shatter() {
+  if (!enabled || !ctx || ctx.state !== 'running' || !noiseBuf) return;
+  const c = ctx, t = c.currentTime;
+  const n = noise();
+  const hp = c.createBiquadFilter();
+  hp.type = 'highpass';
+  hp.frequency.value = 1700;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.42, t + 0.004);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+  n.connect(hp).connect(g).connect(uiBus);
+  n.start(t);
+  n.stop(t + 0.45);
+  n.onended = () => { n.disconnect(); hp.disconnect(); g.disconnect(); };
+  for (let i = 0; i < 9; i++) {
+    const at = t + 0.015 + Math.random() * 0.38;
+    const o = c.createOscillator();
+    o.frequency.value = 2400 + Math.random() * 4600;
+    const og = c.createGain();
+    og.gain.setValueAtTime(0.0001, at);
+    og.gain.exponentialRampToValueAtTime(0.035 + Math.random() * 0.04, at + 0.003);
+    og.gain.exponentialRampToValueAtTime(0.0001, at + 0.1 + Math.random() * 0.22);
+    o.connect(og).connect(uiBus);
+    o.start(at);
+    o.stop(at + 0.4);
+    o.onended = () => { o.disconnect(); og.disconnect(); };
+  }
+  play('clink', { rate: 0.62, volume: 0.8 });
+  setTimeout(() => play('pour', { rate: 1.3, volume: 0.7 }), 90);
+}
+/* Tecla de la botonera de habilidades: clic mecánico corto (ruido filtrado + golpe grave), muy bajo */
+let lastKey = 0;
+addEventListener('portfolio:key', () => {
+  if (!enabled || !ctx || ctx.state !== 'running' || !noiseBuf) return;
+  const now = performance.now();
+  if (now - lastKey < 60) return;
+  lastKey = now;
+  const c = ctx, t = c.currentTime;
+  const n = noise();
+  const bp = c.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = 2600 + Math.random() * 600;
+  bp.Q.value = 1.2;
+  const g = c.createGain();
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(0.16, t + 0.002);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+  n.connect(bp).connect(g).connect(uiBus);
+  n.start(t);
+  n.stop(t + 0.06);
+  const o = c.createOscillator();
+  o.frequency.setValueAtTime(190, t);
+  o.frequency.exponentialRampToValueAtTime(90, t + 0.05);
+  const og = c.createGain();
+  og.gain.setValueAtTime(0.0001, t);
+  og.gain.exponentialRampToValueAtTime(0.08, t + 0.003);
+  og.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+  o.connect(og).connect(uiBus);
+  o.start(t);
+  o.stop(t + 0.07);
+  o.onended = () => { n.disconnect(); bp.disconnect(); g.disconnect(); o.disconnect(); og.disconnect(); };
+});
+
+addEventListener('portfolio:burst', (e) => {
+  if ((e as CustomEvent<{ dir: 1 | -1 }>).detail.dir > 0) shatter();
+});
+
 document.addEventListener('visibilitychange', () => {
   if (!ctx) return;
   if (document.hidden) ctx.suspend().catch(() => {});

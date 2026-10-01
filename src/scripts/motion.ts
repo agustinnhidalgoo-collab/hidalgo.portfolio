@@ -28,9 +28,8 @@ const wake = () => {
 ['wheel', 'touchstart', 'touchmove', 'keydown', 'pointerdown', 'scroll', 'resize'].forEach((ev) => addEventListener(ev, wake, { passive: true }));
 wake();
 
-const dlg = document.getElementById('index-dialog') as HTMLDialogElement | null;
-dlg?.addEventListener('close', () => lenis.start());
-document.querySelector('[data-menu-open]')?.addEventListener('click', () => lenis.stop());
+// Menú o panel «Sobre mí» abiertos: el fondo no se desplaza
+addEventListener('portfolio:modal', (e) => ((e as CustomEvent<boolean>).detail ? lenis.stop() : lenis.start()));
 
 /* ---------- Anclas: desplazamiento suave hasta el destino y foco accesible ---------- */
 const ease = (x: number) => 1 - Math.pow(1 - x, 4);
@@ -82,8 +81,6 @@ function splitWords(el: HTMLElement) {
   return out;
 }
 const bar = $('.progress');
-const heroInfo = $('.hero__info');
-const hero = $('#inicio');
 const manifestos = $$('[data-scrub]').map((el) => ({ el, words: $$('.line > span', el).flatMap((s) => splitWords(s)) }));
 const parallax = $$('[data-parallax]').map((img) => ({ img, k: Number(img.dataset.parallax || 6), box: img.parentElement! }));
 parallax.forEach(({ img }) => (img.style.scale = '1.12'));
@@ -96,12 +93,6 @@ function update() {
   if (bar) {
     const max = root.scrollHeight - vh;
     bar.style.transform = `scaleX(${max > 0 ? clamp(y / max) : 0})`;
-  }
-  // La información de la portada se retira antes de que la botella pase a su columna
-  if (hero && heroInfo) {
-    const p = clamp(y / (hero.offsetHeight * 0.3));
-    heroInfo.style.opacity = String(1 - p);
-    heroInfo.style.transform = `translateY(${-24 * p}px)`;
   }
   // Manifiesto: las palabras se «llenan» a medida que se lee
   for (const { el, words } of manifestos) {

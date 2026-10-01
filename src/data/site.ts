@@ -28,15 +28,15 @@ export const cv = {
   label: 'Descargar CV',
 };
 
+/** Accesos de la barra: viven solo ahí (la portada ya no los repite). «Sobre mí» abre un panel; sin JS, va a /sobre-mi. */
 export const nav = [
-  { label: 'Introducción', href: '/#introduccion', style: 'print' },
-  { label: 'Sobre mí', href: '/sobre-mi', style: 'script' },
-  { label: 'Filosofía creativa', href: '/#filosofia', style: 'print' },
-  { label: 'Portfolio', href: '/#proyectos', style: 'script' },
-  { label: 'Contacto', href: '/#contacto', style: 'print' },
+  { label: 'Trabajos', href: '/#trabajos', panel: false },
+  { label: 'Sobre mí', href: '/sobre-mi', panel: true },
+  { label: 'Contacto', href: '/#contacto', panel: false },
 ] as const;
 
-/** Textos del video; se corrigieron las erratas ortográficas del original. */
+/** Textos del video; se corrigieron las erratas ortográficas del original.
+ *  `intro` y `portfolio` ya no se muestran en la home (la propuesta los quitó); quedan por si se recuperan. */
 export const copy = {
   intro: {
     before: 'El diseño es mi forma de ',

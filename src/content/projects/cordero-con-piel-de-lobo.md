@@ -26,20 +26,22 @@ stageImages:
     alt: Botella de vino tinto Cordero con piel de lobo, vista de frente.
 seoDescription: "Rediseño conceptual de marca y sistema de envases para un vino tinto blend. Concepto «Verdad desgarrada»: ilustración, textura y tipografía al servicio de la tensión entre apariencia y esencia."
 sections:
+  # Forma «mitad y mitad»: la botella queda fija a la izquierda y reacciona a cada sección (visual).
   - kind: text
     title: Verdad desgarrada
     body: "Los diseños exploran la dualidad entre la apariencia y la esencia, entre lo que se muestra y lo que se esconde. Las texturas rotas, los trazos desgastados y las imperfecciones visuales simbolizan la lucha interna del ser, la fragilidad detrás de la forma y la belleza que emerge del caos. Cada etiqueta es un fragmento de esa verdad cruda, una piel rota que deja ver la autenticidad. El desgaste no es defecto: es historia. El contraste entre lo refinado (vino) y lo decadente (textura, daño, caos visual) genera una tensión visual que impacta y provoca."
-  - kind: gallery
+    visual:
+      image: ../../assets/3d/botella-frente.webp
+      alt: Botella de vino tinto Cordero con piel de lobo, vista de frente.
+      tilt: -6
+      note: bordes rotos
+  # La botella gira y muestra el dorso: reemplaza las dos fotos de frente y dorso.
+  - kind: text
     title: Frente y dorso
-    size: l
     body: La botella tiene dos caras. El frente concentra el título, la ilustración y el desgaste. El dorso lleva la marca «Mosquita Muerta Wines» y el contenido neto (750 mL).
-    items:
-      - image: ../../assets/cordero/frente.jpg
-        alt: Botella de vino tinto con la etiqueta de Cordero con piel de lobo vista de frente.
-        label: Frente
-      - image: ../../assets/cordero/dorso.jpg
-        alt: Botella de vino tinto vista de dorso, con la etiqueta de Mosquita Muerta Wines, el contenido neto y un código de barras.
-        label: Dorso
+    visual:
+      image: ../../assets/3d/botella-dorso.webp
+      alt: Botella de vino tinto Cordero con piel de lobo, vista de dorso con la etiqueta de Mosquita Muerta Wines y el contenido neto.
   - kind: type
     title: Tipografía
     family: Bebas Neue Bold
@@ -56,13 +58,7 @@ sections:
       - image: ../../assets/cordero/textura.jpg
         alt: Textura de papel desgastado con manchas rojas.
         label: Textura
-  - kind: palette
-    title: Paleta de color
-    colors:
-      - hex: "#7A0E0E"
-      - hex: "#DCC9A6"
-      - hex: "#111111"
-      - hex: "#3A2A21"
+  # La etiqueta se «despliega» a la izquierda y sus números se encienden al leer cada punto.
   - kind: annotated
     title: Composición
     image: ../../assets/cordero/composicion.jpg
@@ -70,14 +66,31 @@ sections:
     notes:
       - label: "Título"
         value: "Jerarquía principal e impacto visual"
+        x: 50
+        y: 19
       - label: "Subtítulo"
         value: "Contraste y apoyo tipográfico"
+        x: 50
+        y: 29
       - label: "Ilustración"
         value: "Protagonista narrativa y símbolo central"
+        x: 58
+        y: 60
       - label: "Textura"
         value: "Fondo desgastado que refuerza el concepto"
+        x: 18
+        y: 88
+  - kind: palette
+    title: Paleta de color
+    colors:
+      - hex: "#7A0E0E"
+      - hex: "#DCC9A6"
+      - hex: "#111111"
+      - hex: "#3A2A21"
+  # Desde acá la página pasa a ancho completo: las fotos necesitan tamaño.
   - kind: gallery
     title: Aplicación
+    layout: full
     size: l
     body: Botella y caja como sistema. La caja lleva el título metalizado y la ilustración de un cordero en grises sobre cartón.
     items:
@@ -89,6 +102,7 @@ sections:
         label: Caja, fondo tierra
   - kind: gallery
     title: Exploraciones
+    layout: full
     size: m
     body: Se exploraron diferentes enfoques gráficos, tratamientos de textura y composiciones para encontrar la expresión visual que mejor transmite el concepto de dualidad, tensión y verdad desgastada de la marca. Las variantes incluyen versiones para vino blanco.
     items:

@@ -1,0 +1,28 @@
+---
+/* Pieza de la columna fija del mitad y mitad: recorte (botella, capa) o imagen con números anotados. */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+export interface Visual {
+  image: ImageMetadata;
+  alt: string;
+  tilt: number;
+  note?: string;
+  /** Números sobre la imagen (sección anotada). */
+  marks?: { x: number; y: number }[];
+  /** Recorte sin fondo (botella, capa) o fotografía con borde. */
+  cutout: boolean;
+}
+interface Props { v: Visual; k: number; decorative?: boolean; on?: boolean; eager?: boolean }
+const { v, k, decorative = false, on = false, eager = false } = Astro.props;
+---
+
+<figure class={`cs-vis${v.cutout ? ' is-cutout' : ' is-photo'}`} data-v={k} data-on={on ? '' : undefined} style={`--tilt:${v.tilt}deg`}>
+  <div class="cs-vis__box">
+    <Image src={v.image} alt={decorative ? '' : v.alt} format="webp" quality={88} loading={eager ? 'eager' : 'lazy'} sizes="(min-width: 64rem) 40vw, 80vw" />
+    {v.marks?.map((m, n) => (
+      <span class="cs-vis__mark" data-mark={n} style={`left:${m.x}%;top:${m.y}%`} aria-hidden="true">{n + 1}</span>
+    ))}
+  </div>
+  {v.note && <span class="cs-vis__note hand" aria-hidden="true">{v.note}</span>}
+</figure>

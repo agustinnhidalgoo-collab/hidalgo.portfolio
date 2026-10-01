@@ -1,34 +1,53 @@
 ---
-import { person, nav, cv } from '../data/site';
+import { Image } from 'astro:assets';
+import portrait from '../assets/portrait/agustin-foto.webp';
+import { person, nav, cv, copy } from '../data/site';
+import { inline } from '../lib/projects';
 interface Props { current: string }
 const { current } = Astro.props;
+// En la propia página «Sobre mí» el enlace no abre el panel: ya estás ahí.
+const panelOn = current !== '/sobre-mi';
+// En la home la barra no repite «Trabajos»: el botón de la portada ya lleva a los proyectos.
+const barNav = current === '/' ? nav.filter((item) => item.href !== '/#trabajos') : nav;
 ---
 
+<!-- Barra única: los accesos viven solo acá (la portada ya no los repite) -->
 <header class="topbar">
   <a class="topbar__mark" href="/" aria-label={`${person.name}, inicio`}>{person.wordmark}</a>
-  <nav class="topbar__right" aria-label="Acceso rápido">
-    <a class="topbar__link topbar__link--cv" href={cv.href} download={cv.file}>CV</a>
-    <a class="topbar__link" href="/#contacto">Contacto</a>
+  <nav class="topbar__nav" aria-label="Principal">
+    <ul>
+      {barNav.map((item) => (
+        <li>
+          <a
+            class="topbar__link"
+            href={item.href}
+            aria-current={item.href === current ? 'page' : undefined}
+            {...(item.panel && panelOn ? { 'data-about-open': '', 'aria-haspopup': 'dialog', 'aria-controls': 'about-panel' } : {})}
+          >{item.label}</a>
+        </li>
+      ))}
+      <li><a class="topbar__link" href={cv.href} download={cv.file}>CV</a></li>
+    </ul>
   </nav>
+  <div class="topbar__tools">
+    <button class="snd-btn" type="button" aria-pressed="false" aria-label="Sonido desactivado. Activar sonido" data-sound-toggle data-no-sound>
+      <svg class="snd-btn__i" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+        <path d="M3 9.5v5h3.5L12 19V5L6.5 9.5z" fill="currentColor" />
+        <g class="snd-btn__w" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M15.5 9a4 4 0 0 1 0 6" />
+          <path d="M18 6.5a7.5 7.5 0 0 1 0 11" />
+        </g>
+        <path class="snd-btn__x" d="M15.5 9.5l5 5m0-5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+      </svg>
+      <span class="snd-btn__t">Sonido: no</span>
+    </button>
+    <!-- Solo en pantallas angostas, donde los accesos no entran en la barra -->
+    <button class="menu-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="index-dialog" data-menu-open>
+      <span class="menu-btn__bars" aria-hidden="true"><i></i><i></i></span>
+      Menú
+    </button>
+  </div>
 </header>
-
-<div class="tools">
-  <button class="snd-btn" type="button" aria-pressed="false" aria-label="Sonido desactivado. Activar sonido" data-sound-toggle data-no-sound>
-    <svg class="snd-btn__i" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-      <path d="M3 9.5v5h3.5L12 19V5L6.5 9.5z" fill="currentColor" />
-      <g class="snd-btn__w" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <path d="M15.5 9a4 4 0 0 1 0 6" />
-        <path d="M18 6.5a7.5 7.5 0 0 1 0 11" />
-      </g>
-      <path class="snd-btn__x" d="M15.5 9.5l5 5m0-5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-    </svg>
-    <span class="snd-btn__t">Sonido: no</span>
-  </button>
-  <button class="menu-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="index-dialog" data-menu-open>
-    <span class="menu-btn__bars" aria-hidden="true"><i></i><i></i></span>
-    Índice
-  </button>
-</div>
 
 <dialog id="index-dialog" class="index on-red" aria-labelledby="index-title">
   <div class="index__inner">
@@ -36,13 +55,17 @@ const { current } = Astro.props;
       <span aria-hidden="true">✕</span> Cerrar
     </button>
     <div class="index__head">
-      <h2 id="index-title" class="index__title display">Índice</h2>
-      <nav aria-label="Índice">
+      <h2 id="index-title" class="index__title display">Menú</h2>
+      <nav aria-label="Menú">
         <ol class="index__list">
           {nav.map((item, i) => (
             <li style={`--i:${i}`}>
-              <a href={item.href} aria-current={item.href === current ? 'page' : undefined}>
-                <span class={`t--${item.style}`}>{item.label}</span>
+              <a
+                href={item.href}
+                aria-current={item.href === current ? 'page' : undefined}
+                {...(item.panel && panelOn ? { 'data-about-open': '' } : {})}
+              >
+                <span class={i % 2 ? 't--script' : 't--print'}>{item.label}</span>
                 <span class="n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
               </a>
             </li>
@@ -60,3 +83,27 @@ const { current } = Astro.props;
     <p class="index__foot"><span>{person.wordmark}</span><span>{person.year}</span></p>
   </div>
 </dialog>
+
+<!-- Sobre mí como panel: se abre encima de lo que estés viendo, sin ocupar recorrido -->
+{panelOn && (
+  <dialog id="about-panel" class="aboutp" aria-labelledby="aboutp-title">
+    <div class="aboutp__inner">
+      <button class="aboutp__close" type="button" data-about-close>
+        Cerrar <span aria-hidden="true">✕</span>
+      </button>
+      <div class="aboutp__ph">
+        <Image src={portrait} alt="" format="webp" quality={85} widths={[240, 480]} sizes="15rem" loading="lazy" />
+      </div>
+      <h2 id="aboutp-title" class="display aboutp__title">Sobre <em>mí</em></h2>
+      <div class="aboutp__text">
+        <p set:html={inline(copy.about[0])} />
+        <p class="aboutp__tools">Adobe Illustrator, Adobe Photoshop, Google Workspace y Microsoft Office.</p>
+      </div>
+      <p class="aboutp__quote hand">{copy.manifesto.join(' ')}</p>
+      <div class="aboutp__row">
+        <a class="btn" href={cv.href} download={cv.file}>{cv.label} <span class="arrow" aria-hidden="true">↓</span></a>
+        <a class="ulink" href="/sobre-mi">Sobre mí en detalle <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </dialog>
+)}

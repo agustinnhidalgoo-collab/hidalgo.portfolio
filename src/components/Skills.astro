@@ -1,0 +1,52 @@
+---
+/* Habilidades técnicas: una botonera 3D (teclado mecánico en vista isométrica) con una tecla por herramienta.
+   Las teclas caen y se arman al llegar; al pasar el puntero (o tocar) una se hunde y aparece su nombre con una
+   frase. La grilla de botones del HTML es la versión accesible y la alternativa sin 3D (la escena la lee y la dibuja).
+   Lo dibuja src/scripts/keys.ts. */
+import { skills } from '../data/skills';
+
+interface Props { id?: string }
+const { id = 'habilidades' } = Astro.props;
+const n = skills.filter((s) => s.id !== 'ah').length;
+---
+
+<section class="skills clear" id={id} aria-labelledby={`${id}-title`} data-snd-section>
+  <div class="wrap skills__grid">
+    <div class="skills__head">
+      <p class="label">Habilidades</p>
+      <h2 id={`${id}-title`} class="display skills__title">Con qué <span>trabajo</span></h2>
+    </div>
+
+    <div class="skills__pad" data-keypad>
+      <canvas class="skills__canvas" aria-hidden="true"></canvas>
+      <ul class="skills__keys">
+        {skills.map((s) => (
+          <li>
+            <button
+              type="button"
+              class="skills__key"
+              data-key={s.id}
+              data-name={s.name}
+              data-desc={s.desc}
+              style={`--bg:${s.bg};--bg2:${s.bg2 ?? s.bg};--fg:${s.fg}`}
+            >
+              {s.icon ? (
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d={s.icon} /></svg>
+              ) : (
+                <span class:list={['skills__mono', { 'is-script': s.script, 'is-small': s.small, 'is-display': s.display }]} aria-hidden="true">{s.text}</span>
+              )}
+              {s.sub && <small aria-hidden="true">{s.sub}</small>}
+              <span class="sr-only">{s.name}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <div class="skills__info" aria-live="polite" data-skill-info>
+      <p class="skills__name display" data-skill-name>{n} herramientas</p>
+      <p class="skills__desc" data-skill-desc>Diseño, ilustración, inteligencia artificial y web. Pasá por cada tecla.</p>
+      <p class="skills__hint" data-skill-hint>(pasá el mouse por una tecla)</p>
+    </div>
+  </div>
+</section>

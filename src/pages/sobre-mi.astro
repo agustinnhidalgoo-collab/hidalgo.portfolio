@@ -2,7 +2,8 @@
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Contact from '../components/Contact.astro';
-import portrait from '../assets/portrait/agustin.webp';
+import Skills from '../components/Skills.astro';
+import portrait from '../assets/portrait/agustin-foto.webp';
 import { person, contact, cv, copy, cvData } from '../data/site';
 import { inline } from '../lib/projects';
 
@@ -23,7 +24,7 @@ const jsonLd = {
   <section class="sec on-dark aboutpage__head about" aria-labelledby="sobre-title" style="padding-bottom: clamp(3rem, 6vw, 5rem)">
     <div class="wrap grid">
       <div class="about__figure">
-        <Image src={portrait} alt="Agustín Hidalgo, retrato en blanco y negro" format="webp" quality={90} widths={[520, 1040]} sizes="(min-width: 64rem) 40vw, 90vw" loading="eager" fetchpriority="high" />
+        <Image src={portrait} alt="Agustín Hidalgo sonriendo, con remera negra" format="webp" quality={92} widths={[480, 635]} sizes="(min-width: 64rem) 40vw, 90vw" loading="eager" fetchpriority="high" />
       </div>
       <div class="about__text">
         <h1 id="sobre-title" class="display about__name mask" aria-label={person.name}>
@@ -93,15 +94,7 @@ const jsonLd = {
     </div>
   </section>
 
-  <section class="sec on-dark" aria-labelledby="skills-title" style="padding-top: 0">
-    <div class="wrap">
-      <h2 id="skills-title" class="display sech">Habilidades</h2>
-      <h3 class="label" style="margin-bottom: 1rem">Técnicas</h3>
-      <ul class="taglist" style="margin-bottom: 3rem">{cvData.tools.map((t) => <li>{t}</li>)}</ul>
-      <h3 class="label" style="margin-bottom: 1rem">Blandas</h3>
-      <ul class="taglist">{cvData.soft.map((t) => <li>{t}</li>)}</ul>
-    </div>
-  </section>
+  <Skills id="habilidades-sobre-mi" />
 
   <Contact />
 </Base>

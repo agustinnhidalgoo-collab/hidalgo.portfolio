@@ -12,10 +12,24 @@ export const projects = defineCollection({
   schema: ({ image }) => {
     const picture = z.object({ src: image(), alt: z.string().min(3, 'alt obligatorio') });
     const color = z.object({ hex: z.string().regex(/^#[0-9A-Fa-f]{6}$/), name: z.string().optional() });
+    /**
+     * Página de proyecto «mitad y mitad»: a la izquierda queda fija una pieza mientras a la derecha se cuenta.
+     * `visual` cambia esa pieza al llegar a la sección (si se omite, sigue la anterior).
+     * `layout: full` suelta el mitad y mitad: la sección ocupa el ancho completo (galerías grandes, aplicaciones).
+     */
+    const visual = z.object({
+      image: image(),
+      alt: z.string().default(''),
+      /** Inclinación en grados: la pieza «reacciona» a lo que se cuenta. */
+      tilt: z.number().default(0),
+      /** Rótulo breve sobre la pieza (manuscrita). */
+      note: z.string().optional(),
+    });
+    const place = { layout: z.enum(['split', 'full']).default('split'), visual: visual.optional() };
 
     const section = z.discriminatedUnion('kind', [
       // Bloque de texto con título.
-      z.object({ kind: z.literal('text'), title: z.string(), body: z.string() }),
+      z.object({ kind: z.literal('text'), title: z.string(), body: z.string(), ...place }),
       // Una imagen grande con pie opcional.
       z.object({
         kind: z.literal('figure'),
@@ -24,6 +38,7 @@ export const projects = defineCollection({
         caption: z.string().optional(),
         title: z.string().optional(),
         body: z.string().optional(),
+        ...place,
       }),
       // Serie de imágenes (aplicaciones, detalles, exploraciones…).
       z.object({
@@ -33,9 +48,10 @@ export const projects = defineCollection({
         size: z.enum(['s', 'm', 'l']).default('s'),
         body: z.string().optional(),
         items: z.array(z.object({ image: image(), alt: z.string().min(3), label: z.string().optional(), note: z.string().optional() })).min(1),
+        ...place,
       }),
       // Paleta de color propia del proyecto (no son los tokens del portfolio).
-      z.object({ kind: z.literal('palette'), title: z.string(), body: z.string().optional(), colors: z.array(color).min(1) }),
+      z.object({ kind: z.literal('palette'), title: z.string(), body: z.string().optional(), colors: z.array(color).min(1), ...place }),
       // Tipografía del proyecto.
       z.object({
         kind: z.literal('type'),
@@ -45,6 +61,7 @@ export const projects = defineCollection({
         uses: z.array(z.object({ label: z.string(), value: z.string() })).optional(),
         image: image().optional(),
         alt: z.string().optional(),
+        ...place,
       }),
       // Imagen con anotaciones (composición de una pieza).
       z.object({
@@ -52,7 +69,9 @@ export const projects = defineCollection({
         title: z.string(),
         image: image(),
         alt: z.string().min(3),
-        notes: z.array(z.object({ label: z.string(), value: z.string() })).min(1),
+        /** x / y (en %) ubican el número sobre la imagen; en la forma mitad y mitad se encienden al leer cada punto. */
+        notes: z.array(z.object({ label: z.string(), value: z.string(), x: z.number().optional(), y: z.number().optional() })).min(1),
+        ...place,
       }),
     ]);
 
@@ -77,7 +96,7 @@ export const projects = defineCollection({
       /** Nota breve del paso 2 de la escena (opcional). */
       stageNote: z.string().optional(),
       /** Imágenes reales para cada paso de la escena (vista previa mientras carga el 3D y alternativa sin WebGL). */
-      stageImages: z.array(picture).length(3).optional(),
+      stageImages: z.array(picture).min(1).max(3).optional(),
       /** Color del título en la home y en el case study. */
       titleTone: z.enum(['red', 'white']).default('white'),
       /** Saltos de línea dirigidos del título (separados por "|"). */

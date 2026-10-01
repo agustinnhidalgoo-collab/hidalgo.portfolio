@@ -1,10 +1,14 @@
 ---
+/* Página de proyecto, forma B: «mitad y mitad → ancho completo».
+   La pieza del proyecto queda fija a la izquierda y reacciona a lo que se cuenta a la derecha (gira, se inclina,
+   se numera). Las secciones con `layout: full` sueltan el mitad y mitad y pasan a ancho completo.
+   No repite lo que ya mostró la home: sin resumen, sin «volver», sin índice. Cierra con el siguiente proyecto. */
 import { Image } from 'astro:assets';
 import { render } from 'astro:content';
 import Base from '../../layouts/Base.astro';
-import Contact from '../../components/Contact.astro';
 import ProjectMeta from '../../components/ProjectMeta.astro';
-import Fig from '../../components/Fig.astro';
+import CaseBlock from '../../components/CaseBlock.astro';
+import CaseVisual, { type Visual } from '../../components/CaseVisual.astro';
 import { getProjects, titleLines, type Project } from '../../lib/projects';
 import { person } from '../../data/site';
 
@@ -12,12 +16,12 @@ export async function getStaticPaths() {
   const projects = await getProjects();
   return projects.map((project, i) => ({
     params: { slug: project.id },
-    props: { project, next: projects[(i + 1) % projects.length], index: i, total: projects.length },
+    props: { project, next: projects[(i + 1) % projects.length], index: i },
   }));
 }
 
-interface Props { project: Project; next: Project; index: number; total: number }
-const { project, next, index, total } = Astro.props;
+interface Props { project: Project; next: Project; index: number }
+const { project, next, index } = Astro.props;
 const { data } = project;
 const { Content } = await render(project);
 const lines = titleLines(project);
@@ -33,142 +37,163 @@ const jsonLd = {
   ...(data.year ? { dateCreated: String(data.year) } : {}),
   genre: [...(data.type ?? []), ...(data.category ?? [])],
 };
-const sizes = '(min-width: 64rem) 46vw, 100vw';
+const worldName = { cellar: 'Bodega', barber: 'Barbería' } as const;
+const enterName = { cellar: 'la bodega', barber: 'la barbería' } as const;
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/* ---------- Piezas de la columna fija y tramos ---------- */
+type Section = Project['data']['sections'][number];
+type Block = { s: Section; i: number; v: number; own: boolean };
+type Run = { kind: 'split'; visuals: Visual[]; blocks: Block[]; first: boolean } | { kind: 'full'; s: Section; i: number };
+
+const lead = data.stageImages?.[0];
+const opening: Visual = lead
+  ? { image: lead.src, alt: lead.alt, tilt: 0, cutout: true }
+  : { image: data.cover.src, alt: data.cover.alt, tilt: 0, cutout: false };
+
+const runs: Run[] = [{ kind: 'split', visuals: [opening], blocks: [], first: true }];
+let carry: Visual = opening;
+data.sections.forEach((s, i) => {
+  if (s.layout === 'full') {
+    runs.push({ kind: 'full', s, i });
+    return;
+  }
+  let run = runs[runs.length - 1];
+  if (run.kind !== 'split') {
+    run = { kind: 'split', visuals: [carry], blocks: [], first: false };
+    runs.push(run);
+  }
+  let own: Visual | null = null;
+  if (s.visual) own = { image: s.visual.image, alt: s.visual.alt, tilt: s.visual.tilt, note: s.visual.note, cutout: true };
+  else if (s.kind === 'annotated')
+    own = {
+      image: s.image,
+      alt: s.alt,
+      tilt: 0,
+      cutout: false,
+      marks: s.notes.every((n) => n.x != null && n.y != null) ? s.notes.map((n) => ({ x: n.x!, y: n.y! })) : undefined,
+    };
+  if (own) {
+    run.visuals.push(own);
+    carry = own;
+  }
+  run.blocks.push({ s, i, v: run.visuals.length - 1, own: !!own });
+});
+
+const nextLead = next.data.stageImages?.[0] ?? next.data.cover;
 ---
 
 <Base title={title} description={description} path={`/proyectos/${project.id}`} jsonLd={jsonLd} world={data.world}>
-  <article aria-labelledby="case-title">
-    <header class="case-open on-dark">
-      <div class="wrap grid">
-        <div class="case-open__text">
-          <p class="crumbs reveal">
-            <a class="ulink" href="/#proyectos">← Portfolio</a>
-            <span aria-hidden="true"> / </span>
-            <span>{String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}</span>
-          </p>
-          <h1 id="case-title" class={`display ptitle mask ${tone}`}>
-            {lines.map((l, k) => <span class="line" style={`--i:${k}`}><span>{l}</span></span>)}
-          </h1>
-          <p class="descriptor reveal">{data.descriptor}</p>
-          <div class="reveal"><ProjectMeta project={project} /></div>
+  <article class="case" aria-labelledby="case-title">
+    {runs.map((run) =>
+      run.kind === 'split' ? (
+        <div class="cs-split" data-split>
+          <!-- Columna fija (escritorio): la pieza cambia según la sección que se está leyendo -->
+          <div class="cs-stage" aria-hidden="true">
+            {run.visuals.map((v, k) => <CaseVisual v={v} k={k} decorative on={k === 0} eager={run.first && k === 0} />)}
+          </div>
+          <div class="cs-flow">
+            {run.first && (
+              <header class="cs-block cs-open" data-v="0">
+                <div class="cs-inline"><CaseVisual v={opening} k={0} eager /></div>
+                <p class="label cs-world">{pad(index + 1)}{data.world && ` · ${worldName[data.world]}`}</p>
+                <h1 id="case-title" class={`display ptitle cs-title mask ${tone}`}>
+                  {lines.map((l, k) => <span class="line" style={`--i:${k}`}><span>{l}</span></span>)}
+                </h1>
+                <p class="descriptor">{data.descriptor}</p>
+                <ProjectMeta project={project} />
+                <div class="cs-intro prose"><Content /></div>
+                <p class="cs-down" aria-hidden="true">Bajá para recorrerlo <span>↓</span></p>
+              </header>
+            )}
+            {run.blocks.map((b) => (
+              <section class="cs-block" data-v={b.v} aria-labelledby={`s-${b.i + 1}`}>
+                {b.own && <div class="cs-inline"><CaseVisual v={run.visuals[b.v]} k={b.v} /></div>}
+                <CaseBlock s={b.s} i={b.i} />
+              </section>
+            ))}
+          </div>
         </div>
-        <div class={`case-open__media${data.scene === 'bottle' ? ' is-cutout' : ''}`} {...(data.scene === 'bottle' ? {} : { 'data-clip': true })}>
-          <Image src={data.cover.src} alt={data.cover.alt} format="webp" quality={88} loading="eager" fetchpriority="high" {...(data.scene === 'bottle' ? {} : { 'data-parallax': 4 })} sizes={sizes} />
-        </div>
-      </div>
-    </header>
-
-    <section class="case-block on-dark" aria-labelledby="concepto-title">
-      <div class="wrap grid">
-        <div class="case-block__head"><h2 id="concepto-title" class="display mask"><span class="line"><span>Contexto y concepto</span></span></h2></div>
-        <div class="case-block__body reveal"><div class="lead"><Content /></div></div>
-      </div>
-    </section>
-
-    {data.sections.map((s, i) => (
-      <section class="case-block on-dark" aria-labelledby={`s-${i + 1}`}>
-        <div class="wrap grid">
-          {s.kind === 'figure' && (
-            <>
-              {s.title ? (
-                <div class="case-block__head">
-                  <h2 id={`s-${i + 1}`} class="display h-side">{s.title}</h2>
-                  {s.body && <p class="prose">{s.body}</p>}
-                </div>
-              ) : (
-                <h2 id={`s-${i + 1}`} class="sr-only">{s.caption ?? 'Detalle'}</h2>
-              )}
-              <div class="case-block__body" style={s.title ? '' : 'grid-column: 1 / -1'}>
-                <Fig src={s.image} alt={s.alt} caption={s.title ? undefined : s.caption} />
-              </div>
-            </>
-          )}
-          {s.kind === 'text' && (
-            <>
-              <div class="case-block__head"><h2 id={`s-${i + 1}`} class="display">{s.title}</h2></div>
-              <div class="case-block__body prose reveal"><p>{s.body}</p></div>
-            </>
-          )}
-          {s.kind === 'gallery' && (
-            <>
-              <div class="case-block__head">
-                <h2 id={`s-${i + 1}`} class="display h-side">{s.title}</h2>
-                {s.body && <p class="prose">{s.body}</p>}
-              </div>
-              <div class="case-block__body">
-                <div class={`gallery gallery--${s.size}`}>
-                  {s.items.map((it) => <Fig src={it.image} alt={it.alt} label={it.label} note={it.note} sizes="(min-width: 64rem) 12vw, 40vw" />)}
-                </div>
-              </div>
-            </>
-          )}
-          {s.kind === 'palette' && (
-            <>
-              <div class="case-block__head">
-                <h2 id={`s-${i + 1}`} class="display h-side">{s.title}</h2>
-                {s.body && <p class="prose">{s.body}</p>}
-              </div>
-              <div class="case-block__body reveal">
-                <ul class="swatches">
-                  {s.colors.map((c) => (
-                    <li class="swatch">
-                      <div class="swatch__chip" style={`background:${c.hex}`} role="img" aria-label={`Color ${c.name ?? ''} ${c.hex}`.replace('  ', ' ')}></div>
-                      <code>{c.hex.toUpperCase()}</code>
-                      {c.name && <span>{c.name}</span>}
-                    </li>
-                  ))}
-                </ul>
-                <p class="notice">Paleta propia de este proyecto; no corresponde a los colores de este portfolio.</p>
-              </div>
-            </>
-          )}
-          {s.kind === 'type' && (
-            <>
-              <div class="case-block__head"><h2 id={`s-${i + 1}`} class="display">{s.title}</h2></div>
-              <div class="case-block__body spec reveal">
-                <p class="display spec__family">{s.family}</p>
-                {s.body && <p class="prose">{s.body}</p>}
-                {s.uses && (
-                  <dl class="kv">
-                    {s.uses.map((u) => <div><dt>{u.label}</dt><dd>{u.value}</dd></div>)}
-                  </dl>
-                )}
-                {s.image && <Fig src={s.image} alt={s.alt ?? ''} />}
-              </div>
-            </>
-          )}
-          {s.kind === 'annotated' && (
-            <>
-              <div class="case-block__head"><h2 id={`s-${i + 1}`} class="display">{s.title}</h2></div>
-              <div class="case-block__body annot">
-                <Fig src={s.image} alt={s.alt} />
-                <dl class="kv reveal">
-                  {s.notes.map((n) => <div><dt>{n.label}</dt><dd>{n.value}</dd></div>)}
-                </dl>
-              </div>
-            </>
-          )}
-        </div>
-      </section>
-    ))}
+      ) : (
+        <section class="cs-full" aria-labelledby={`s-${run.i + 1}`}>
+          <div class="wrap"><CaseBlock s={run.s} i={run.i} full /></div>
+        </section>
+      ),
+    )}
 
     {data.links && data.links.length > 0 && (
-      <section class="case-block on-dark" aria-labelledby="links-title">
+      <section class="cs-full" aria-labelledby="links-title">
         <div class="wrap">
-          <h2 id="links-title" class="display" style="font-size: clamp(2.6rem, 6vw, 6rem); margin-bottom: 1.5rem">Enlaces</h2>
+          <h2 id="links-title" class="display cs-h">Enlaces</h2>
           <ul>{data.links.map((l) => <li><a class="ulink" href={l.url} target="_blank" rel="noopener noreferrer">{l.label} ↗</a></li>)}</ul>
         </div>
       </section>
     )}
 
+    <!-- Cierre: un solo acceso. La pieza del siguiente mundo ya asoma -->
     {next.id !== project.id && (
-      <a class="next on-dark" href={`/proyectos/${next.id}`} data-cursor="Ir">
-        <div class="wrap">
-          <span class="label">Siguiente proyecto</span>
-          <span class={`display next__title ${next.data.titleTone === 'red' ? 'ptitle--red' : ''}`} style="display:block">{next.data.title}</span>
+      <a class="cs-next" href={`/proyectos/${next.id}`} data-world-next={next.data.world} data-cursor="Ir">
+        <div class="wrap cs-next__in">
+          <p class="label">
+            Siguiente proyecto
+            {next.data.world && <span class="hand cs-next__hand"> · entrando a {enterName[next.data.world]}</span>}
+          </p>
+          <p class={`display cs-next__title ${next.data.titleTone === 'red' ? 'ptitle--red' : ''}`}>{next.data.title} <span class="arrow" aria-hidden="true">→</span></p>
         </div>
+        <Image class="cs-next__img" src={nextLead.src} alt="" format="webp" quality={80} loading="lazy" sizes="40vw" />
       </a>
     )}
   </article>
-  <Contact />
 </Base>
+
+<script>
+  /* Mitad y mitad: la sección que está en el centro de la pantalla elige la pieza fija; en la sección anotada,
+     cada punto que se lee enciende su número. Sin JS (o sin IntersectionObserver) queda la primera pieza. */
+  const center = { rootMargin: '-45% 0px -45% 0px' };
+  if ('IntersectionObserver' in window) {
+    document.querySelectorAll<HTMLElement>('[data-split]').forEach((split) => {
+      const vis = [...split.querySelectorAll<HTMLElement>('.cs-stage .cs-vis')];
+      const show = (v: string) => vis.forEach((el) => el.toggleAttribute('data-on', el.dataset.v === v));
+      const io = new IntersectionObserver((es) => {
+        for (const e of es) if (e.isIntersecting) show((e.target as HTMLElement).dataset.v ?? '0');
+      }, center);
+      split.querySelectorAll<HTMLElement>('.cs-block').forEach((b) => io.observe(b));
+    });
+    const marks = [...document.querySelectorAll<HTMLElement>('.cs-vis__mark')];
+    const io2 = new IntersectionObserver((es) => {
+      for (const e of es) {
+        if (!e.isIntersecting) continue;
+        const n = Number((e.target as HTMLElement).dataset.note);
+        marks.forEach((m) => m.classList.toggle('is-on', Number(m.dataset.mark) <= n));
+        (e.target.parentElement?.querySelectorAll('[data-note]') ?? []).forEach((li) =>
+          li.classList.toggle('is-on', Number((li as HTMLElement).dataset.note) <= n),
+        );
+      }
+    }, center);
+    document.querySelectorAll('.notes [data-note]').forEach((li) => io2.observe(li));
+  }
+
+  /* Tira de imágenes: con el mouse se arrastra (en táctil, teclado y trackpad ya se desplaza sola) */
+  document.querySelectorAll<HTMLElement>('.strip').forEach((el) => {
+    let x0 = 0, s0 = 0, moved = false;
+    el.addEventListener('pointerdown', (e) => {
+      if (e.pointerType !== 'mouse' || e.button !== 0) return;
+      x0 = e.clientX;
+      s0 = el.scrollLeft;
+      moved = false;
+      el.setPointerCapture(e.pointerId);
+      el.classList.add('is-drag');
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!el.classList.contains('is-drag')) return;
+      const dx = e.clientX - x0;
+      if (Math.abs(dx) > 3) moved = true;
+      el.scrollLeft = s0 - dx;
+    });
+    const end = () => el.classList.remove('is-drag');
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+    // Un arrastre no cuenta como clic
+    el.addEventListener('click', (e) => moved && e.preventDefault(), true);
+  });
+</script>

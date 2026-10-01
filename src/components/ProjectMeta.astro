@@ -1,18 +1,20 @@
 ---
 import type { Project } from '../lib/projects';
-interface Props { project: Project }
-const { data } = Astro.props.project;
+/** compact: solo Año, Tipo y Categoría (la pantalla del mundo en la home). */
+interface Props { project: Project; compact?: boolean }
+const { project, compact = false } = Astro.props;
+const { data } = project;
 const items = [
   { k: 'Año', v: data.year ? [String(data.year)] : undefined },
-  { k: 'Tipo de proyecto', v: data.type },
-  { k: 'Enfoque', v: data.focus },
-  { k: 'Categoría', v: data.category },
+  { k: compact ? 'Tipo' : 'Tipo de proyecto', v: compact && data.type ? [data.type.join(' · ')] : data.type },
+  { k: 'Enfoque', v: compact ? undefined : data.focus },
+  { k: 'Categoría', v: compact && data.category ? [data.category.join(' · ')] : data.category },
   { k: 'Rol', v: data.role ? [data.role] : undefined },
-  { k: 'Colaboradores', v: data.collaborators },
+  { k: 'Colaboradores', v: compact ? undefined : data.collaborators },
 ].filter((i) => i.v && i.v.length);
 ---
 
-<dl class="meta">
+<dl class={`meta${compact ? ' meta--compact' : ''}`}>
   {items.map((i) => (
     <div>
       <dt>{i.k}</dt>

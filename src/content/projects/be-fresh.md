@@ -69,8 +69,10 @@ sections:
         value: "Medium"
       - label: "Cuerpos de texto"
         value: "Regular"
+  # La capa queda fija mientras se cuentan logo, paleta y tipografía; las aplicaciones se abren a ancho completo.
   - kind: gallery
     title: Aplicaciones y usabilidad
+    layout: full
     items:
       - image: "../../assets/befresh/estampado.jpg"
         alt: "Logotipo en relieve sobre superficie negra."
