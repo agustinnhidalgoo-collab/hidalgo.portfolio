@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Página de proyecto: dos formas — Cordero con piel de lobo</title>
+<style>
+@font-face{font-family:Anton;src:url(fonts/anton-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:Inter;src:url(fonts/inter-latin-wght-normal.woff2) format("woff2");font-weight:100 900}
+@font-face{font-family:Reenie;src:url(fonts/reenie-beanie-latin-400-normal.woff2) format("woff2")}
+:root{--red:#7c0000;--red2:#ff3a2a;--bone:#f4e9df;--ink:#f2f2f2;--dim:#a0a0a4;--gold:#e8c79a}
+*{box-sizing:border-box;margin:0}
+body{background:#0a0a0a;color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif}
+.page{max-width:1400px;margin:0 auto;padding:40px 20px 80px}
+h1{font:400 clamp(2.2rem,5vw,3.8rem)/1 Anton,Impact,sans-serif;text-transform:uppercase}
+.intro{color:var(--dim);max-width:70ch;margin:14px 0 26px}
+.heads{display:grid;grid-template-columns:1fr 1fr;gap:20px;position:sticky;top:0;z-index:20;background:rgba(10,10,10,.94);backdrop-filter:blur(6px);padding:12px 0;border-bottom:1px solid #2a2a2c}
+.heads div{font:400 1.4rem Anton;text-transform:uppercase}
+.heads div small{display:block;font:500 .78rem Inter;letter-spacing:.06em;text-transform:none;color:var(--dim)}
+.heads div i{font-style:normal;font-size:.7rem;letter-spacing:.14em;background:var(--red);padding:2px 8px;margin-right:8px;vertical-align:middle;font-family:Inter}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:26px}
+.rowlab{grid-column:1/-1;display:flex;gap:12px;align-items:baseline;border-top:1px solid #2a2a2c;padding-top:18px}
+.rowlab b{font:400 1.1rem Anton;text-transform:uppercase;letter-spacing:.03em}
+.rowlab span{color:var(--dim);font-size:.85rem}
+.cap{font-size:.82rem;color:#c9c9cc;margin-top:8px;line-height:1.45}
+.cap b{color:#fff}
+.cap em{font-style:normal;color:#ffb04a}
+@media (max-width:820px){.heads,.row{grid-template-columns:1fr}.heads{position:static}}
+/* pantalla 16:10 en cqw */
+.s{position:relative;container-type:size;aspect-ratio:16/10;width:100%;overflow:hidden;border:1px solid #333;font-size:1cqw}
+.wine{background:radial-gradient(120% 40% at 50% 112%,rgba(255,140,60,.22),transparent 62%),radial-gradient(85% 60% at 50% 105%,rgba(124,0,0,.7),transparent 70%),radial-gradient(70% 55% at 55% 42%,rgba(84,4,20,.6),transparent 78%),radial-gradient(150% 110% at 50% 48%,transparent 38%,rgba(6,0,2,.85)),linear-gradient(180deg,#1c0208,#12010a 55%,#240309)}
+.bar{position:absolute;left:0;right:0;top:0;height:5cqw;display:flex;align-items:center;justify-content:space-between;padding:0 3.5cqw;font-size:1cqw;letter-spacing:.14em;text-transform:uppercase;font-weight:600;z-index:5}
+.bar nav{display:flex;gap:2cqw}
+.disp{font-family:Anton,Impact,sans-serif;text-transform:uppercase;line-height:.92}
+.lab{font-size:1cqw;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.p{font-size:1.35cqw;line-height:1.55;color:#f1e3d6}
+.ab{position:absolute}
+.meta{display:flex;gap:3cqw;font-size:1.1cqw}
+.meta b{display:block;font-size:.85cqw;letter-spacing:.16em;text-transform:uppercase;color:#d98a80;margin-bottom:.3cqw}
+.sw{display:flex;gap:.8cqw}.sw i{width:5cqw;height:5cqw;display:block;border:1px solid #fff3}
+.img{object-fit:cover;display:block}
+.ann{position:absolute;font-size:1cqw;color:#fff;display:flex;gap:.6cqw;align-items:center}
+.ann b{width:2cqw;height:2cqw;border-radius:50%;background:var(--red2);color:#000;display:grid;place-items:center;font-size:1cqw}
+.split{position:absolute;left:50%;top:5cqw;bottom:0;width:1px;background:#fff1}
+.sticky{position:absolute;left:0;top:5cqw;bottom:0;width:50%;display:grid;place-items:center}
+.sticky .tag{position:absolute;left:3.5cqw;bottom:3cqw;font-size:.9cqw;letter-spacing:.16em;text-transform:uppercase;color:#ffb04a}
+.right{position:absolute;left:54%;right:4cqw;top:10cqw}
+.hand{font-family:Reenie,cursive;color:var(--gold)}
+.next{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding-left:4cqw;background:linear-gradient(90deg,#0b0b0c 55%,transparent),linear-gradient(180deg,#070708,#111)}
+.next::before{content:"";position:absolute;left:0;top:0;bottom:0;width:.8cqw;background:repeating-linear-gradient(-45deg,#7c0000 0 .9cqw,#eee .9cqw 1.8cqw,#0a0a0a 1.8cqw 2.7cqw)}
+.verdict{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:40px}
+.verdict div{border:1px solid #2a2a2c;background:#101011;padding:18px 20px;font-size:.92rem;color:#d6d6d8}
+.verdict h3{font:400 1.2rem Anton;text-transform:uppercase;margin-bottom:8px;color:#fff}
+.verdict li{margin:4px 0 0 18px}
+.reco{border:2px solid var(--red);background:linear-gradient(90deg,rgba(124,0,0,.3),transparent);padding:20px 24px;margin-top:20px}
+.reco h3{font:400 1.4rem Anton;text-transform:uppercase;margin-bottom:6px}
+@media (max-width:820px){.verdict{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Página de proyecto: dos formas</h1>
+  <p class="intro">Mismo contenido real de <b>Cordero con piel de lobo</b> (textos e imágenes del PDF), contado de dos maneras. Cada fila es un momento del scroll: a la izquierda, <b>todo hacia abajo</b>; a la derecha, <b>mitad y mitad que se suelta a ancho completo</b> al llegar a las imágenes. En ninguna de las dos se repite lo que ya mostró la home: no vuelve el resumen, ni los accesos, ni el índice.</p>
+
+  <div class="heads">
+    <div><i>A</i>Todo hacia abajo<small>Cada parte ocupa el ancho completo, una debajo de otra.</small></div>
+    <div><i>B</i>Mitad y mitad → ancho completo<small>Botella fija a la izquierda mientras se cuenta; las imágenes se abren al final.</small></div>
+  </div>
+
+  <!-- 1 apertura -->
+  <div class="row">
+    <div class="rowlab"><b>1 · Apertura</b><span>Lo primero que se ve al entrar desde «Ver proyecto completo».</span></div>
+    <div>
+      <div class="s wine">
+        <div class="bar"><span>Agustín Hidalgo</span><nav><span>Trabajos</span><span>Sobre mí</span><span>Contacto</span><span>CV</span></nav></div>
+        <div class="ab lab" style="left:3.5cqw;top:9cqw">01 · Bodega</div>
+        <div class="ab disp" style="left:3.5cqw;top:12cqw;font-size:9cqw;color:var(--bone)">Cordero con piel de lobo</div>
+        <div class="ab meta" style="left:3.5cqw;top:25cqw"><div><b>Año</b>2025</div><div><b>Tipo</b>Rediseño de marca · Packaging</div><div><b>Enfoque</b>Identidad de producto</div><div><b>Categoría</b>Vino tinto · Blend</div></div>
+        <img class="ab img" src="img/cordero/frente.jpg" alt="" style="left:3.5cqw;right:3.5cqw;top:31cqw;width:93cqw;height:30cqw;object-position:50% 40%">
+      </div>
+      <p class="cap"><b>Título enorme a lo ancho</b>, datos debajo y una foto de cabecera. Clásico de case study.</p>
+    </div>
+    <div>
+      <div class="s wine">
+        <div class="bar"><span>Agustín Hidalgo</span><nav><span>Trabajos</span><span>Sobre mí</span><span>Contacto</span><span>CV</span></nav></div>
+        <div class="split"></div>
+        <div class="sticky"><img src="img/botella-frente.webp" alt="" style="height:50cqw;filter:drop-shadow(0 2cqw 1.6cqw #000a)"><span class="tag">Botella 3D fija · de frente</span></div>
+        <div class="right" style="top:11cqw">
+          <div class="lab">01 · Bodega</div>
+          <div class="disp" style="font-size:6.4cqw;color:var(--bone);margin:1cqw 0 3cqw">Cordero con<br>piel de lobo</div>
+          <div class="meta" style="flex-wrap:wrap;gap:2cqw 3cqw"><div><b>Año</b>2025</div><div><b>Tipo</b>Rediseño de marca · Packaging</div><div><b>Categoría</b>Vino tinto · Blend</div></div>
+          <div class="lab" style="margin-top:5cqw;color:#fff8">Bajá para recorrerlo ↓</div>
+        </div>
+      </div>
+      <p class="cap"><b>El objeto que venías viendo en la home sigue ahí</b>, a la izquierda. El título y los datos aparecen una sola vez. <em>Se siente continuidad, no una página nueva.</em></p>
+    </div>
+  </div>
+
+  <!-- 2 concepto -->
+  <div class="row">
+    <div class="rowlab"><b>2 · Concepto «Verdad desgarrada»</b><span>La idea del proyecto.</span></div>
+    <div>
+      <div class="s" style="background:#0d0204">
+        <div class="ab lab" style="left:3.5cqw;top:6cqw">Concepto</div>
+        <div class="ab disp" style="left:3.5cqw;top:9cqw;font-size:7.5cqw;color:#fff;width:40cqw">Verdad desgarrada</div>
+        <p class="ab p" style="left:48cqw;right:4cqw;top:9cqw">Los diseños exploran la dualidad entre la apariencia y la esencia, entre lo que se muestra y lo que se esconde. Las texturas rotas, los trazos desgastados y las imperfecciones visuales simbolizan la lucha interna del ser, la fragilidad detrás de la forma y la belleza que emerge del caos. <b style="color:#fff">El desgaste no es defecto: es historia.</b></p>
+      </div>
+      <p class="cap">Dos columnas de texto <b>sin imagen</b>. Se lee bien, pero la bodega y la botella desaparecen; empieza a parecer un documento.</p>
+    </div>
+    <div>
+      <div class="s wine">
+        <div class="split"></div>
+        <div class="sticky"><img src="img/botella-frente.webp" alt="" style="height:50cqw;transform:rotate(-6deg);filter:drop-shadow(0 2cqw 1.6cqw #000a)">
+          <div class="ann" style="left:28cqw;top:22cqw"><b>✦</b>bordes rotos</div>
+          <span class="tag">La botella se inclina y marca el desgaste</span></div>
+        <div class="right" style="top:9cqw">
+          <div class="lab">Concepto</div>
+          <div class="disp" style="font-size:5.6cqw;color:#fff;margin:1cqw 0 2cqw">Verdad desgarrada</div>
+          <p class="p">Los diseños exploran la dualidad entre la apariencia y la esencia, entre lo que se muestra y lo que se esconde. Las texturas rotas y los trazos desgastados simbolizan la fragilidad detrás de la forma. <b style="color:#fff">El desgaste no es defecto: es historia.</b></p>
+        </div>
+      </div>
+      <p class="cap">El texto avanza a la derecha y <b>la botella reacciona</b> a lo que se cuenta. <em>El objeto ilustra la idea en lugar de una foto suelta.</em></p>
+    </div>
+  </div>
+
+  <!-- 3 frente/dorso + tipografía -->
+  <div class="row">
+    <div class="rowlab"><b>3 · Frente, dorso y tipografía</b><span>Las dos caras y las decisiones de letra.</span></div>
+    <div>
+      <div class="s" style="background:#0d0204">
+        <div class="ab lab" style="left:3.5cqw;top:5cqw">Frente y dorso</div>
+        <img class="ab img" src="img/cordero/frente.jpg" alt="" style="left:3.5cqw;top:8cqw;width:45cqw;height:38cqw">
+        <img class="ab img" src="img/cordero/dorso.jpg" alt="" style="left:51.5cqw;top:8cqw;width:45cqw;height:38cqw">
+        <div class="ab lab" style="left:3.5cqw;top:49cqw">Tipografía · Bebas Neue Bold</div>
+        <img class="ab" src="img/cordero/tipografia.jpg" alt="" style="left:3.5cqw;top:52cqw;height:8cqw">
+        <p class="ab p" style="left:28cqw;right:4cqw;top:52cqw;font-size:1.15cqw">El nombre en mayúsculas condensadas ocupa el centro jerárquico de la etiqueta; el subtítulo lo acompaña con menor peso.</p>
+      </div>
+      <p class="cap">Fotos grandes de cada cara, y la tipografía como bloque siguiente. <b>Claro y completo</b>, pero son dos secciones más para bajar.</p>
+    </div>
+    <div>
+      <div class="s wine">
+        <div class="split"></div>
+        <div class="sticky"><img src="img/botella-dorso.webp" alt="" style="height:50cqw;filter:drop-shadow(0 2cqw 1.6cqw #000a)"><span class="tag">La botella gira: ahora muestra el dorso</span></div>
+        <div class="right" style="top:9cqw">
+          <div class="lab">Frente y dorso</div>
+          <p class="p" style="margin:1cqw 0 3cqw">El frente concentra el título, la ilustración y el desgaste. El dorso lleva la marca «Mosquita Muerta Wines» y el contenido neto (750 mL).</p>
+          <div class="lab">Tipografía · Bebas Neue Bold</div>
+          <img src="img/cordero/tipografia.jpg" alt="" style="height:8cqw;margin:1.2cqw 0">
+          <p class="p" style="font-size:1.15cqw">El nombre en mayúsculas condensadas ocupa el centro jerárquico de la etiqueta.</p>
+        </div>
+      </div>
+      <p class="cap"><b>No hace falta mostrar dos fotos</b>: la botella 3D gira y muestra el dorso mientras leés. Ahorra una pantalla entera.</p>
+    </div>
+  </div>
+
+  <!-- 4 ilustración, paleta, composición -->
+  <div class="row">
+    <div class="rowlab"><b>4 · Ilustración, textura, paleta y composición</b><span>Las piezas del sistema gráfico.</span></div>
+    <div>
+      <div class="s" style="background:#0d0204">
+        <div class="ab lab" style="left:3.5cqw;top:5cqw">Ilustración y textura</div>
+        <img class="ab img" src="img/cordero/ilustracion.jpg" alt="" style="left:3.5cqw;top:8cqw;width:45cqw;height:22cqw">
+        <img class="ab img" src="img/cordero/textura.jpg" alt="" style="left:51.5cqw;top:8cqw;width:45cqw;height:22cqw">
+        <div class="ab lab" style="left:3.5cqw;top:34cqw">Paleta</div>
+        <div class="ab sw" style="left:3.5cqw;top:37cqw"><i style="background:#7A0E0E"></i><i style="background:#DCC9A6"></i><i style="background:#111"></i><i style="background:#3A2A21"></i></div>
+        <div class="ab lab" style="left:51.5cqw;top:34cqw">Composición</div>
+        <img class="ab" src="img/cordero/composicion.jpg" alt="" style="left:51.5cqw;top:37cqw;height:23cqw">
+        <div class="ab p" style="left:66cqw;top:37cqw;font-size:1.05cqw;line-height:1.7">1 Título · 2 Subtítulo<br>3 Ilustración · 4 Textura</div>
+      </div>
+      <p class="cap">Grilla de piezas. <b>Todo a la vista de una</b>, aunque las imágenes chicas del PDF quedan estiradas.</p>
+    </div>
+    <div>
+      <div class="s wine">
+        <div class="split"></div>
+        <div class="sticky"><img src="img/cordero/composicion.jpg" alt="" style="height:44cqw;box-shadow:0 2cqw 3cqw #000a">
+          <div class="ann" style="left:33cqw;top:12cqw"><b>1</b>Título</div>
+          <div class="ann" style="left:33cqw;top:17cqw"><b>2</b>Subtítulo</div>
+          <div class="ann" style="left:33cqw;top:28cqw"><b>3</b>Ilustración</div>
+          <div class="ann" style="left:33cqw;top:40cqw"><b>4</b>Textura</div>
+          <span class="tag">La etiqueta se «despliega» y se numera</span></div>
+        <div class="right" style="top:8cqw">
+          <div class="lab">Composición</div>
+          <p class="p" style="margin:1cqw 0 2.4cqw"><b style="color:#fff">1 Título</b> jerarquía e impacto · <b style="color:#fff">2 Subtítulo</b> contraste · <b style="color:#fff">3 Ilustración</b> el lobo sobre el cordero, símbolo central · <b style="color:#fff">4 Textura</b> fondo desgastado con marcas rojas.</p>
+          <div class="lab">Paleta</div>
+          <div class="sw" style="margin-top:1cqw"><i style="background:#7A0E0E"></i><i style="background:#DCC9A6"></i><i style="background:#111"></i><i style="background:#3A2A21"></i></div>
+        </div>
+      </div>
+      <p class="cap">A la izquierda, la etiqueta plana con <b>números que se encienden</b> a medida que leés cada punto. <em>Las imágenes chicas se usan como detalle, no estiradas.</em></p>
+    </div>
+  </div>
+
+  <!-- 5 aplicación -->
+  <div class="row">
+    <div class="rowlab"><b>5 · Aplicación: botella y caja</b><span>Acá B suelta el mitad y mitad: las fotos necesitan tamaño.</span></div>
+    <div>
+      <div class="s" style="background:#0d0204">
+        <div class="ab lab" style="left:3.5cqw;top:5cqw">Aplicación</div>
+        <img class="ab img" src="img/cordero/caja.jpg" alt="" style="left:3.5cqw;top:8cqw;width:45cqw;height:52cqw">
+        <img class="ab img" src="img/cordero/caja-tierra.jpg" alt="" style="left:51.5cqw;top:8cqw;width:45cqw;height:52cqw">
+      </div>
+      <p class="cap">Igual que el resto de la página: dos fotos a lo ancho.</p>
+    </div>
+    <div>
+      <div class="s wine">
+        <div class="ab lab" style="left:3.5cqw;top:5cqw">Aplicación · Botella y caja como sistema</div>
+        <img class="ab img" src="img/cordero/caja.jpg" alt="" style="left:3.5cqw;top:8cqw;width:45cqw;height:52cqw">
+        <img class="ab img" src="img/cordero/caja-tierra.jpg" alt="" style="left:51.5cqw;top:8cqw;width:45cqw;height:52cqw">
+      </div>
+      <p class="cap"><b>La botella 3D se despide</b> y la página pasa a ancho completo. Mismo resultado que A en esta parte, pero llegaste con la historia ya contada.</p>
+    </div>
+  </div>
+
+  <!-- 6 exploraciones -->
+  <div class="row">
+    <div class="rowlab"><b>6 · Exploraciones</b><span>Variantes: tinto, etiqueta oscura y blancos.</span></div>
+    <div>
+      <div class="s" style="background:#0d0204">
+        <div class="ab lab" style="left:3.5cqw;top:5cqw">Exploraciones</div>
+        <img class="ab img" src="img/cordero/frente-b.jpg" alt="" style="left:3.5cqw;top:8cqw;width:22cqw;height:52cqw">
+        <img class="ab img" src="img/cordero/oscura.jpg" alt="" style="left:27.2cqw;top:8cqw;width:22cqw;height:52cqw">
+        <img class="ab img" src="img/cordero/blanco-1.jpg" alt="" style="left:50.9cqw;top:8cqw;width:22cqw;height:52cqw">
+        <img class="ab img" src="img/cordero/blanco-6.jpg" alt="" style="left:74.6cqw;top:8cqw;width:22cqw;height:52cqw">
+      </div>
+      <p class="cap">Grilla de variantes.</p>
+    </div>
+    <div>
+      <div class="s wine">
+        <div class="ab lab" style="left:3.5cqw;top:5cqw">Exploraciones · arrastrá →</div>
+        <img class="ab img" src="img/cordero/frente-b.jpg" alt="" style="left:3.5cqw;top:8cqw;width:28cqw;height:52cqw">
+        <img class="ab img" src="img/cordero/oscura.jpg" alt="" style="left:33cqw;top:8cqw;width:28cqw;height:52cqw">
+        <img class="ab img" src="img/cordero/blanco-1.jpg" alt="" style="left:62.5cqw;top:8cqw;width:28cqw;height:52cqw">
+        <img class="ab img" src="img/cordero/blanco-2.jpg" alt="" style="left:92cqw;top:8cqw;width:28cqw;height:52cqw">
+      </div>
+      <p class="cap">Mismo contenido, como <b>tira que se arrastra</b> (o avanza con el scroll). Más grande cada pieza y ocupa una sola pantalla.</p>
+    </div>
+  </div>
+
+  <!-- 7 cierre -->
+  <div class="row">
+    <div class="rowlab"><b>7 · Cierre</b><span>Sin «volver», sin índice repetido: un solo acceso.</span></div>
+    <div>
+      <div class="s" style="background:#000">
+        <div class="next" style="background:linear-gradient(180deg,#070708,#111)">
+          <div class="lab" style="color:#cfcfd2">Siguiente proyecto</div>
+          <div class="disp" style="font-size:9cqw;color:#fff;margin-top:1cqw">Be Fresh →</div>
+        </div>
+      </div>
+      <p class="cap">Un bloque grande «Siguiente proyecto». Funciona igual en las dos.</p>
+    </div>
+    <div>
+      <div class="s" style="background:#000">
+        <div class="next">
+          <div class="lab" style="color:#cfcfd2">Siguiente proyecto · <span class="hand" style="font-size:2cqw;letter-spacing:0;text-transform:none;color:#fff">entrando a la barbería</span></div>
+          <div class="disp" style="font-size:9cqw;color:#fff;margin-top:1cqw;position:relative;z-index:2">Be Fresh →</div>
+        </div>
+        <img class="ab" src="img/capa.webp" alt="" style="right:-6cqw;top:8cqw;width:56cqw;opacity:.9">
+      </div>
+      <p class="cap">Igual, pero <b>la capa ya asoma</b> y el fondo empieza a cambiar al mundo de la barbería: el recorrido continúa sin cortes.</p>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <div><h3>A · Todo hacia abajo</h3><ul><li>Simple de leer y de mantener.</li><li>Ideal para galerías.</li><li>≈ 9 pantallas.</li><li>Se pierde la botella y el mundo después de la apertura: vuelve a sentirse «lista de secciones».</li></ul></div>
+    <div><h3>B · Mitad y mitad → ancho completo</h3><ul><li>El objeto acompaña y explica (gira, se despliega, se numera).</li><li>Ahorra pantallas: ≈ 6–7.</li><li>Las imágenes grandes siguen a ancho completo al final.</li><li>En celular se apila sola (objeto arriba, texto abajo).</li></ul></div>
+  </div>
+  <div class="reco"><h3>Mi recomendación: B</h3><p style="color:#d6d6d8">Es la que mejor continúa lo que la home promete (el objeto y el mundo) y la que menos repite. Para Be Fresh funciona igual: la capa fija a la izquierda mientras se cuentan el sistema de logo, la paleta y la tipografía; las aplicaciones (bolsa, cartel, tarjeta) se abren a ancho completo.</p></div>
+</div>
+</body>
+</html>
