@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Propuesta de estructura — Agustín Hidalgo</title>
+<style>
+@font-face{font-family:Anton;src:url(fonts/anton-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:Inter;src:url(fonts/inter-latin-wght-normal.woff2) format("woff2");font-weight:100 900}
+@font-face{font-family:Reenie;src:url(fonts/reenie-beanie-latin-400-normal.woff2) format("woff2")}
+:root{--red:#7c0000;--red2:#ff3a2a;--bone:#f4e9df;--ink:#f2f2f2;--dim:#a0a0a4}
+*{box-sizing:border-box;margin:0}
+body{background:#0a0a0a;color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif}
+.page{max-width:1240px;margin:0 auto;padding:40px 20px 80px}
+h1{font:400 clamp(2.4rem,6vw,4.2rem)/1 Anton,Impact,sans-serif;text-transform:uppercase}
+.intro{color:var(--dim);max-width:64ch;margin:14px 0 36px}
+.fr{margin:0 0 56px}
+.fr>figcaption{display:flex;gap:14px;align-items:baseline;margin-bottom:12px;flex-wrap:wrap}
+.fr>figcaption b{font:400 1.6rem Anton;text-transform:uppercase;letter-spacing:.02em}
+.fr>figcaption span{color:var(--dim);font-size:.92rem;max-width:80ch}
+.fr>figcaption i{font-style:normal;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;background:var(--red);padding:3px 9px}
+/* Marco 16:10, todo en cqw para que escale */
+.s{position:relative;container-type:size;aspect-ratio:16/10;width:100%;overflow:hidden;background:#000;border:1px solid #2a2a2c;font-size:1cqw}
+.s *{box-sizing:border-box}
+.bar{position:absolute;left:0;right:0;top:0;height:5.2cqw;display:flex;align-items:center;justify-content:space-between;padding:0 3.5cqw;z-index:5;font-size:1cqw;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.bar nav{display:flex;gap:2.2cqw;align-items:center}
+.bar a{color:#fff;text-decoration:none;opacity:.85}
+.bar a.on{opacity:1;border-bottom:2px solid var(--red2);padding-bottom:.3cqw}
+.snd{width:2.4cqw;height:2.4cqw;border:1px solid #fff5;display:grid;place-items:center;font-size:1.1cqw}
+.disp{font-family:Anton,Impact,sans-serif;text-transform:uppercase;line-height:.92}
+.lab{font-size:.9cqw;letter-spacing:.2em;text-transform:uppercase;color:#d98a80;font-weight:600}
+.hand{font-family:Reenie,cursive;color:#c42;transform:rotate(-3deg);display:inline-block}
+.btn{display:inline-flex;align-items:center;gap:.8cqw;font-size:1cqw;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:1.2cqw 2.2cqw;background:#fff;color:#000}
+.btn.r{background:var(--red2);color:#000}
+.btn.o{background:transparent;color:#fff;border:1px solid #fff8}
+.ul{font-size:1cqw;letter-spacing:.14em;text-transform:uppercase;font-weight:700;border-bottom:1px solid #fff;padding-bottom:.2cqw}
+/* 1 portada */
+.s1{background:radial-gradient(50% 70% at 72% 40%,#5a0000,transparent 70%),#000}
+.s1 .nm{position:absolute;left:3.5cqw;top:14cqw;font-size:13.6cqw;color:#fff;text-shadow:.35cqw .35cqw 0 #7c0000}
+.s1 .hd{position:absolute;left:3.5cqw;top:10cqw;font-size:3cqw}
+.s1 .pt{position:absolute;right:2cqw;bottom:0;height:90%}
+.s1 .inf{position:absolute;left:3.5cqw;bottom:3.6cqw}
+.s1 .inf .lab{display:block;margin-bottom:.7cqw}
+.s1 .inf p{font-size:1.35cqw;max-width:30cqw;margin-bottom:1.6cqw}
+.s1 .inf p small{display:block;color:var(--dim);font-size:1.1cqw}
+/* 2 índice */
+.s2{background:#000}
+.s2::before{content:"";position:absolute;inset:0;background:radial-gradient(40% 60% at 80% 55%,rgba(124,0,0,.55),transparent 70%)}
+.s2 .h2{position:absolute;left:3.5cqw;top:8cqw}
+.s2 .h2 .disp{font-size:5cqw;color:#fff;margin-top:.6cqw}
+.s2 ol{list-style:none;padding:0;position:absolute;left:3.5cqw;top:18cqw;width:55cqw;border-top:1px solid #fff3}
+.s2 li{display:grid;grid-template-columns:5cqw 1fr;align-items:baseline;padding:2cqw 0;border-bottom:1px solid #fff3}
+.s2 li .n{font:400 2.6cqw Anton}
+.s2 li .t{font:400 4.4cqw/1 Anton;text-transform:uppercase}
+.s2 li .d{grid-column:2;color:var(--dim);font-size:1.15cqw;margin-top:.6cqw}
+.s2 li.hot{background:var(--red);margin-inline:-1.4cqw;padding-inline:1.4cqw}
+.s2 li.hot .d{color:#fff}
+.s2 .pv{position:absolute;right:11cqw;top:7cqw;height:36cqw}
+.s2 .wr{position:absolute;right:11cqw;top:7cqw;height:36cqw;width:10.2cqw;border:1px dashed #ff6a5a;border-radius:2cqw}
+.s2 .cap{position:absolute;right:3.5cqw;bottom:3cqw;text-align:right;font-size:.95cqw;letter-spacing:.14em;text-transform:uppercase;color:#cfcfd2}
+.s2 .cap b{color:var(--red2)}
+.s2 .cur{position:absolute;left:30cqw;top:30cqw;width:2cqw;height:2cqw;border:1.5px solid #e8c79a;border-radius:50%;box-shadow:0 0 0 .4cqw #b05c1a44}
+/* mundos */
+.wine{background:radial-gradient(120% 40% at 50% 112%,rgba(255,140,60,.25),transparent 62%),radial-gradient(85% 60% at 50% 105%,rgba(124,0,0,.75),transparent 70%),radial-gradient(70% 55% at 55% 42%,rgba(84,4,20,.65),transparent 78%),radial-gradient(150% 110% at 50% 48%,transparent 38%,rgba(6,0,2,.85)),linear-gradient(180deg,#1c0208,#12010a 55%,#240309)}
+.wine::after{content:"";position:absolute;inset:0;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 1000' preserveAspectRatio='none' fill='none' stroke='%23e8c79a' stroke-opacity='0.14' stroke-width='1.2' vector-effect='non-scaling-stroke'><path d='M-40 1000V470Q-40 120 330 120'/><path d='M1040 1000V470Q1040 120 670 120'/></svg>") center/100% 100% no-repeat}
+.wd{position:absolute;display:block;border-radius:50%;background:#ffd6aa;filter:blur(.15cqw);opacity:.55}
+.bd{background:linear-gradient(180deg,#050506,#0e0e10)}
+.bd::before{content:"";position:absolute;left:0;top:0;bottom:0;width:.8cqw;background:repeating-linear-gradient(-45deg,#7c0000 0 .9cqw,#eee .9cqw 1.8cqw,#0a0a0a 1.8cqw 2.7cqw);z-index:4}
+.bd::after{content:"";position:absolute;left:-40%;right:-40%;bottom:0;height:34%;background:repeating-conic-gradient(rgba(255,255,255,.08) 0 25%,transparent 0 50%) 0 0/9cqw 9cqw;transform:perspective(40cqw) rotateX(64deg);transform-origin:50% 100%;-webkit-mask-image:linear-gradient(to top,#000 10%,transparent 92%);mask-image:linear-gradient(to top,#000 10%,transparent 92%)}
+.tx{position:absolute;left:3.5cqw;top:11cqw;width:44cqw;z-index:3}
+.tx .pn{font-size:1.1cqw;letter-spacing:.2em;text-transform:uppercase;color:#e8c79a;margin-bottom:1cqw}
+.tx .pn b{font:400 2cqw Anton;margin-left:.6cqw;color:#fff}
+.tx .disp{font-size:8.4cqw;color:var(--bone);text-shadow:0 .3cqw 0 rgba(124,0,0,.55)}
+.bd .tx .pn{color:#cfcfd2}
+.bd .tx .disp{color:#fff;text-shadow:none}
+.tx .ds{display:inline-block;margin-top:2cqw;font-size:1.5cqw;font-weight:500;padding-bottom:.9cqw;border-bottom:2px solid var(--red2)}
+.tx p{font-size:1.3cqw;margin-top:1.4cqw;max-width:36cqw;color:#f1e3d6}
+.tx .cta{margin-top:2.4cqw;display:flex;gap:2cqw;align-items:center}
+.bt{position:absolute;right:15cqw;top:6cqw;height:36cqw;filter:drop-shadow(0 2cqw 1.6cqw rgba(0,0,0,.6))}
+.cp{position:absolute;right:10cqw;top:12cqw;width:41cqw;filter:drop-shadow(0 2cqw 2cqw rgba(0,0,0,.6))}
+.rail{position:absolute;right:3cqw;top:50%;transform:translateY(-50%);display:grid;gap:1.4cqw;font-size:.95cqw;letter-spacing:.14em;color:#fff9;text-align:right;z-index:3}
+.rail div{display:flex;gap:.8cqw;justify-content:flex-end;align-items:center}
+.rail div::after{content:"";width:2.2cqw;height:2px;background:#fff5}
+.rail div.on{color:#fff}
+.rail div.on::after{background:var(--red2);width:3.6cqw}
+.entering{position:absolute;left:3.5cqw;bottom:3cqw;display:flex;gap:1.2cqw;align-items:center;font-size:.95cqw;letter-spacing:.16em;text-transform:uppercase;color:#e8c79a;z-index:3}
+.entering .hand{font-size:2cqw;color:#e8c79a;text-transform:none;letter-spacing:0}
+.bd .entering{color:#fff}.bd .entering .hand{color:#fff}
+.meta{position:absolute;left:3.5cqw;bottom:6.2cqw;display:flex;gap:3cqw;font-size:1cqw;z-index:3}
+.meta div b{display:block;font-size:.8cqw;letter-spacing:.16em;text-transform:uppercase;color:#d98a80;margin-bottom:.4cqw}
+.build{position:absolute;right:3cqw;bottom:3cqw;background:#000a;border:1px solid #fff2;padding:.8cqw 1.2cqw;font-size:.8cqw;letter-spacing:.16em;text-transform:uppercase;color:#fff6;display:flex;gap:1.2cqw;z-index:3}
+.build b{color:var(--red2)}.build span.on{color:#fff}
+/* panel sobre mí */
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.62);z-index:6}
+.pan{position:absolute;right:0;top:0;bottom:0;width:38cqw;background:#0c0c0d;border-left:1px solid #fff2;z-index:7;padding:7cqw 3cqw 3cqw}
+.pan .x{position:absolute;right:2cqw;top:1.6cqw;font-size:1cqw;letter-spacing:.14em;text-transform:uppercase;border:1px solid #fff5;padding:.6cqw 1.2cqw}
+.pan .ph{width:15cqw;height:15cqw;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 50% 80%,#6a0000,#100);margin-bottom:2cqw;position:relative}
+.pan .ph img{position:absolute;left:50%;top:6%;height:112%;transform:translateX(-50%)}
+.pan .disp{font-size:5cqw;color:#fff;margin-bottom:1.4cqw}
+.pan .disp em{font-style:normal;color:var(--red2)}
+.pan p{font-size:1.2cqw;line-height:1.55;margin-bottom:1.2cqw;color:#e6e6e8}
+.pan .tools{color:var(--dim);font-size:1cqw;margin-top:1.6cqw}
+.pan .row{display:flex;gap:1.4cqw;align-items:center;margin-top:2.2cqw;white-space:nowrap}.pan .btn{padding:1cqw 1.6cqw;white-space:nowrap}.pan .ul{white-space:nowrap}
+/* contacto */
+.s6{background:radial-gradient(80% 60% at 20% 100%,rgba(124,0,0,.6),transparent 70%),#050505}
+.s6 .disp{position:absolute;left:3.5cqw;top:10cqw;font-size:10cqw;color:#fff}
+.s6 .lead{position:absolute;left:3.5cqw;top:33cqw;width:34cqw;font-size:1.3cqw;color:#ddd}
+.s6 ul{list-style:none;padding:0;position:absolute;right:3.5cqw;top:10cqw;width:44cqw;border-top:1px solid #fff3}
+.s6 li{display:grid;grid-template-columns:9cqw 1fr auto;gap:1cqw;align-items:baseline;padding:1.8cqw 0;border-bottom:1px solid #fff3;font-size:1.3cqw}
+.s6 li .k{font-size:.9cqw;letter-spacing:.16em;text-transform:uppercase;color:#d98a80}
+.s6 li:first-child{background:var(--red);margin-inline:-1.2cqw;padding-inline:1.2cqw}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:12px 0 0}
+.notes div{border:1px solid #2a2a2c;background:#101011;padding:14px 16px;font-size:.9rem;color:#d6d6d8}
+.notes b{display:block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:#ff6a5a;margin-bottom:6px}
+.end{border:2px solid var(--red);background:linear-gradient(90deg,rgba(124,0,0,.3),transparent);padding:22px 24px;margin-top:20px}
+.end h2{font:400 1.8rem Anton;text-transform:uppercase;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Así quedaría la propuesta</h1>
+  <p class="intro">Mezcla de las tres: <b>índice de trabajos como pantalla central</b> (A) + <b>Sobre mí como panel</b> que se abre desde la barra (C) + <b>botella que se arma</b> al entrar a su mundo (B). Es una maqueta visual con tus fotos, colores y textos reales; no es el sitio funcionando. Lo animado se explica en cada pantalla.</p>
+
+  <!-- 1 -->
+  <figure class="fr">
+    <figcaption><b>1 · Portada</b><i>Pantalla 1</i><span>Solo identidad. Los accesos viven en la barra (ya no se repiten abajo). Un único botón principal. El nombre y el retrato siguen en 3D con capas.</span></figcaption>
+    <div class="s s1">
+      <div class="bar"><span>Agustín Hidalgo</span><nav><a class="on">Trabajos</a><a>Sobre mí</a><a>Contacto</a><a>CV</a><span class="snd">♪</span></nav></div>
+      <div class="hd hand">Diseño gráfico</div>
+      <div class="nm disp">Agustín<br>Hidalgo</div>
+      <img class="pt" src="img/agustin.webp" alt="">
+      <div class="inf"><span class="lab">Portfolio · 2026</span><p>Diseñador y comunicador visual.<small>Estudiante de Comunicación Visual, Gráfica y Digital · Universidad de Belgrano.</small></p><span class="btn r">Ver trabajos ↓</span></div>
+    </div>
+  </figure>
+
+  <!-- 2 -->
+  <figure class="fr">
+    <figcaption><b>2 · Trabajos</b><i>Pantalla 2</i><span>El trabajo aparece enseguida. Al pasar el cursor por un proyecto, su objeto 3D aparece y <b>empieza a armarse</b> (trazo técnico → vidrio → etiqueta). En celular se muestra el objeto de la fila tocada.</span></figcaption>
+    <div class="s s2">
+      <div class="bar"><span>Agustín Hidalgo</span><nav><a class="on">Trabajos</a><a>Sobre mí</a><a>Contacto</a><a>CV</a><span class="snd">♪</span></nav></div>
+      <div class="h2"><span class="lab">Portfolio</span><div class="disp">Trabajos</div></div>
+      <ol>
+        <li class="hot"><span class="n">01</span><span class="t">Cordero con piel de lobo</span><span class="d">Rediseño de marca y sistema de envases · 2025</span></li>
+        <li><span class="n">02</span><span class="t">Be Fresh</span><span class="d">Diseño de logo e identidad visual · 2026</span></li>
+      </ol>
+      <div class="wr"></div>
+      <img class="pv" src="img/botella-frente.webp" alt="" style="clip-path:inset(38% 0 0 0);opacity:.95">
+      <div class="cap"><b>01</b> Trazo · <b>02</b> Volumen · <b>03</b> Etiqueta<br>«Ver el proyecto →»</div>
+      <div class="cur"></div>
+    </div>
+  </figure>
+
+  <!-- 3 -->
+  <figure class="fr">
+    <figcaption><b>3 · Mundo 01 — la bodega</b><i>Al entrar</i><span>Pantalla completa, color vino. Un breve «entrando a la bodega» (≈1 s, en una esquina). Texto corto y <b>botón visible</b>. Índice lateral 01 / 02 para saber dónde estás. La botella termina de armarse y gira al dorso al seguir bajando.</span></figcaption>
+    <div class="s wine">
+      <i class="wd" style="left:22%;top:70%;width:.5cqw;height:.5cqw"></i><i class="wd" style="left:48%;top:30%;width:.4cqw;height:.4cqw"></i><i class="wd" style="left:70%;top:62%;width:.6cqw;height:.6cqw"></i><i class="wd" style="left:35%;top:45%;width:.3cqw;height:.3cqw"></i>
+      <div class="bar"><span>Agustín Hidalgo</span><nav><a class="on">Trabajos</a><a>Sobre mí</a><a>Contacto</a><a>CV</a><span class="snd">♪</span></nav></div>
+      <div class="tx"><div class="pn">Proyecto <b>01</b></div><div class="disp">Cordero con<br>piel de lobo</div><span class="ds">Rediseño de marca y sistema de envases</span><p>Rediseño conceptual desarrollado a partir de la tensión entre apariencia y esencia, con ilustración y textura como recursos narrativos.</p><div class="cta"><span class="btn r">Ver proyecto completo →</span></div></div>
+      <div class="meta"><div><b>Año</b>2025</div><div><b>Tipo</b>Rediseño de marca · Packaging</div><div><b>Categoría</b>Vino tinto · Blend</div></div>
+      <img class="bt" src="img/botella-frente.webp" alt="">
+      <div class="rail"><div class="on">01 Cordero</div><div>02 Be Fresh</div></div>
+      <div class="entering"><span class="hand">entrando a</span> la bodega</div>
+    </div>
+  </figure>
+
+  <!-- 4 -->
+  <figure class="fr">
+    <figcaption><b>4 · Mundo 02 — la barbería</b><i>Siguiente</i><span>Mismo esquema, otro ambiente: negro de salón, poste de barbero, suelo ajedrezado. La capa es la única protagonista; se arma (patrón → tela) y se agita con el scroll.</span></figcaption>
+    <div class="s bd">
+      <div class="bar"><span>Agustín Hidalgo</span><nav><a class="on">Trabajos</a><a>Sobre mí</a><a>Contacto</a><a>CV</a><span class="snd">♪</span></nav></div>
+      <div class="tx"><div class="pn">Proyecto <b>02</b></div><div class="disp">Be Fresh</div><span class="ds">Diseño de logo e identidad visual</span><p>Identidad para una barbería que se aleja de los códigos tradicionales: elegancia, detalle y autenticidad en un sistema sobrio y monocromático.</p><div class="cta"><span class="btn r">Ver proyecto completo →</span></div></div>
+      <div class="meta"><div><b>Año</b>2026</div><div><b>Tipo</b>Identidad visual · Logo e isologo</div><div><b>Categoría</b>Barbería · Servicios</div></div>
+      <img class="cp" src="img/capa.webp" alt="">
+      <div class="rail"><div>01 Cordero</div><div class="on">02 Be Fresh</div></div>
+      <div class="entering"><span class="hand">entrando a</span> la barbería</div>
+    </div>
+  </figure>
+
+  <!-- 5 -->
+  <figure class="fr">
+    <figcaption><b>5 · Sobre mí (panel)</b><i>Desde la barra, en cualquier momento</i><span>Ya no es una sección más del recorrido: se abre encima de lo que estés viendo, con tu foto, un texto corto y el CV. La formación y la experiencia completas quedan en la página «Sobre mí en detalle». Se cierra con Esc o con clic afuera.</span></figcaption>
+    <div class="s wine">
+      <div class="bar"><span>Agustín Hidalgo</span><nav><a>Trabajos</a><a class="on">Sobre mí</a><a>Contacto</a><a>CV</a><span class="snd">♪</span></nav></div>
+      <div class="tx"><div class="disp">Cordero con<br>piel de lobo</div></div>
+      <img class="bt" src="img/botella-frente.webp" alt="">
+      <div class="dim"></div>
+      <aside class="pan"><span class="x">Cerrar ✕</span>
+        <div class="ph"><img src="img/agustin.webp" alt=""></div>
+        <div class="disp">Sobre <em>mí</em></div>
+        <p>Soy <b>Agustín Hidalgo</b>, estudiante de Comunicación Visual, Gráfica y Digital en la Universidad de Belgrano, con interés en el desarrollo de identidades visuales, sistemas gráficos y proyectos donde el diseño se construye desde el concepto y la narrativa.</p>
+        <p class="tools">Adobe Illustrator, Adobe Photoshop, Google Workspace y Microsoft Office.</p>
+        <div class="row"><span class="btn">Descargar CV ↓</span><span class="ul">Sobre mí en detalle →</span></div>
+      </aside>
+    </div>
+  </figure>
+
+  <!-- 6 -->
+  <figure class="fr">
+    <figcaption><b>6 · Contacto</b><i>Final</i><span>Cierre simple. El WhatsApp es la acción destacada (rojo); email, Instagram y CV debajo. Se elimina la pausa luminosa de «Filosofía» como sección aparte: su frase pasa a la portada o al panel Sobre mí si querés conservarla.</span></figcaption>
+    <div class="s s6">
+      <div class="bar"><span>Agustín Hidalgo</span><nav><a>Trabajos</a><a>Sobre mí</a><a class="on">Contacto</a><a>CV</a><span class="snd">♪</span></nav></div>
+      <div class="disp">Muchas<br>gracias</div>
+      <p class="lead">¿Tienes un proyecto en mente o quieres conversar sobre diseño? Escríbeme por el medio que prefieras.</p>
+      <ul>
+        <li><span class="k">WhatsApp</span><span>+54 9 11 7082-8071</span><span>↗</span></li>
+        <li><span class="k">Email</span><span>agustinn.hidalgoo@gmail.com</span><span>→</span></li>
+        <li><span class="k">Instagram</span><span>@agustinhidalgo.desing</span><span>↗</span></li>
+        <li><span class="k">Currículum</span><span>Descargar CV (PDF)</span><span>↓</span></li>
+      </ul>
+    </div>
+  </figure>
+
+  <div class="notes">
+    <div><b>Scroll total</b>≈ 6–7 pantallas (hoy ≈ 13).</div>
+    <div><b>Se mantiene</b>3D, retrato en capas, botella que se arma, capa, mundos, cursores, sonido (con las mejoras ya hechas).</div>
+    <div><b>Se elimina</b>Accesos repetidos, Introducción como sección, texto del Portfolio, grilla de CV en la home, tramos de 3 pasos.</div>
+    <div><b>Se agrega</b>Índice de trabajos como pantalla central, índice lateral 01/02, panel Sobre mí, botones de proyecto visibles.</div>
+  </div>
+  <div class="end"><h2>Ojo con esto</h2><p style="color:#d6d6d8">Es una maqueta estática: las proporciones del 3D y los tiempos de animación reales los defino al construirlo. Los teléfonos, el mail y el Instagram son los que ya tiene el sitio. Si algo no te cierra (orden, qué sacar, qué dejar), decime y lo ajusto en la maqueta antes de tocar el código.</p></div>
+</div>
+</body>
+</html>
