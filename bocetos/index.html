@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bocetos de estructura — Portfolio Agustín Hidalgo</title>
+<style>
+  :root { --bg:#050505; --panel:#0f0f10; --line:#2a2a2c; --ink:#f2f2f2; --dim:#9a9a9e; --red:#7c0000; --red2:#ff3a2a; --wine:#2a0610; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+  header.top { padding: 56px 0 24px; }
+  h1 { font: 800 clamp(2.2rem, 6vw, 4rem)/1 Impact, "Anton", "Arial Narrow", sans-serif; text-transform: uppercase; letter-spacing: .01em; margin: 0 0 14px; }
+  h2 { font: 800 clamp(1.8rem, 4vw, 2.6rem)/1 Impact, "Arial Narrow", sans-serif; text-transform: uppercase; margin: 0; }
+  .lead { color:var(--dim); max-width: 62ch; }
+  nav.pick { position: sticky; top:0; z-index:10; background:rgba(5,5,5,.92); backdrop-filter: blur(6px); border-bottom:1px solid var(--line); }
+  nav.pick .wrap { display:flex; gap:8px; padding-block:10px; flex-wrap:wrap; }
+  nav.pick a { color:var(--ink); text-decoration:none; font-size:.8rem; letter-spacing:.12em; text-transform:uppercase; border:1px solid var(--line); padding:8px 14px; }
+  nav.pick a:hover { background:var(--red); border-color:var(--red); }
+  .common { border:1px solid var(--line); background:var(--panel); padding:20px 22px; margin: 8px 0 0; }
+  .common h3 { margin:0 0 8px; font-size:.8rem; letter-spacing:.14em; text-transform:uppercase; color:var(--red2); }
+  .common ul { margin:0; padding-left:18px; color:#d6d6d8; }
+  section.opt { padding: 64px 0 24px; border-top:1px solid var(--line); margin-top:56px; }
+  .tag { display:inline-block; font-size:.75rem; letter-spacing:.16em; text-transform:uppercase; color:#fff; background:var(--red); padding:4px 10px; margin-bottom:12px; }
+  .meta { display:grid; grid-template-columns: repeat(auto-fit,minmax(230px,1fr)); gap:12px; margin:20px 0 28px; }
+  .meta div { border:1px solid var(--line); padding:14px 16px; background:var(--panel); font-size:.92rem; color:#d6d6d8; }
+  .meta b { display:block; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--dim); margin-bottom:6px; }
+  .flow { display:flex; gap:16px; overflow-x:auto; padding: 4px 2px 18px; scroll-snap-type:x proximity; }
+  .step { flex:0 0 340px; scroll-snap-align:start; }
+  .step figcaption { font-size:.8rem; color:var(--dim); margin-top:8px; line-height:1.4; }
+  .step figcaption b { color:var(--ink); }
+  .scr { position:relative; aspect-ratio:16/10; border:1px solid #3a3a3d; background:#000; overflow:hidden; }
+  .scr.wine { background: radial-gradient(90% 70% at 70% 100%, #5a0a1a, transparent 70%), #12030a; }
+  .scr.bar { background: linear-gradient(180deg,#070708,#101012); }
+  .scr.bar::before { content:""; position:absolute; left:0; top:0; bottom:0; width:6px; background:repeating-linear-gradient(-45deg,#7c0000 0 6px,#eee 6px 12px,#000 12px 18px); }
+  .blk { position:absolute; background:#2b2b2e; }
+  .t1 { background:#e8e8e8; }                     /* título */
+  .t1r { background:#b22; }
+  .tx { background:#4a4a4d; height:4px; }
+  .btn { background:#fff; }
+  .btn.o { background:transparent; border:1px solid #888; }
+  .btn.r { background:var(--red2); }
+  .obj { background:linear-gradient(90deg,#1a1a1c,#555,#1a1a1c); border-radius:10px 10px 6px 6px; }
+  .wire { border:1px dashed #ff6a5a; background:transparent; border-radius:8px; }
+  .pill { position:absolute; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#cfcfd2; }
+  .lbl { position:absolute; font-size:9px; letter-spacing:.1em; text-transform:uppercase; color:#9a9a9e; }
+  .hand { position:absolute; font: italic 11px/1.1 "Segoe Script","Bradley Hand",cursive; color:#ffb4a8; }
+  .note { position:absolute; font-size:8.5px; line-height:1.2; color:#ffd7a8; border-left:2px solid #ffb04a; padding-left:5px; }
+  .hdr { position:absolute; left:0; right:0; top:0; height:22px; border-bottom:1px solid #222; }
+  .hdr i { position:absolute; top:7px; height:7px; background:#555; }
+  table { width:100%; border-collapse:collapse; margin-top:24px; font-size:.92rem; }
+  th, td { border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; }
+  th { background:var(--panel); font-size:.75rem; letter-spacing:.12em; text-transform:uppercase; color:var(--dim); }
+  td.y { color:#9fe3a8; } td.n { color:#ff9c90; }
+  .reco { border:2px solid var(--red); padding:22px 24px; margin:28px 0 80px; background:linear-gradient(90deg, rgba(124,0,0,.28), transparent); }
+  .reco h3 { margin:0 0 8px; font-size:.85rem; letter-spacing:.16em; text-transform:uppercase; color:var(--red2); }
+  footer { padding: 0 0 80px; color:var(--dim); font-size:.85rem; }
+  @media (max-width:640px) { .step { flex-basis:290px; } }
+</style>
+</head>
+<body>
+
+<nav class="pick"><div class="wrap">
+  <a href="#comun">Lo que cambia en las 3</a><a href="#A">A · Índice vivo</a><a href="#B">B · Capítulos</a><a href="#C">C · Paneles</a><a href="#cmp">Comparar</a>
+</div></nav>
+
+<header class="top"><div class="wrap">
+  <h1>Tres bocetos de estructura</h1>
+  <p class="lead">Son wireframes: muestran el <b>orden</b> y el <b>peso</b> del contenido, no el diseño final. Cada boceto conserva lo que hace especial al sitio (3D, botella que se arma, capa, mundos, sonido), pero ordena la home de otra manera. Elegí una letra, o una mezcla («A con el sobre mí de B»), y recién ahí lo construyo.</p>
+</div></header>
+
+<main class="wrap">
+
+<div class="common" id="comun">
+  <h3>Cambios que son iguales en las tres (resuelven lo repetitivo)</h3>
+  <ul>
+    <li><b>Un solo lugar para los accesos.</b> Hoy «Proyectos / Contacto / CV» aparecen en la portada y otra vez en la barra de arriba. Quedan solo en la barra (Trabajos · Sobre mí · Contacto · CV) y la portada tiene <b>un único botón</b>: «Ver trabajos».</li>
+    <li><b>Un solo texto sobre vos.</b> Sobre mí e Introducción se funden en un bloque corto (3 líneas + CV). El detalle completo vive en <code>/sobre-mi</code>.</li>
+    <li><b>Dos niveles de título</b> en vez de todos gigantes: sección (mediano) y proyecto (grande).</li>
+    <li><b>El trabajo se ve antes</b>, en la segunda pantalla o menos, no después de tres pantallas de texto.</li>
+    <li>Cartel «entrando a…» más corto (≈1 s) y en un costado; botón de sonido como ícono discreto; mejor contraste en etiquetas.</li>
+  </ul>
+</div>
+
+<!-- ===================================================== A -->
+<section class="opt" id="A">
+  <span class="tag">Opción A</span>
+  <h2>Índice vivo</h2>
+  <p class="lead">El trabajo manda. Después de la portada hay una lista grande de proyectos; al pasar el cursor (o tocar) aparece el objeto 3D de cada uno. Al elegir uno, «entrás» a su mundo.</p>
+  <div class="meta">
+    <div><b>Recorrido</b>Portada → Índice → Mundo del proyecto → Sobre mí → Contacto</div>
+    <div><b>Largo aprox. de scroll</b>≈ 7 pantallas (hoy ≈ 13)</div>
+    <div><b>Interactividad que se queda</b>Retrato en capas, nombre 3D, objetos 3D que giran y se arman, mundos, sonido</div>
+    <div><b>Ideal si…</b>querés que te contraten rápido y tenés pocos proyectos fuertes</div>
+  </div>
+  <div class="flow">
+
+    <figure class="step"><div class="scr">
+      <div class="hdr"><i style="left:10px;width:40px"></i><i style="right:10px;width:12px"></i><i style="right:30px;width:34px"></i><i style="right:72px;width:34px"></i><i style="right:114px;width:34px"></i></div>
+      <div class="blk t1" style="left:12px;top:58px;width:150px;height:30px"></div><div class="blk t1" style="left:12px;top:92px;width:170px;height:30px"></div>
+      <div class="hand" style="left:12px;top:40px">diseño gráfico</div>
+      <div class="blk" style="right:14px;top:30px;width:120px;height:130px;background:#333;border-radius:60px 60px 0 0"></div>
+      <div class="blk tx" style="left:12px;top:134px;width:110px"></div><div class="blk tx" style="left:12px;top:142px;width:80px"></div>
+      <div class="blk btn r" style="left:12px;top:158px;width:78px;height:16px"></div>
+    </div><figcaption><b>1 · Portada.</b> Nombre + retrato en 3D. <b>Un solo botón</b> «Ver trabajos ↓». Sin links repetidos.</figcaption></figure>
+
+    <figure class="step"><div class="scr wine">
+      <div class="hdr"><i style="left:10px;width:40px"></i></div>
+      <div class="lbl" style="left:14px;top:34px">Trabajos</div>
+      <div class="blk t1" style="left:14px;top:50px;width:190px;height:22px"></div><div class="blk" style="left:14px;top:76px;width:210px;height:1px;background:#555"></div>
+      <div class="blk t1" style="left:14px;top:86px;width:100px;height:22px;opacity:.5"></div><div class="blk" style="left:14px;top:112px;width:210px;height:1px;background:#555"></div>
+      <div class="blk wire" style="right:26px;top:36px;width:34px;height:120px"></div>
+      <div class="note" style="right:14px;top:162px;width:140px">Hover: aparece la botella armándose</div>
+    </div><figcaption><b>2 · Índice.</b> Lista grande de proyectos. El objeto 3D responde al cursor. Es la pantalla central del sitio.</figcaption></figure>
+
+    <figure class="step"><div class="scr wine">
+      <div class="hdr"><i style="left:10px;width:40px"></i></div>
+      <div class="lbl" style="left:14px;top:34px">01 · Bodega</div>
+      <div class="blk t1" style="left:14px;top:50px;width:140px;height:28px"></div><div class="blk t1" style="left:14px;top:82px;width:110px;height:28px"></div>
+      <div class="blk tx" style="left:14px;top:120px;width:120px"></div><div class="blk tx" style="left:14px;top:128px;width:100px"></div>
+      <div class="blk btn r" style="left:14px;top:146px;width:90px;height:16px"></div>
+      <div class="blk obj" style="right:40px;top:24px;width:44px;height:140px"></div>
+    </div><figcaption><b>3 · Mundo del proyecto.</b> Pantalla completa, color vino. Botón <b>visible</b> «Ver proyecto». Pasos 2 y 3 se acortan a una sola pantalla.</figcaption></figure>
+
+    <figure class="step"><div class="scr bar">
+      <div class="hdr"><i style="left:16px;width:40px"></i></div>
+      <div class="lbl" style="left:20px;top:34px">02 · Barbería</div>
+      <div class="blk t1" style="left:20px;top:50px;width:110px;height:28px"></div>
+      <div class="blk tx" style="left:20px;top:92px;width:120px"></div><div class="blk tx" style="left:20px;top:100px;width:100px"></div>
+      <div class="blk btn r" style="left:20px;top:120px;width:90px;height:16px"></div>
+      <div class="blk" style="right:20px;top:30px;width:150px;height:120px;background:#222;clip-path:polygon(35% 0,65% 0,100% 100%,0 100%)"></div>
+    </div><figcaption><b>4 · Segundo mundo.</b> Misma estructura, otro ambiente. La capa es la única protagonista.</figcaption></figure>
+
+    <figure class="step"><div class="scr">
+      <div class="hdr"><i style="left:10px;width:40px"></i></div>
+      <div class="lbl" style="left:14px;top:34px">Sobre mí</div>
+      <div class="blk" style="left:14px;top:50px;width:62px;height:76px;background:#333;border-radius:30px 30px 0 0"></div>
+      <div class="blk tx" style="left:92px;top:56px;width:150px"></div><div class="blk tx" style="left:92px;top:64px;width:140px"></div><div class="blk tx" style="left:92px;top:72px;width:110px"></div>
+      <div class="blk btn o" style="left:92px;top:92px;width:60px;height:14px"></div>
+      <div class="lbl" style="left:14px;top:140px">Illustrator · Photoshop · Workspace</div>
+    </div><figcaption><b>5 · Sobre mí compacto.</b> Foto + 3 líneas + CV. Sin grilla de formación (va a la página de detalle).</figcaption></figure>
+
+    <figure class="step"><div class="scr wine">
+      <div class="blk t1" style="left:14px;top:70px;width:170px;height:30px"></div>
+      <div class="blk btn" style="left:14px;top:116px;width:80px;height:16px"></div><div class="blk btn o" style="left:100px;top:116px;width:70px;height:16px"></div>
+    </div><figcaption><b>6 · Contacto.</b> Frase + WhatsApp + email. Cierre simple.</figcaption></figure>
+  </div>
+  <div class="meta">
+    <div><b>Ganás</b>Claridad máxima, el trabajo aparece rápido, menos texto, menos scroll.</div>
+    <div><b>Perdés</b>La botella ya no se arma «en el aire» junto a Sobre mí; el armado pasa al hover/entrada del mundo.</div>
+  </div>
+</section>
+
+<!-- ===================================================== B -->
+<section class="opt" id="B">
+  <span class="tag">Opción B</span>
+  <h2>Capítulos</h2>
+  <p class="lead">La más parecida a lo actual, pero ordenada: una historia en capítulos cortos. La botella se sigue armando mientras leés tu presentación. Cada proyecto es un capítulo de dos pasos.</p>
+  <div class="meta">
+    <div><b>Recorrido</b>Portada → Sobre mí (con botella armándose) → Capítulo 1 → Capítulo 2 → Filosofía → Contacto</div>
+    <div><b>Largo aprox. de scroll</b>≈ 9 pantallas</div>
+    <div><b>Interactividad que se queda</b>Todo lo actual, incluido el armado de la botella junto al texto</div>
+    <div><b>Ideal si…</b>querés mantener el recorrido «cinematográfico» tal cual lo viste</div>
+  </div>
+  <div class="flow">
+
+    <figure class="step"><div class="scr">
+      <div class="hdr"><i style="left:10px;width:40px"></i><i style="right:10px;width:12px"></i><i style="right:30px;width:34px"></i><i style="right:72px;width:34px"></i><i style="right:114px;width:34px"></i></div>
+      <div class="blk t1" style="left:12px;top:58px;width:150px;height:30px"></div><div class="blk t1" style="left:12px;top:92px;width:170px;height:30px"></div>
+      <div class="blk" style="right:14px;top:30px;width:120px;height:130px;background:#333;border-radius:60px 60px 0 0"></div>
+      <div class="blk tx" style="left:12px;top:134px;width:110px"></div>
+      <div class="blk btn r" style="left:12px;top:150px;width:78px;height:16px"></div>
+    </div><figcaption><b>1 · Portada.</b> Igual que A: un solo botón, accesos solo en la barra.</figcaption></figure>
+
+    <figure class="step"><div class="scr">
+      <div class="hdr"><i style="left:10px;width:40px"></i></div>
+      <div class="lbl" style="left:14px;top:34px">Sobre mí</div>
+      <div class="blk t1" style="left:14px;top:48px;width:120px;height:24px"></div>
+      <div class="blk tx" style="left:14px;top:84px;width:170px"></div><div class="blk tx" style="left:14px;top:92px;width:160px"></div><div class="blk tx" style="left:14px;top:100px;width:120px"></div>
+      <div class="blk btn o" style="left:14px;top:120px;width:60px;height:14px"></div>
+      <div class="blk wire" style="right:40px;top:30px;width:44px;height:130px"></div>
+      <div class="note" style="right:12px;top:164px;width:160px">La botella se arma con el scroll · 01 Trazo → 03 Etiqueta</div>
+    </div><figcaption><b>2 · Sobre mí + botella armándose.</b> Un bloque de texto corto (fusiona Introducción). El 3D aquí es el protagonista.</figcaption></figure>
+
+    <figure class="step"><div class="scr wine">
+      <div class="lbl" style="left:14px;top:12px">Capítulo 01 / 02 · paso 1 de 2</div>
+      <div class="blk t1" style="left:14px;top:40px;width:140px;height:28px"></div><div class="blk t1" style="left:14px;top:72px;width:110px;height:28px"></div>
+      <div class="blk tx" style="left:14px;top:112px;width:120px"></div><div class="blk tx" style="left:14px;top:120px;width:100px"></div>
+      <div class="blk btn r" style="left:14px;top:142px;width:90px;height:16px"></div>
+      <div class="blk obj" style="right:40px;top:24px;width:44px;height:140px"></div>
+    </div><figcaption><b>3 · Capítulo 1, paso 1.</b> Título, resumen y <b>botón claro</b>.</figcaption></figure>
+
+    <figure class="step"><div class="scr wine">
+      <div class="lbl" style="left:14px;top:12px">Capítulo 01 / 02 · paso 2 de 2</div>
+      <div class="blk t1" style="left:14px;top:40px;width:100px;height:18px"></div>
+      <div class="blk tx" style="left:14px;top:68px;width:130px"></div><div class="blk tx" style="left:14px;top:76px;width:120px"></div><div class="blk tx" style="left:14px;top:84px;width:100px"></div>
+      <div class="blk" style="left:14px;top:108px;width:16px;height:16px;background:#7c0000"></div><div class="blk" style="left:34px;top:108px;width:16px;height:16px;background:#e8d9b0"></div><div class="blk" style="left:54px;top:108px;width:16px;height:16px;background:#111;border:1px solid #666"></div>
+      <div class="blk btn r" style="left:14px;top:142px;width:110px;height:16px"></div>
+      <div class="blk obj" style="right:36px;top:24px;width:44px;height:140px;transform:rotate(180deg)"></div>
+    </div><figcaption><b>4 · Paso 2.</b> Concepto + paleta + «Ver proyecto completo». La botella gira al dorso. Fin del capítulo (antes eran 3 pasos).</figcaption></figure>
+
+    <figure class="step"><div class="scr bar">
+      <div class="lbl" style="left:20px;top:12px">Capítulo 02 / 02</div>
+      <div class="blk t1" style="left:20px;top:40px;width:110px;height:28px"></div>
+      <div class="blk tx" style="left:20px;top:84px;width:120px"></div><div class="blk tx" style="left:20px;top:92px;width:100px"></div>
+      <div class="blk btn r" style="left:20px;top:132px;width:100px;height:16px"></div>
+      <div class="blk" style="right:20px;top:30px;width:150px;height:120px;background:#222;clip-path:polygon(35% 0,65% 0,100% 100%,0 100%)"></div>
+    </div><figcaption><b>5 · Capítulo 2.</b> La capa, mismo formato en dos pasos.</figcaption></figure>
+
+    <figure class="step"><div class="scr" style="background:#f2f2f2">
+      <div class="blk" style="left:14px;top:60px;width:200px;height:20px;background:#111"></div><div class="blk" style="left:14px;top:86px;width:150px;height:20px;background:#111"></div>
+      <div class="blk" style="left:14px;top:130px;width:60px;height:14px;background:#7c0000"></div>
+    </div><figcaption><b>6 · Filosofía + contacto.</b> Frase luminosa y cierre con WhatsApp/email.</figcaption></figure>
+  </div>
+  <div class="meta">
+    <div><b>Ganás</b>Mantiene la magia actual (botella armándose), pero con menos repetición y texto.</div>
+    <div><b>Perdés</b>El trabajo sigue apareciendo tras la presentación (pantalla 3); es lo más «largo» de las tres.</div>
+  </div>
+</section>
+
+<!-- ===================================================== C -->
+<section class="opt" id="C">
+  <span class="tag">Opción C</span>
+  <h2>Paneles</h2>
+  <p class="lead">Cada proyecto es una pantalla completa e inmersiva con un índice lateral fijo («01 Cordero · 02 Be Fresh»). Sobre mí no es una sección: es un panel que se abre desde la barra. La home casi no tiene texto corrido.</p>
+  <div class="meta">
+    <div><b>Recorrido</b>Portada → Panel 01 → Panel 02 → Contacto. Sobre mí: panel lateral</div>
+    <div><b>Largo aprox. de scroll</b>≈ 5 pantallas</div>
+    <div><b>Interactividad que se queda</b>Todo, y se suma: navegación con flechas/índice, objetos más grandes, mundos a pantalla completa</div>
+    <div><b>Ideal si…</b>querés un sitio más «de estudio creativo» que «de CV»</div>
+  </div>
+  <div class="flow">
+
+    <figure class="step"><div class="scr">
+      <div class="hdr"><i style="left:10px;width:40px"></i><i style="right:10px;width:12px"></i><i style="right:30px;width:34px"></i><i style="right:72px;width:44px"></i><i style="right:124px;width:34px"></i></div>
+      <div class="blk t1" style="left:12px;top:58px;width:150px;height:30px"></div><div class="blk t1" style="left:12px;top:92px;width:170px;height:30px"></div>
+      <div class="blk" style="right:14px;top:30px;width:120px;height:130px;background:#333;border-radius:60px 60px 0 0"></div>
+      <div class="blk btn r" style="left:12px;top:142px;width:78px;height:16px"></div>
+      <div class="pill" style="right:10px;top:168px">scroll ↓</div>
+    </div><figcaption><b>1 · Portada.</b> Barra: Trabajos · <b>Sobre mí</b> · Contacto · CV.</figcaption></figure>
+
+    <figure class="step"><div class="scr wine">
+      <div class="lbl" style="left:14px;top:12px">01 / 02</div>
+      <div class="blk t1" style="left:14px;top:46px;width:150px;height:34px"></div><div class="blk t1" style="left:14px;top:84px;width:120px;height:34px"></div>
+      <div class="blk tx" style="left:14px;top:128px;width:130px"></div>
+      <div class="blk btn r" style="left:14px;top:146px;width:90px;height:16px"></div>
+      <div class="blk obj" style="right:60px;top:14px;width:58px;height:160px"></div>
+      <div class="pill" style="right:8px;top:70px;writing-mode:vertical-rl;color:#ff9c90">● 01 &nbsp;&nbsp; ○ 02</div>
+    </div><figcaption><b>2 · Panel 01.</b> Botella grande que se arma al entrar. Índice lateral fijo; scroll o flechas cambian de panel. Poco texto, un botón.</figcaption></figure>
+
+    <figure class="step"><div class="scr wine">
+      <div class="lbl" style="left:14px;top:12px">01 / 02 · Concepto</div>
+      <div class="blk t1" style="left:14px;top:46px;width:110px;height:18px"></div>
+      <div class="blk tx" style="left:14px;top:76px;width:130px"></div><div class="blk tx" style="left:14px;top:84px;width:115px"></div>
+      <div class="blk btn r" style="left:14px;top:146px;width:90px;height:16px"></div>
+      <div class="blk obj" style="right:60px;top:14px;width:58px;height:160px;transform:rotate(180deg)"></div>
+      <div class="pill" style="right:8px;top:70px;writing-mode:vertical-rl;color:#ff9c90">● 01 &nbsp;&nbsp; ○ 02</div>
+    </div><figcaption><b>3 · Sub-paso del panel.</b> Un solo cambio interno (concepto + dorso) y se avanza.</figcaption></figure>
+
+    <figure class="step"><div class="scr bar">
+      <div class="lbl" style="left:20px;top:12px">02 / 02</div>
+      <div class="blk t1" style="left:20px;top:46px;width:120px;height:34px"></div>
+      <div class="blk btn r" style="left:20px;top:132px;width:100px;height:16px"></div>
+      <div class="blk" style="right:40px;top:24px;width:150px;height:130px;background:#222;clip-path:polygon(35% 0,65% 0,100% 100%,0 100%)"></div>
+      <div class="pill" style="right:8px;top:70px;writing-mode:vertical-rl;color:#ff9c90">○ 01 &nbsp;&nbsp; ● 02</div>
+    </div><figcaption><b>4 · Panel 02.</b> Barbería, misma lógica.</figcaption></figure>
+
+    <figure class="step"><div class="scr">
+      <div class="hdr"><i style="left:10px;width:40px"></i></div>
+      <div class="blk" style="right:0;top:22px;bottom:0;width:170px;background:#161618;border-left:1px solid #333"></div>
+      <div class="blk" style="right:96px;top:40px;width:56px;height:70px;background:#333;border-radius:28px 28px 0 0"></div>
+      <div class="blk tx" style="right:14px;top:122px;width:120px"></div><div class="blk tx" style="right:14px;top:130px;width:110px"></div><div class="blk btn o" style="right:80px;top:146px;width:60px;height:14px"></div>
+      <div class="note" style="left:14px;top:60px;width:110px">«Sobre mí» abre este panel sobre cualquier sección</div>
+    </div><figcaption><b>5 · Sobre mí como panel.</b> No ocupa lugar en el recorrido y siempre está a un clic.</figcaption></figure>
+
+    <figure class="step"><div class="scr wine">
+      <div class="blk t1" style="left:14px;top:70px;width:170px;height:30px"></div>
+      <div class="blk btn" style="left:14px;top:116px;width:80px;height:16px"></div><div class="blk btn o" style="left:100px;top:116px;width:70px;height:16px"></div>
+    </div><figcaption><b>6 · Contacto.</b> Último panel.</figcaption></figure>
+  </div>
+  <div class="meta">
+    <div><b>Ganás</b>La más fuerte y diferenciada; muy poco texto; el índice lateral resuelve la orientación.</div>
+    <div><b>Perdés</b>Es la que más trabajo lleva y la que más depende del scroll «guiado», que en celular exige más cuidado.</div>
+  </div>
+</section>
+
+<!-- ===================================================== comparar -->
+<section class="opt" id="cmp">
+  <h2>Comparación</h2>
+  <table>
+    <tr><th></th><th>A · Índice vivo</th><th>B · Capítulos</th><th>C · Paneles</th></tr>
+    <tr><th>Primer trabajo visible</th><td class="y">Pantalla 2</td><td class="n">Pantalla 3–4</td><td class="y">Pantalla 2</td></tr>
+    <tr><th>Scroll total</th><td class="y">≈ 7</td><td>≈ 9</td><td class="y">≈ 5</td></tr>
+    <tr><th>Repetición de contenido</th><td class="y">Baja</td><td class="y">Baja</td><td class="y">Muy baja</td></tr>
+    <tr><th>Cuánto se parece a hoy</th><td>Media</td><td class="y">Alta</td><td class="n">Baja</td></tr>
+    <tr><th>Botella armándose</th><td>En el hover / al entrar al mundo</td><td class="y">Junto a Sobre mí (como ahora)</td><td class="y">Al entrar al panel 01</td></tr>
+    <tr><th>Crece bien con más proyectos</th><td class="y">Muy bien (la lista escala)</td><td class="n">Regular (más capítulos = más scroll)</td><td>Bien (más paneles + índice)</td></tr>
+    <tr><th>Celular</th><td class="y">Simple y robusto</td><td class="y">Simple</td><td class="n">Más delicado</td></tr>
+    <tr><th>Trabajo de construcción</th><td>Medio</td><td class="y">Bajo</td><td class="n">Alto</td></tr>
+  </table>
+
+  <div class="reco">
+    <h3>Mi recomendación</h3>
+    <p style="margin:0">Una mezcla: <b>A como estructura</b> (el índice de trabajos como pantalla central) <b>+ el Sobre mí de C</b> (panel que se abre desde la barra, así no ocupa recorrido) <b>+ el armado de la botella de B</b>, pero como la animación de entrada al mundo de Cordero. Es la que mejor resuelve «repetitivo y desordenado» sin perder la interactividad, y escala cuando sumes proyectos. Si preferís lo mínimo de cambio, B.</p>
+  </div>
+</section>
+
+<footer>Wireframes de estructura. No son el diseño final: tipografía, color, 3D y sonido se mantienen como en la versión actual.</footer>
+</main>
+</body>
+</html>
