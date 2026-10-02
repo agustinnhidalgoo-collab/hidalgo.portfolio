@@ -1,7 +1,7 @@
 ---
 /* Contacto. En la home es el cierre de la escena (`stage`): vuelve tu muñeco, ahora con el teléfono en la oreja
    (lo dibuja la escena 3D: se inclina hacia la opción que señalás, el teléfono suena en WhatsApp y asiente al
-   elegir). En el resto de las páginas es la misma sección, sin escena. */
+   elegir). En el resto de las páginas es la misma sección con el muñeco como imagen fija. */
 import { Image } from 'astro:assets';
 import avatarTel from '../assets/portrait/avatar-tel.webp';
 import { contact, cv } from '../data/site';
@@ -10,21 +10,19 @@ interface Props { stage?: boolean }
 const { stage = false } = Astro.props;
 ---
 
-<section class:list={['sec contact', stage ? 'contact--stage clear' : 'on-dark']} id="contacto" aria-labelledby="contacto-title" data-snd-section>
+<section class:list={['sec contact contact--stage', stage ? 'clear' : 'on-dark']} id="contacto" aria-labelledby="contacto-title" data-snd-section>
   <div class="wrap contact__grid">
-    {stage && (
-      <div class="contact__stage">
-        <div class="contact__avatar" data-slot="portrait-contact" aria-hidden="true">
-          <Image class="slot__img" src={avatarTel} alt="" format="webp" quality={88} widths={[560, 1100]} sizes="(min-width: 64rem) 45vw, 90vw" loading="lazy" />
-          <!-- ondas de llamada junto al teléfono (cuando señalás WhatsApp) -->
-          <span class="contact__ring"><i></i><i></i><i></i></span>
-        </div>
+    <div class="contact__stage">
+      <div class="contact__avatar" data-slot={stage ? 'portrait-contact' : undefined} aria-hidden="true">
+        <Image class="slot__img" src={avatarTel} alt="" format="webp" quality={88} widths={[560, 1100]} sizes="(min-width: 64rem) 45vw, 90vw" loading="lazy" />
+        <!-- ondas de llamada junto al teléfono (cuando señalás WhatsApp) -->
+        <span class="contact__ring"><i></i><i></i><i></i></span>
       </div>
-    )}
+    </div>
 
     <div class="contact__body">
       <h2 id="contacto-title" class="label contact__label">Contacto</h2>
-      <p class="contact__lead">¿Tenés un proyecto en mente o querés charlar de diseño? Escribime por donde te quede más cómodo.</p>
+      <p class="contact__lead">¿Tenés una marca o un proyecto en mente? ¿Buscás sumar diseño a tu equipo? Hablemos.</p>
 
       <a class="btn btn--red contact__wa" href={contact.whatsappUrl} target="_blank" rel="noopener noreferrer" data-look data-magnet data-ring>
         <span class="contact__wa-label">Escribime por WhatsApp</span>

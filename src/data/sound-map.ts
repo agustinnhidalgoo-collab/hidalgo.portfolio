@@ -1,57 +1,79 @@
 /**
- * Mapa de sonidos (todo lo que suena se ajusta acá).
+ * Partitura del sitio: qué suena, cuándo y por qué. Todo lo que suena se ajusta acá.
  *
- * Criterio: menos, pero con sentido. No hay sonidos de clic ni de hover. Suena lo que pasa en escena:
- *   · Bodega → vino: brindis de copas, descorche, vino que se sirve, etiqueta que se desliza.
- *   · Barbería → la capa que se sacude y abre, tijera.
- *   · Ambiente: aire de bodega con gotas lejanas; en la barbería, la capa que roza al desplazarte.
+ * Criterio (investigado: guías de sonido de interfaz de Material Design, buenas prácticas de sonido web):
+ *   · Cada sonido responde a algo que se VE en pantalla. Si no hay un hecho visible, no suena nada.
+ *   · El recorrido es una historia que avanza: los sonidos narrativos solo suenan hacia adelante (bajando).
+ *     Al rebobinar (subiendo) no se repite nada; solo los ambientes acompañan dónde estás.
+ *   · Jerarquía: momentos clave (descorche, estallido, capa) más presentes; detalles (lápiz, papel, tecla) por debajo;
+ *     ambiente muy por debajo, y se aparta (ducking) cuando suena un momento clave.
+ *   · Un solo lenguaje: grabaciones reales para lo físico (vidrio, vino, tela, tijera, tecla) y un ringtone de marimba para el teléfono y dos tonos
+ *     sintetizados, suaves y del mismo timbre, solo para lo abstracto (activar el sonido, email copiado).
+ *   · El sonido sale del lado de la pantalla donde está el objeto (paneo leve, nunca extremo).
  *
- * Los archivos de public/audio/foley son propios, sintetizados con scripts/make-sounds.py
- * (sin muestras ni autoría de terceros). Para escucharlos: /sonidos (página interna, sin enlazar).
+ * Archivos: public/audio/foley/*.mp3, procesados con scripts/process-sounds.mjs desde grabaciones CC0 de
+ * Freesound y una de Mixkit (fuentes y créditos en scripts/sound-sources/). Para escucharlos: /sonidos (página interna).
  */
 
 export type World = 'studio' | 'cellar' | 'barber';
 
-/** Cada sonido: archivo, volumen base (1 = nivel del archivo, ya normalizado a −3 dBFS) y descripción. */
-export const FOLEY = {
-  clink: { vol: 0.34, what: 'Brindis: dos copas de cristal' },
-  cork: { vol: 0.42, what: 'Descorche: fricción, pop y resonancia de la botella' },
-  pour: { vol: 0.3, what: 'Vino servido en una copa' },
-  glug: { vol: 0.34, what: 'Un glug de botella al inclinarse' },
-  scan: { vol: 0.3, what: 'Etiqueta que se dibuja (papel deslizándose)' },
-  'cape-on': { vol: 0.38, what: 'Vuelo de la capa, latigazo al abrirse y roce' },
-  'cape-flap': { vol: 0.32, what: 'Sacudida breve de la capa' },
-  snip: { vol: 0.3, what: 'Tijera: dos cortes' },
-} as const;
-export type Cue = keyof typeof FOLEY;
+export interface CueDef {
+  /** Archivo en public/audio/foley (sin extensión). */
+  file: string;
+  /** Volumen relativo (los archivos ya vienen igualados por rol: 1 = nivel de su rol). */
+  vol: number;
+  /** Variación aleatoria de afinación (±, en proporción): evita que un sonido repetido suene idéntico. */
+  vary?: number;
+  /** Tiempo mínimo entre dos disparos (ms). */
+  cooldown?: number;
+  /** Momento clave: aparta el ambiente mientras suena. */
+  hero?: boolean;
+  /** Elemento del que sale el sonido (paneo según su posición en pantalla). */
+  from?: string;
+  what: string;
+}
 
-/** Sonido de cada paso del tramo fijado, según el mundo (adelante / atrás). */
-export const STEP_CUE: Record<World, { forward?: Cue; back?: Cue }> = {
-  studio: {},
-  cellar: { forward: 'clink', back: 'glug' },
-  barber: { forward: 'snip', back: 'cape-flap' },
+export const CUES = {
+  // Habilidades
+  key: { file: 'key', vol: 0.55, vary: 0.07, cooldown: 55, what: 'Tecla mecánica que se hunde (teclado de herramientas)' },
+  // Armado de la botella: 01 trazo · 02 volumen · 03 etiqueta · 04 terminada
+  pencil: { file: 'pencil', vol: 0.75, from: '[data-slot="preview"], [data-slot="b1"]', what: 'Lápiz sobre papel: la botella se dibuja' },
+  glass: { file: 'glass', vol: 0.6, from: '[data-slot="preview"], [data-slot="b1"]', what: 'Vidrio que se apoya: la botella toma cuerpo' },
+  label: { file: 'label', vol: 0.8, from: '[data-slot="preview"], [data-slot="b1"]', what: 'Etiqueta que se pega' },
+  cork: { file: 'cork', vol: 1, hero: true, from: '[data-slot="b1"], [data-slot="preview"]', what: 'Descorche: la botella terminada se abre' },
+  pour: { file: 'pour', vol: 0.75, hero: true, from: '[data-slot="b1"], [data-slot="preview"]', what: 'El vino cae en la copa' },
+  // Estallido: la botella se rompe y el vino se vuelve la capa
+  shatter: { file: 'shatter', vol: 0.85, hero: true, what: 'La botella estalla' },
+  splash: { file: 'splash', vol: 0.7, what: 'El vino salpica' },
+  cape: { file: 'cape', vol: 0.9, hero: true, from: '[data-slot="c1"]', what: 'La capa se abre: vuelo de tela' },
+  // Barbería
+  tube: { file: 'tube', vol: 0.5, cooldown: 6000, what: 'Tubo fluorescente que arranca al entrar' },
+  scissors: { file: 'scissors', vol: 1.25, from: '[data-slot="c1"]', what: 'Tijera: la capa gira' },
+  // Contacto
+  ring: { file: 'ring', vol: 0.35, cooldown: 2600, from: '.contact__avatar', what: 'El teléfono suena (marimba) al señalar WhatsApp' },
+} satisfies Record<string, CueDef>;
+export type Cue = keyof typeof CUES;
+
+/** Ambiente en bucle por mundo (o ninguno). La barbería es silencio de salón: la escena la cuentan el tubo y la tijera. */
+export const BEDS: Partial<Record<World, { file: string; vol: number }>> = {
+  cellar: { file: 'cellar', vol: 0.75 },
 };
 
-/** Sonido al entrar / volver de un mundo. */
-export const WORLD_CUE: Record<World, { forward?: Cue; back?: Cue }> = {
-  studio: {},
-  cellar: { forward: 'pour', back: undefined },
-  barber: { forward: 'cape-on', back: 'cape-flap' },
-};
+/** Fases del armado de la botella → sonido (solo hacia adelante). En la 4, el vino se sirve tras el descorche. */
+export const BUILD: Partial<Record<number, Cue>> = { 1: 'pencil', 2: 'glass', 3: 'label', 4: 'cork' };
+export const POUR_AFTER_CORK_MS = 520;
 
-/** Fases del armado de la botella al desplazarse (solo suenan hacia adelante). */
-export const BUILD_CUE: Partial<Record<number, Cue>> = {
-  2: 'clink', // el vidrio toma cuerpo
-  3: 'scan', // la etiqueta se dibuja
-  4: 'cork', // terminada: se descorcha
-};
+/** Paso 2 de cada mundo (la pieza gira), solo hacia adelante. La botella gira en silencio; en la barbería, tijera. */
+export const STEP: Partial<Record<World, Cue>> = { barber: 'scissors' };
 
-/** Volúmenes generales (0–1). Bajos a propósito: el sonido acompaña, no protagoniza. */
+/** Niveles generales (0–1). El sonido acompaña, no protagoniza. */
 export const LEVELS = {
-  master: 0.9,
-  ui: 1,
-  ambience: 0.14, // fondo: muy por debajo de los efectos
-  cloth: 0.26, // roce de la capa al desplazarse por la barbería (bus propio)
+  master: 0.8,
+  sfx: 1,
+  ui: 0.4, // tonos de interfaz (activar, copiado)
+  ambience: 0.5,
+  duck: 0.4, // a cuánto baja el ambiente durante un momento clave
+  pan: 0.45, // paneo máximo (0 = centro, 1 = un solo lado)
 };
 
 export const AUDIO_BASE = '/audio/foley';

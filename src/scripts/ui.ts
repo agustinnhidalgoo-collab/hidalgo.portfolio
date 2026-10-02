@@ -343,7 +343,11 @@ if (contactEl) {
   );
   // WhatsApp señalado: el teléfono suena (ondas junto al teléfono; la vibración la dibuja la escena)
   contactEl.querySelectorAll<HTMLElement>('[data-ring]').forEach((el) => {
-    const on = (v: boolean) => contactEl.classList.toggle('is-ringing', v);
+    const on = (v: boolean) => {
+      // el teléfono vibra (sonido) solo al empezar a sonar, no mientras sigue señalado
+      if (v && !contactEl.classList.contains('is-ringing')) dispatchEvent(new CustomEvent('portfolio:ring'));
+      contactEl.classList.toggle('is-ringing', v);
+    };
     el.addEventListener('pointerenter', () => on(true));
     el.addEventListener('pointerleave', () => on(false));
     el.addEventListener('focus', () => on(true));
@@ -383,6 +387,7 @@ if (contactEl) {
         btn.classList.add('is-done');
         if (label) label.textContent = 'Copiado';
         dispatchEvent(new CustomEvent('portfolio:nod'));
+        dispatchEvent(new CustomEvent('portfolio:copied'));
       }
       clearTimeout(toastT);
       toastT = window.setTimeout(() => {

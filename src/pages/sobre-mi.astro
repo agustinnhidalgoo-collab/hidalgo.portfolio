@@ -1,14 +1,23 @@
 ---
+/* Sobre mí: una página con ritmo propio (no un CV en lista).
+   1 Portada: el avatar delante del nombre gigante, con luz roja de estudio (al pasar el puntero, guiña).
+   2 Qué me interesa: el párrafo se «llena» palabra por palabra con el scroll.
+   3 Cómo lo encaro: tres pasos numerados.
+   4 Lo que muestran los proyectos: dos tarjetas con la pieza de cada uno.
+   5 La frase manuscrita, en grande.
+   6 Trayectoria: línea de tiempo (CV sin agregados) y formación.
+   Después, las herramientas y el contacto, como en el resto del sitio. */
 import { Image } from 'astro:assets';
 import Base from '../layouts/Base.astro';
 import Contact from '../components/Contact.astro';
 import Skills from '../components/Skills.astro';
-import portrait from '../assets/portrait/agustin-foto.webp';
+import avatar from '../assets/portrait/avatar.webp';
+import avatarWink from '../assets/portrait/avatar-guino.webp';
 import { person, contact, cv, copy, cvData } from '../data/site';
-import { inline } from '../lib/projects';
+import { getProjects, inline } from '../lib/projects';
 
 const description =
-  'Agustín Hidalgo, diseñador y comunicador visual. Estudiante de Comunicación Visual, Gráfica y Digital (Universidad de Belgrano): formación, experiencia y herramientas.';
+  'Agustín Hidalgo, diseñador y comunicador visual: identidades visuales y packaging. Qué me interesa del diseño, cómo trabajo, formación en la Universidad de Belgrano y experiencia.';
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Person',
@@ -18,79 +27,199 @@ const jsonLd = {
   alumniOf: { '@type': 'CollegeOrUniversity', name: 'Universidad de Belgrano' },
   sameAs: [contact.instagramUrl],
 };
+
+const projects = await getProjects();
+const pad = (n: number) => String(n).padStart(2, '0');
+// Pieza de cada proyecto para su tarjeta (la misma que protagoniza su mundo en la home)
+const cards = projects.map((p, i) => ({
+  id: p.id,
+  n: pad(i + 1),
+  title: p.data.title,
+  descriptor: p.data.descriptor,
+  world: p.data.world,
+  img: p.data.stageImages?.[0] ?? p.data.cover,
+}));
+// Una línea por proyecto, tomada del párrafo «Los proyectos de este portfolio…» (sin inventar nada nuevo)
+const cardLine: Record<string, string> = {
+  'cordero-con-piel-de-lobo': 'Una idea sobre apariencia y esencia que se vuelve etiqueta, textura y caja.',
+  'be-fresh': 'Un logo que se convierte en un sistema de versiones: tarjeta, cartel, capa.',
+};
+
+const steps = [
+  { t: 'Concepto', d: 'Todo parte de una idea que se pueda decir en pocas palabras. En Cordero fue «Verdad desgarrada»; en Be Fresh, el detalle.' },
+  { t: 'Sistema', d: 'Tipografía, composición e imagen trabajan como un mismo sistema. Si una no acompaña, el concepto se pierde.' },
+  { t: 'Aplicación', d: 'La idea se prueba en cada pieza: la etiqueta y la caja, la tarjeta, el cartel, la capa.' },
+];
+
+// «Qué me interesa»: se revela palabra por palabra (las **negritas** se respetan)
+const interest = copy.about[0].split('**').map((seg, i) => ({ seg, b: i % 2 === 1 }));
+
+const design = cvData.experience.filter((e) => e.featured);
+const other = cvData.experience.filter((e) => !e.featured);
 ---
 
 <Base title="Sobre mí — Agustín Hidalgo" description={description} path="/sobre-mi" jsonLd={jsonLd}>
-  <section class="sec on-dark aboutpage__head about" aria-labelledby="sobre-title" style="padding-bottom: clamp(3rem, 6vw, 5rem)">
-    <div class="wrap grid">
-      <div class="about__figure">
-        <Image src={portrait} alt="Agustín Hidalgo sonriendo, con remera negra" format="webp" quality={92} widths={[480, 635]} sizes="(min-width: 64rem) 40vw, 90vw" loading="eager" fetchpriority="high" />
+  <!-- 1 · Portada -->
+  <section class="ab-hero" aria-labelledby="sobre-title">
+    <div class="ab-hero__glow" aria-hidden="true"></div>
+    <div class="wrap ab-hero__stage">
+      <h1 id="sobre-title" class="display ab-hero__name mask" aria-label={person.name}>
+        <span class="ab-hero__soy hand" aria-hidden="true">soy</span>
+        <span class="line" style="--i:0" aria-hidden="true"><span>Agustín</span></span>
+        <span class="line ab-hero__last" style="--i:1" aria-hidden="true"><span>Hidalgo</span></span>
+      </h1>
+      <div class="ab-hero__avatar" data-wink-hover>
+        <Image class="ab-hero__img" src={avatar} alt="Agustín Hidalgo en versión 3D, sonriendo" format="webp" quality={90} widths={[560, 900, 1328]} sizes="(min-width: 64rem) 46vw, 92vw" loading="eager" fetchpriority="high" />
+        <Image class="ab-hero__img ab-hero__img--wink" src={avatarWink} alt="" format="webp" quality={90} widths={[560, 900, 1328]} sizes="(min-width: 64rem) 46vw, 92vw" loading="lazy" />
       </div>
-      <div class="about__text">
-        <h1 id="sobre-title" class="display about__name mask" aria-label={person.name}>
-          <span class="about__soy" aria-hidden="true">soy</span>
-          <span class="line" style="--i:0" aria-hidden="true"><span>Agustin</span></span>
-          <span class="line" style="--i:1" aria-hidden="true"><span>Hidalgo</span></span>
-        </h1>
-        <div class="prose reveal">
-          {copy.about.map((p) => <p set:html={inline(p)} />)}
+      <p class="ab-hero__note hand" aria-hidden="true">
+        ese soy yo,<br />en 3D
+        <svg viewBox="0 0 120 70" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M112 8C92 44 58 60 14 56" /><path d="M26 46 13 56l14 8" /></svg>
+      </p>
+      <div class="ab-hero__foot">
+        <p class="label">Sobre mí</p>
+        <p class="ab-hero__role">{copy.study}</p>
+        <div class="ab-hero__cta">
+          <a class="btn btn--red" href={cv.href} download={cv.file}>{cv.label} <span class="arrow" aria-hidden="true">↓</span></a>
+          <a class="ulink" href="#metodo">Mi método <span class="arrow" aria-hidden="true">↓</span></a>
         </div>
-        <div class="about__cta">
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · Qué me interesa -->
+  <section class="sec on-dark ab-interest" aria-labelledby="interes-title">
+    <div class="wrap ab-split">
+      <p class="ab-kicker reveal"><b>01</b> <span id="interes-title">Qué me interesa</span></p>
+      <p class="ab-interest__text" data-fill>
+        {interest.map(({ seg, b }) => (b ? <strong>{seg}</strong> : seg))}
+      </p>
+    </div>
+  </section>
+
+  <!-- 3 · Cómo lo encaro -->
+  <section class="sec on-dark ab-how" id="metodo" aria-labelledby="como-title">
+    <div class="wrap">
+      <div class="ab-split ab-head">
+        <p class="ab-kicker reveal"><b>02</b> Método</p>
+        <h2 id="como-title" class="display ab-h mask"><span class="line"><span>Cómo</span></span><span class="line" style="--i:1"><span class="ab-h__red">lo encaro</span></span></h2>
+      </div>
+      <ol class="ab-steps">
+        {steps.map((s, i) => (
+          <li class="ab-step reveal" style={`--d:${i * 120}ms`}>
+            <span class="ab-step__n display" aria-hidden="true">{pad(i + 1)}</span>
+            <h3 class="ab-step__t display">{s.t}</h3>
+            <p class="ab-step__d">{s.d}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- 4 · Lo que muestran los proyectos -->
+  <section class="sec on-dark ab-work" aria-labelledby="muestran-title">
+    <div class="wrap">
+      <div class="ab-split ab-head">
+        <p class="ab-kicker reveal"><b>03</b> Proyectos</p>
+        <div>
+          <h2 id="muestran-title" class="display ab-h mask"><span class="line"><span>Del concepto</span></span><span class="line" style="--i:1"><span class="ab-h__red">a la pieza</span></span></h2>
+          <p class="prose ab-lead reveal" set:html={inline(copy.about[1])} />
+        </div>
+      </div>
+      <ul class="ab-cards">
+        {cards.map((c, i) => (
+          <li class="reveal" style={`--d:${i * 140}ms`}>
+            <a class={`ab-card ab-card--${c.world ?? 'plain'}`} href={`/proyectos/${c.id}`} data-cursor="Ver">
+              <span class="ab-card__n display" aria-hidden="true">{c.n}</span>
+              <span class="ab-card__media" aria-hidden="true">
+                <Image src={c.img.src} alt="" format="webp" quality={86} sizes="(min-width: 64rem) 30vw, 70vw" loading="lazy" />
+              </span>
+              <span class="ab-card__body">
+                <span class="ab-card__t display">{c.title}</span>
+                <span class="ab-card__d">{cardLine[c.id] ?? c.descriptor}</span>
+                <span class="ab-card__go">Ver proyecto <span class="arrow" aria-hidden="true">→</span></span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- 5 · La frase -->
+  <section class="ab-quote on-dark" aria-label="Frase">
+    <div class="wrap">
+      <p class="ab-quote__text hand reveal">{copy.quote}</p>
+    </div>
+  </section>
+
+  <!-- 6 · Trayectoria -->
+  <section class="sec on-dark ab-path" aria-labelledby="tray-title">
+    <div class="wrap">
+      <div class="ab-split ab-head">
+        <p class="ab-kicker reveal"><b>04</b> Trayectoria</p>
+        <div>
+          <h2 id="tray-title" class="display ab-h mask"><span class="line"><span>Formación</span></span><span class="line" style="--i:1"><span class="ab-h__red">y experiencia</span></span></h2>
+          <p class="prose ab-lead reveal" set:html={inline(copy.about[2])} />
+        </div>
+      </div>
+
+      <div class="ab-split ab-path__body">
+        <aside class="ab-profile reveal" aria-labelledby="perfil-title">
+          <h3 id="perfil-title" class="label">Perfil</h3>
+          <p>{copy.profile}</p>
           <a class="btn" href={cv.href} download={cv.file}>{cv.label} <span class="arrow" aria-hidden="true">↓</span></a>
           <a class="ulink" href={cv.href} target="_blank" rel="noopener">Abrir en otra pestaña <span class="sr-only">(PDF)</span></a>
+        </aside>
+
+        <div>
+          <h3 class="ab-sub label">Experiencia en diseño</h3>
+          <ol class="ab-time">
+            {design.map((e) => (
+              <li class="ab-time__item reveal">
+                <p class="ab-time__when display">{e.period}</p>
+                <h4 class="ab-time__role">{e.role}</h4>
+                <p class="ab-time__org">{e.org}</p>
+                {e.summary && <p class="ab-time__sum">{e.summary}</p>}
+                {e.tags && <ul class="ab-tags" aria-label="Áreas">{e.tags.map((t) => <li>{t}</li>)}</ul>}
+              </li>
+            ))}
+          </ol>
+
+          <h3 class="ab-sub label">Formación</h3>
+          <ol class="ab-time">
+            <li class="ab-time__item reveal">
+              <p class="ab-time__when display">{cvData.education.period}</p>
+              <h4 class="ab-time__role">{cvData.education.title}</h4>
+              <p class="ab-time__org">{cvData.education.org}</p>
+              <p class="ab-time__sum">{cvData.education.summary}</p>
+              <ul class="ab-tags" aria-label="Áreas">{cvData.education.tags.map((t) => <li>{t}</li>)}</ul>
+            </li>
+            {cvData.courses.map((c) => (
+              <li class="ab-time__item reveal">
+                <p class="ab-time__when display">{c.period}</p>
+                <h4 class="ab-time__role">{c.title}</h4>
+                <p class="ab-time__org">{c.org} · Curso</p>
+              </li>
+            ))}
+          </ol>
+
+          <h3 class="ab-sub label">Otros trabajos</h3>
+          <ol class="ab-time ab-time--compact">
+            {other.map((e) => (
+              <li class="ab-time__item reveal">
+                <p class="ab-time__when display">{e.period}</p>
+                <h4 class="ab-time__role">{e.role}</h4>
+                <p class="ab-time__org">{e.org}</p>
+                <details class="ab-more">
+                  <summary>Ver tareas</summary>
+                  <ul class="ab-time__list">{e.items.map((it) => <li>{it}</li>)}</ul>
+                </details>
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
-    </div>
-  </section>
-
-  <section class="sec on-dark" aria-labelledby="perfil-title" style="border-top: 1px solid var(--rule-dark)">
-    <div class="wrap grid">
-      <h2 id="perfil-title" class="display sech" style="grid-column: 1 / -1">Perfil</h2>
-      <p class="prose" style="grid-column: 1 / -1; max-inline-size: 44rem">{cvData.profile}</p>
-    </div>
-  </section>
-
-  <section class="sec on-dark" aria-labelledby="exp-title" style="padding-top: 0">
-    <div class="wrap">
-      <h2 id="exp-title" class="display sech">Experiencia</h2>
-      <ol class="rows">
-        {cvData.experience.map((e) => (
-          <li class="reveal">
-            <p class="period">{e.period}</p>
-            <div>
-              <h3>{e.role}</h3>
-              <p class="org">{e.org}</p>
-            </div>
-            <ul>{e.items.map((it) => <li>{it}</li>)}</ul>
-          </li>
-        ))}
-      </ol>
-    </div>
-  </section>
-
-  <section class="sec on-dark" aria-labelledby="form-title" style="padding-top: 0">
-    <div class="wrap">
-      <h2 id="form-title" class="display sech">Formación</h2>
-      <ol class="rows">
-        <li class="reveal">
-          <p class="period">{cvData.education.period}</p>
-          <div>
-            <h3>{cvData.education.title}</h3>
-            <p class="org">{cvData.education.org}</p>
-          </div>
-          <ul>{cvData.education.items.map((it) => <li>{it}</li>)}</ul>
-        </li>
-        {cvData.courses.map((c) => (
-          <li class="reveal">
-            <p class="period">{c.period}</p>
-            <div>
-              <h3>{c.title}</h3>
-              <p class="org">{c.org} · Cursos y capacitaciones</p>
-            </div>
-            <p></p>
-          </li>
-        ))}
-      </ol>
     </div>
   </section>
 
@@ -98,3 +227,48 @@ const jsonLd = {
 
   <Contact />
 </Base>
+
+<script>
+  /* «Qué me interesa»: cada palabra se enciende a medida que el párrafo pasa por la pantalla.
+     Sin JS o con movimiento reducido, el texto queda completo y legible. */
+  const el = document.querySelector<HTMLElement>('[data-fill]');
+  if (el && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const words: HTMLElement[] = [];
+    const wrap = (node: Node) => {
+      for (const n of [...node.childNodes]) {
+        if (n.nodeType === Node.TEXT_NODE) {
+          const frag = document.createDocumentFragment();
+          for (const part of (n.textContent ?? '').split(/(\s+)/)) {
+            if (!part) continue;
+            if (/^\s+$/.test(part)) frag.append(document.createTextNode(part));
+            else {
+              const s = document.createElement('span');
+              s.className = 'fw';
+              s.textContent = part;
+              frag.append(s);
+              words.push(s);
+            }
+          }
+          n.replaceWith(frag);
+        } else wrap(n);
+      }
+    };
+    wrap(el);
+    el.classList.add('is-filling');
+    let tick = 0;
+    const update = () => {
+      tick = 0;
+      const r = el.getBoundingClientRect();
+      const vh = innerHeight;
+      const p = Math.min(1, Math.max(0, (vh * 0.85 - r.top) / (r.height + vh * 0.3)));
+      const n = Math.round(p * words.length);
+      words.forEach((w, i) => w.classList.toggle('on', i < n));
+    };
+    const req = () => {
+      if (!tick) tick = requestAnimationFrame(update);
+    };
+    addEventListener('scroll', req, { passive: true });
+    addEventListener('resize', req);
+    update();
+  }
+</script>

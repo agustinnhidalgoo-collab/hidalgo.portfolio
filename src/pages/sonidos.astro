@@ -1,9 +1,15 @@
 ---
+/* Página interna (sin enlazar): escuchar cada sonido del sitio en el orden en que aparece en el recorrido. */
 import Base from '../layouts/Base.astro';
-import { FOLEY } from '../data/sound-map';
+import { CUES } from '../data/sound-map';
 
-const wine = ['cork', 'pour', 'glug', 'clink', 'scan'] as const;
-const barber = ['cape-on', 'cape-flap', 'snip'] as const;
+const story: { title: string; cues: (keyof typeof CUES)[] }[] = [
+  { title: 'Habilidades', cues: ['key'] },
+  { title: 'La botella se arma', cues: ['pencil', 'glass', 'label', 'cork', 'pour'] },
+  { title: 'Estallido → la capa', cues: ['shatter', 'splash', 'cape'] },
+  { title: 'Barbería', cues: ['tube', 'scissors'] },
+  { title: 'Contacto', cues: ['ring'] },
+];
 ---
 
 <Base title="Prueba de sonidos — Agustín Hidalgo" description="Página interna para escuchar los sonidos del portfolio." path="/sonidos" robots="noindex, nofollow">
@@ -12,28 +18,31 @@ const barber = ['cape-on', 'cape-flap', 'snip'] as const;
       <p class="label">Página interna · no está enlazada</p>
       <h1 class="display" style="font-size: clamp(3rem, 9vw, 8rem); margin-block: 0.5rem 1.5rem">Sonidos</h1>
       <p class="prose">
-        Acá podés escuchar cada sonido antes de decidir. Son propios: están sintetizados con <code>scripts/make-sounds.py</code> (sin muestras de terceros),
-        y todo se ajusta en <code>src/data/sound-map.ts</code>. En el sitio no hay sonidos de clic ni de hover: suena lo que pasa en escena.
+        Cada sonido, en el orden del recorrido y con el volumen con que suena en el sitio. Son grabaciones reales con licencia CC0
+        (créditos en <code>scripts/sound-sources/CREDITOS.md</code>). La partitura completa está en <code>src/data/sound-map.ts</code>.
       </p>
       <p style="margin-top: 1.5rem"><button class="btn" type="button" id="snd-start" data-no-sound>Activar audio de prueba</button></p>
 
-      <h2 class="label" style="margin-top: 3rem">Bodega · vino</h2>
-      <div class="snd-row">
-        {wine.map((c) => <button class="btn btn--ghost snd-cue" type="button" data-cue={c} data-no-sound title={FOLEY[c].what}>{c}</button>)}
-      </div>
-      <p class="notice" style="margin-top: 1rem">{wine.map((c) => `${c}: ${FOLEY[c].what}`).join(' · ')}</p>
+      {story.map((s) => (
+        <>
+          <h2 class="label" style="margin-top: 2.5rem">{s.title}</h2>
+          <div class="snd-row">
+            {s.cues.map((c) => <button class="btn btn--ghost snd-cue" type="button" data-cue={c} data-no-sound title={CUES[c].what}>{c}</button>)}
+          </div>
+          <p class="notice" style="margin-top: 0.75rem">{s.cues.map((c) => `${c}: ${CUES[c].what}`).join(' · ')}</p>
+        </>
+      ))}
 
-      <h2 class="label" style="margin-top: 3rem">Barbería · capa y tijera</h2>
+      <h2 class="label" style="margin-top: 2.5rem">Tonos de interfaz (sintetizados)</h2>
       <div class="snd-row">
-        {barber.map((c) => <button class="btn btn--ghost snd-cue" type="button" data-cue={c} data-no-sound title={FOLEY[c].what}>{c}</button>)}
+        <button class="btn btn--ghost" type="button" data-tone="on" data-no-sound>activar sonido</button>
+        <button class="btn btn--ghost" type="button" data-tone="done" data-no-sound>email copiado</button>
       </div>
-      <p class="notice" style="margin-top: 1rem">{barber.map((c) => `${c}: ${FOLEY[c].what}`).join(' · ')}</p>
 
-      <h2 class="label" style="margin-top: 3rem">Ambientes (en bucle; el roce de la capa depende del scroll)</h2>
+      <h2 class="label" style="margin-top: 2.5rem">Ambiente (en bucle)</h2>
       <div class="snd-row">
-        <button class="btn btn--ghost" type="button" data-world="studio" data-no-sound>Apertura (silencio)</button>
         <button class="btn btn--ghost" type="button" data-world="cellar" data-no-sound>Bodega</button>
-        <button class="btn btn--ghost" type="button" data-world="barber" data-no-sound>Barbería</button>
+        <button class="btn btn--ghost" type="button" data-world="studio" data-no-sound>Silencio</button>
       </div>
     </div>
   </section>
@@ -54,7 +63,8 @@ const barber = ['cape-on', 'cape-flap', 'snip'] as const;
 </style>
 
 <script>
-  import { setEnabled, play, setWorld } from '../scripts/sound';
+  import { setEnabled, play, setWorld, __tones } from '../scripts/sound';
+  const on = () => setEnabled(true, { remember: false, silent: true });
   const start = document.getElementById('snd-start') as HTMLButtonElement;
   start.addEventListener('click', async () => {
     await setEnabled(true, { remember: false });
@@ -62,14 +72,20 @@ const barber = ['cape-on', 'cape-flap', 'snip'] as const;
   });
   document.querySelectorAll<HTMLButtonElement>('.snd-cue').forEach((b) =>
     b.addEventListener('click', async () => {
-      await setEnabled(true, { remember: false, silent: true });
+      await on();
       play(b.dataset.cue as never, { force: true });
+    }),
+  );
+  document.querySelectorAll<HTMLButtonElement>('[data-tone]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      await on();
+      __tones[b.dataset.tone as 'on' | 'done']();
     }),
   );
   document.querySelectorAll<HTMLButtonElement>('[data-world]').forEach((b) =>
     b.addEventListener('click', async () => {
-      await setEnabled(true, { remember: false, silent: true });
-      setWorld(b.dataset.world as 'studio' | 'cellar' | 'barber');
+      await on();
+      setWorld(b.dataset.world as 'studio' | 'cellar');
     }),
   );
 </script>

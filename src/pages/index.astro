@@ -12,7 +12,7 @@ import { getProjects, titleLines } from '../lib/projects';
 
 const projects = await getProjects();
 const description =
-  'Portfolio de Agustín Hidalgo, diseñador y comunicador visual: identidad visual, sistemas gráficos y dirección de arte. Proyectos, CV y contacto.';
+  'Portfolio de Agustín Hidalgo, diseñador y comunicador visual: identidades visuales y packaging, del concepto a las aplicaciones. Proyectos, CV y contacto.';
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Person',
@@ -28,8 +28,8 @@ const numOf = (p: (typeof projects)[number]) => projects.indexOf(p) + 1;
 const pad = (n: number) => String(n).padStart(2, '0');
 // «Sobre mí» de la portada: el párrafo se revela palabra por palabra con el scroll (las **negritas** se respetan)
 const bio: { w: string; b: boolean; tight?: boolean }[] = [];
-copy.about[0].split('**').forEach((seg, i, all) => {
-  // tramos pegados sin espacio entre medio («Hidalgo**, estudiante…»): la palabra anterior no lleva espacio
+copy.lead.split('**').forEach((seg, i, all) => {
+  // tramos pegados sin espacio entre medio («packaging**:»): la palabra anterior no lleva espacio detrás
   if (bio.length && seg && !/^\s/.test(seg) && !/\s$/.test(all[i - 1])) bio[bio.length - 1].tight = true;
   seg.split(/\s+/).filter(Boolean).forEach((w) => bio.push({ w, b: i % 2 === 1 }));
 });
@@ -67,7 +67,7 @@ const preview = staged[0]?.data.stageImages?.[0];
           <Image class="slot__img slot__img--wink" src={avatarWink} alt="" format="webp" quality={90} widths={[560, 1100]} sizes="(min-width: 64rem) 50vw, 100vw" loading="lazy" />
         </div>
         <div class="intro__role">
-          <p class="intro__pre">Diseño de <span class="sr-only">{crafts.join(', ').toLowerCase()}</span></p>
+          <p class="intro__pre">Diseño de <span class="sr-only">{crafts.slice(0, -1).join(', ').toLowerCase()} y {crafts.at(-1)!.toLowerCase()}</span></p>
           <!-- Rueda de palabras: arriba la anterior (solo contorno), abajo la actual; la lista se repite para girar sin fin -->
           <div class="intro__words display" data-words aria-hidden="true">
             <div class="intro__wheel">{[...crafts, ...crafts, ...crafts].map((w) => <span>{w}</span>)}</div>
@@ -77,8 +77,8 @@ const preview = staged[0]?.data.stageImages?.[0];
         <div class="intro__portrait-to" data-slot="portrait-about" data-wink-to aria-hidden="true"></div>
         <div class="intro__about" data-look>
           <p class="label intro__label">Sobre mí</p>
-          <p class="intro__bio">{bio.map(({ w, b, tight }) => (b ? <strong class:list={['w', { tight }]}>{w}</strong> : <span class:list={['w', { tight }]}>{w}</span>))}</p>
-          <p class="intro__study">{person.role} · Universidad de Belgrano</p>
+          <p class="intro__bio">{bio.map(({ w, b, tight }) => <>{b ? <strong class="w">{w}</strong> : <span class="w">{w}</span>}{tight ? '' : ' '}</>)}</p>
+          <p class="intro__study">{copy.study}</p>
           <p class="intro__cta"><a class="btn btn--red" href="#trabajos">Ver proyectos <span class="arrow" aria-hidden="true">↓</span></a></p>
         </div>
         <p class="intro__cue" aria-hidden="true">Bajá <span>↓</span></p>

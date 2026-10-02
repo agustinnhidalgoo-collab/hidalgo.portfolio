@@ -1,3 +1,6 @@
 node_modules
 dist
 .astro
+
+# Fuente de Mixkit: su licencia no permite redistribuirla suelta (se descarga de nuevo, ver CREDITOS.md)
+scripts/sound-sources/ring-mixkit1359-fragmento.mp3

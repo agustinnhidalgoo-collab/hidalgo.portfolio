@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import portrait from '../assets/portrait/agustin-foto.webp';
+import portrait from '../assets/portrait/avatar.webp';
 import { person, nav, cv, copy } from '../data/site';
 import { inline } from '../lib/projects';
 interface Props { current: string }
@@ -97,9 +97,9 @@ const barNav = current === '/' ? nav.filter((item) => item.href !== '/#trabajos'
       <h2 id="aboutp-title" class="display aboutp__title">Sobre <em>mí</em></h2>
       <div class="aboutp__text">
         <p set:html={inline(copy.about[0])} />
-        <p class="aboutp__tools">Adobe Illustrator, Adobe Photoshop, Google Workspace y Microsoft Office.</p>
+        <p class="aboutp__tools">{copy.education}</p>
       </div>
-      <p class="aboutp__quote hand">{copy.manifesto.join(' ')}</p>
+      <p class="aboutp__quote hand">{copy.quote}</p>
       <div class="aboutp__row">
         <a class="btn" href={cv.href} download={cv.file}>{cv.label} <span class="arrow" aria-hidden="true">↓</span></a>
         <a class="ulink" href="/sobre-mi">Sobre mí en detalle <span class="arrow" aria-hidden="true">→</span></a>

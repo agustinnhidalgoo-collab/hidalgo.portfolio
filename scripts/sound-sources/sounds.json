@@ -1,0 +1,212 @@
+[
+ {
+  "out": "key",
+  "src": "key-348239.mp3",
+  "start": 0,
+  "end": 0.35,
+  "fadeOut": 40,
+  "role": "micro",
+  "source": {
+   "id": "348239",
+   "author": "newagesoup",
+   "title": "MECH-KEYBOARD-01.wav",
+   "url": "https://freesound.org/people/newagesoup/sounds/348239/",
+   "license": "CC0 1.0"
+  }
+ },
+ {
+  "out": "pencil",
+  "src": "pencil-85702.mp3",
+  "start": 0.1,
+  "end": 0.98,
+  "fadeIn": 20,
+  "fadeOut": 120,
+  "role": "micro",
+  "source": {
+   "id": "85702",
+   "author": "tmkappelt",
+   "title": "Pencil_lines.aif",
+   "url": "https://freesound.org/people/tmkappelt/sounds/85702/",
+   "license": "CC0 1.0"
+  }
+ },
+ {
+  "out": "glass",
+  "src": "glassdown-418521.mp3",
+  "start": 2.1,
+  "end": 2.52,
+  "role": "mid",
+  "source": {
+   "id": "418521",
+   "author": "14FPanskaKremenakova_Marie",
+   "title": "put_down_a_glass.wav",
+   "url": "https://freesound.org/people/14FPanskaKremenakova_Marie/sounds/418521/",
+   "license": "CC0 1.0"
+  },
+  "limit": 3
+ },
+ {
+  "out": "label",
+  "src": "paper-352914.mp3",
+  "start": 0.2,
+  "end": 1,
+  "fadeIn": 20,
+  "fadeOut": 150,
+  "role": "mid",
+  "source": {
+   "id": "352914",
+   "author": "Kingofgamers_cz",
+   "title": "Paper slide",
+   "url": "https://freesound.org/people/Kingofgamers_cz/sounds/352914/",
+   "license": "CC0 1.0"
+  },
+  "limit": 8
+ },
+ {
+  "out": "cork",
+  "src": "cork-206152.mp3",
+  "start": 0.03,
+  "end": 0.63,
+  "role": "hero",
+  "source": {
+   "id": "206152",
+   "author": "ahill86",
+   "title": "bottlepop44.wav",
+   "url": "https://freesound.org/people/ahill86/sounds/206152/",
+   "license": "CC0 1.0"
+  },
+  "limit": 3
+ },
+ {
+  "out": "pour",
+  "src": "pour-206154.mp3",
+  "start": 2.45,
+  "end": 5.5,
+  "fadeIn": 40,
+  "fadeOut": 600,
+  "role": "mid",
+  "source": {
+   "id": "206154",
+   "author": "ahill86",
+   "title": "bottlepour44.wav",
+   "url": "https://freesound.org/people/ahill86/sounds/206154/",
+   "license": "CC0 1.0"
+  },
+  "limit": 9
+ },
+ {
+  "out": "shatter",
+  "src": "shatter-212698.mp3",
+  "start": 0.45,
+  "end": 2.33,
+  "fadeOut": 300,
+  "role": "hero",
+  "stereo": true,
+  "source": {
+   "id": "212698",
+   "author": "dasebr",
+   "title": "Breaking a glass bottle",
+   "url": "https://freesound.org/people/dasebr/sounds/212698/",
+   "license": "CC0 1.0"
+  },
+  "limit": 2
+ },
+ {
+  "out": "splash",
+  "src": "splash-199437.mp3",
+  "start": 0.6,
+  "end": 2,
+  "fadeOut": 300,
+  "role": "mid",
+  "stereo": true,
+  "source": {
+   "id": "199437",
+   "author": "martinimeniscus",
+   "title": "Quick Splash Champagne into Wine Glass FF343.aif",
+   "url": "https://freesound.org/people/martinimeniscus/sounds/199437/",
+   "license": "CC0 1.0"
+  },
+  "limit": 5
+ },
+ {
+  "out": "cape",
+  "src": "cloth-495390.mp3",
+  "start": 0,
+  "end": 0.62,
+  "fadeOut": 120,
+  "role": "hero",
+  "source": {
+   "id": "495390",
+   "author": "Nox_Sound",
+   "title": "Foley_Whoosh_Clothes.wav",
+   "url": "https://freesound.org/people/Nox_Sound/sounds/495390/",
+   "license": "CC0 1.0"
+  },
+  "limit": 4
+ },
+ {
+  "out": "tube",
+  "src": "tube-125064.mp3",
+  "start": 0.15,
+  "end": 2.6,
+  "fadeOut": 700,
+  "role": "mid",
+  "source": {
+   "id": "125064",
+   "author": "EverydaySounds",
+   "title": "Faulty Fluorescent Light Starter & Hum.wav",
+   "url": "https://freesound.org/people/EverydaySounds/sounds/125064/",
+   "license": "CC0 1.0"
+  }
+ },
+ {
+  "out": "scissors",
+  "src": "scissors-567933.mp3",
+  "start": 0.8,
+  "end": 1.45,
+  "fadeOut": 80,
+  "role": "mid",
+  "source": {
+   "id": "567933",
+   "author": "mmg67",
+   "title": "Scissors.wav",
+   "url": "https://freesound.org/people/mmg67/sounds/567933/",
+   "license": "CC0 1.0"
+  },
+  "limit": 15
+ },
+ {
+  "out": "cellar",
+  "src": "cellar-489401-fragmento.mp3",
+  "start": 2,
+  "end": 32,
+  "fadeIn": 500,
+  "fadeOut": 10,
+  "loop": 2000,
+  "role": "bed",
+  "stereo": true,
+  "source": {
+   "id": "489401",
+   "author": "more7859",
+   "title": "Ambient Unfinished Basement.wav",
+   "url": "https://freesound.org/people/more7859/sounds/489401/",
+   "license": "CC0 1.0"
+  }
+ },
+ {
+  "out": "ring",
+  "src": "ring-mixkit1359-fragmento.mp3",
+  "start": 0,
+  "end": 2.2,
+  "fadeOut": 500,
+  "role": "mid",
+  "stereo": true,
+  "source": {
+   "id": "1359",
+   "author": "Mixkit",
+   "title": "Marimba ringtone",
+   "url": "https://mixkit.co/free-sound-effects/phone/",
+   "license": "Mixkit Sound Effects Free License"
+  }
+ }
+]

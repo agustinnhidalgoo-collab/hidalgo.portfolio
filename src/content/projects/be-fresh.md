@@ -3,9 +3,9 @@ title: Be Fresh
 order: 2
 draft: false
 descriptor: Diseño de logo e identidad visual
-summary: "Identidad para una barbería que se aleja de los códigos tradicionales: elegancia, detalle y autenticidad en un sistema sobrio y monocromático."
+summary: "Identidad para una barbería que se aleja de los códigos tradicionales. Un sistema en negro y blanco, con contraste de pesos en el logo y versiones pensadas para cada aplicación."
 year: 2026
-type: [Identidad visual, Logo e isologo]
+type: [Identidad visual, Logo e isotipo]
 focus: [Branding, Sistema gráfico]
 category: [Barbería, Servicios]
 world: barber
@@ -23,32 +23,32 @@ stageImages:
     alt: Capa de barbero negra con el logotipo befresh en blanco y las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
   - src: ../../assets/befresh/capa.webp
     alt: Capa de barbero negra con el logotipo befresh en blanco.
-seoDescription: Diseño de logo e identidad visual para Be Fresh, una barbería contemporánea. Sistema gráfico monocromático, isotipo en relieve y aplicaciones.
+seoDescription: Diseño de logo e identidad visual para Be Fresh, una barbería. Sistema monocromático, cuatro versiones del logo y aplicaciones presentadas en mockups.
 sections:
   - kind: gallery
     title: Sistema de logo
     size: m
-    body: La identidad se construye sobre un sistema sólido y minimalista, donde la tipografía y el isologotipo trabajan en conjunto para transmitir elegancia, precisión y una mirada distinta dentro del mundo de la barbería. El contraste, la simplicidad y el detalle marcan cada decisión de diseño.
+    body: El logotipo va en minúscula y se apoya en un contraste de pesos. «be» es muy grueso y compacto; «fresh», liviano. A partir de esa pieza armé cuatro versiones, una para cada tipo de espacio y de uso.
     items:
       - image: "../../assets/befresh/logo-blanco.png"
         alt: "Logotipo «befresh» en blanco sobre negro."
         label: "Versión principal"
-        note: "Equilibrio y modernidad"
+        note: "Contraste de pesos entre «be» y «fresh»"
       - image: "../../assets/befresh/v-alternativa.jpg"
         alt: "Logotipo «BE FRESH» en mayúsculas espaciadas."
         label: "Versión alternativa"
-        note: "Aplicación en espacios más reducidos"
+        note: "Mayúsculas espaciadas, para espacios angostos"
       - image: "../../assets/befresh/isologo-blanco.png"
         alt: "Isotipo BF en blanco sobre negro."
         label: "Versión isotipo"
-        note: "Símbolo fuerte y reconocible"
+        note: "B y F unidas en un solo signo: funciona sola"
       - image: "../../assets/befresh/v-sello.jpg"
         alt: "Sello circular con el isotipo BF y el texto Be Fresh Barbería."
         label: "Versión sello"
-        note: "Uso en redes y aplicaciones secundarias"
+        note: "Para redes y aplicaciones secundarias"
   - kind: palette
     title: Paleta de color
-    body: Una paleta monocromática, de negros, grises y blanco.
+    body: Sin los colores habituales de las barberías. Negro, dos grises y blanco hueso; sin color, el contraste y la forma del logo sostienen la identidad.
     colors:
       - hex: "#0A0A0A"
         name: Negro profundo
@@ -61,7 +61,7 @@ sections:
   - kind: type
     title: Tipografía
     family: Montserrat
-    body: Montserrat aporta presencia y fuerza en los títulos, reflejando seguridad y carácter. Garantiza legibilidad, limpieza y equilibrio en los textos, acompañando la identidad con modernidad y funcionalidad.
+    body: Una sola familia en tres pesos ordena toda la jerarquía. Bold para títulos, Medium para subtítulos y Regular para textos. Sus formas geométricas acompañan al logo y se leen bien tanto en una tarjeta como en un cartel.
     uses:
       - label: "Títulos"
         value: "Bold"
@@ -73,6 +73,7 @@ sections:
   - kind: gallery
     title: Aplicaciones y usabilidad
     layout: full
+    body: Presentadas en mockups, las aplicaciones muestran el sistema en uso. En la tarjeta, la bolsa, el cartel y la capa, el logo va en blanco sobre negro. En el estampado aparece sin color, solo en relieve, y se sigue reconociendo por su forma.
     items:
       - image: "../../assets/befresh/estampado.jpg"
         alt: "Logotipo en relieve sobre superficie negra."
@@ -90,4 +91,6 @@ sections:
         alt: "Capa de barbero negra con el logotipo befresh en blanco y las leyendas Exclusive Studio, ESTD 2026 y The detail by detail."
         label: "Capa de barbero"
 ---
-Be Fresh es una barbería que redefine la experiencia desde la **elegancia, el detalle y la autenticidad**. La identidad visual busca transmitir sofisticación y precisión, alejándose de los códigos tradicionales para construir una marca contemporánea y distintiva.
+Be Fresh es una barbería que busca diferenciarse desde la **elegancia, el detalle y la autenticidad**, lejos de los códigos tradicionales del rubro.
+
+Diseñé el logo, sus versiones (principal, alternativa, isotipo y sello), la paleta, la tipografía y las aplicaciones que muestran cómo funciona el sistema. La frase de la marca, «The detail by detail», resume el criterio: cada pieza se resuelve con pocos elementos y mucho cuidado.

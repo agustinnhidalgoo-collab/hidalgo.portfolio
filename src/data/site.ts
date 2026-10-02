@@ -8,7 +8,7 @@ const whatsappText = 'Hola Agustín, vi tu portfolio y me gustaría conversar.';
 
 export const person = {
   name: 'Agustín Hidalgo',
-  wordmark: 'AGUSTIN HIDALGO', // grafía del video, sin tilde
+  wordmark: 'AGUSTÍN HIDALGO', // con tilde: en mayúsculas también se acentúa (el video y el CV la omitían)
   role: 'Diseñador y comunicador visual', // CV
   year: 2026, // "2026" en el video y el CV
 };
@@ -35,9 +35,15 @@ export const nav = [
   { label: 'Contacto', href: '/#contacto', panel: false },
 ] as const;
 
-/** Textos del video; se corrigieron las erratas ortográficas del original.
- *  `intro` y `portfolio` ya no se muestran en la home (la propuesta los quitó); quedan por si se recuperan. */
+/** Textos de presentación.
+ *  `lead`: la home (se revela palabra por palabra; presenta qué hago y cómo). `about`: el panel y la página «Sobre mí»
+ *  (profundizan: qué me interesa, qué muestran los proyectos, formación y experiencia del CV). Así no se repite la misma biografía.
+ *  `quote`: frase manuscrita del panel. `intro` y `portfolio` (del video) ya no se muestran; quedan por si se recuperan. */
 export const copy = {
+  lead: 'Diseño **identidades visuales y packaging**: parto de un concepto y lo llevo hasta cada aplicación, de la etiqueta a la caja, del logo a la capa. Cuido que **tipografía, composición e imagen** digan lo mismo.',
+  /** Línea chica bajo la presentación: el rol del CV y la situación académica, sin esconderla ni ponerla primero. */
+  study: 'Diseñador y comunicador visual · Estudiante en la Universidad de Belgrano',
+  quote: 'Primero la idea. Después, cada detalle.',
   intro: {
     before: 'El diseño es mi forma de ',
     marks: ['pensar', 'comunicar', 'resolver'],
@@ -57,12 +63,19 @@ export const copy = {
     'Cada trabajo explora la relación entre narrativa, estética y comunicación, combinando estructura visual, sensibilidad gráfica y dirección de arte para construir experiencias contemporáneas y coherentes.',
   ],
   about: [
-    'Soy **Agustín Hidalgo**, estudiante de Comunicación Visual Gráfica y Digital en la Universidad de Belgrano, con interés en el desarrollo de identidades visuales, sistemas gráficos y proyectos donde el diseño se construye desde el concepto y la narrativa.',
-    'Me interesa explorar cómo la composición, la tipografía y la dirección visual pueden transformar ideas en experiencias visuales claras, contemporáneas y con intención, combinando sensibilidad estética, estructura y comunicación.',
+    'Me interesa el diseño que parte de **una idea** y la sostiene en cada pieza. Trabajo la tipografía, la composición y la imagen como partes de un mismo sistema: si una no acompaña, el concepto se pierde.',
+    'Los proyectos de este portfolio muestran ese recorrido. En **Cordero con piel de lobo**, una idea sobre apariencia y esencia se vuelve etiqueta, textura y caja. En **Be Fresh**, un logo se convierte en un sistema de versiones que funciona en una tarjeta, un cartel o una capa.',
+    'Estudio la **Licenciatura en Comunicación Visual, Gráfica y Digital** en la Universidad de Belgrano, desde 2024. Trabajo de forma independiente en piezas para marcas y redes desde 2025, y en 2026 sumé diseño gráfico y edición audiovisual en la Honorable Cámara de Diputados.',
   ],
+  /** «Perfil» de la página Sobre mí: el perfil del CV reescrito sin agregar datos (el original sigue en `cvData.profile`). */
+  profile:
+    'Identidad visual, packaging y piezas para comunicación digital. Diseño en Illustrator y Photoshop, y sumo lo que aprendí en redes sociales, copywriting y edición de video. De trabajos anteriores en atención al cliente y tareas administrativas traigo organización y trato directo: entender el pedido, presentar propuestas y ajustarlas.',
+  /** Formación en una línea (panel «Sobre mí»). */
+  education: 'Licenciatura en Comunicación Visual, Gráfica y Digital · Universidad de Belgrano (en curso)',
 };
 
-/** Extraído del CV (PDF adjunto). Sin agregados. */
+/** Extraído del CV (PDF adjunto). Sin agregados.
+ *  `summary` y `tags`: versión corta para la línea de tiempo de Sobre mí, con los mismos datos (el detalle queda en `items` y en el PDF). */
 export const cvData = {
   profile:
     'Estudiante de Licenciatura en Comunicación Visual, Gráfica y Digital con experiencia en creación de contenido, manejo de herramientas de diseño (Adobe Illustrator y Photoshop) y gestión de redes sociales. Experiencia laboral en atención al cliente y tareas administrativas, desarrollando habilidades en organización, comunicación y resolución de problemas. Manejo de herramientas digitales como Google Workspace y Microsoft Office. Interesado en desarrollarse en áreas de diseño, comunicación y entornos corporativos, aportando una combinación de creatividad, eficiencia operativa y trabajo en equipo.',
@@ -72,6 +85,8 @@ export const cvData = {
       org: 'Trabajo independiente',
       period: '2025 – Actualidad',
       featured: true,
+      summary: 'Identidades visuales y piezas para marcas y redes, de la propuesta a los ajustes con cada cliente.',
+      tags: ['Identidad visual', 'Redes', 'Contenido digital'],
       items: [
         'Diseño y desarrollo de piezas gráficas para redes sociales, comunicación y marcas.',
         'Desarrollo de identidades visuales y aplicaciones gráficas.',
@@ -86,6 +101,8 @@ export const cvData = {
       org: 'Honorable Cámara de Diputados',
       period: '2026',
       featured: true,
+      summary: 'Piezas gráficas y videos para la comunicación institucional y la actualidad legislativa.',
+      tags: ['Diseño gráfico', 'Video', 'Copys'],
       items: [
         'Diseño y desarrollo de piezas gráficas para redes sociales y comunicación institucional.',
         'Producción, edición y postproducción de contenido audiovisual para plataformas digitales.',
@@ -123,6 +140,8 @@ export const cvData = {
     title: 'Licenciatura en Comunicación Visual, Gráfica y Digital',
     org: 'Universidad de Belgrano',
     period: '2024 – Actualidad',
+    summary: 'Diseño gráfico y comunicación visual, con proyectos de branding, editorial y contenido digital.',
+    tags: ['Branding', 'Editorial', 'Contenido digital'],
     items: [
       'Formación en diseño gráfico, comunicación visual y desarrollo de piezas digitales.',
       'Aplicación de herramientas de diseño como Adobe Illustrator y Photoshop.',

@@ -1,8 +1,9 @@
-/* Sonido del portfolio (Web Audio). Opcional: apagado hasta que el visitante lo activa.
-   - Foley propio (public/audio/foley): vino en la bodega, capa y tijera en la barbería. Sin clics ni hover.
-   - Ambiente: aire de bodega con gotas lejanas y el roce de la capa ligado al scroll (sintetizados aquí).
-   - Se suspende con la pestaña oculta y nunca arranca sin un gesto del usuario. */
-import { AUDIO_BASE, BUILD_CUE, FOLEY, LEVELS, STEP_CUE, WORLD_CUE, type Cue, type World } from '../data/sound-map';
+/* Sonido del portfolio (Web Audio). Opcional: apagado hasta que el visitante lo activa; nunca arranca sin un gesto.
+   La partitura (qué suena, cuándo y por qué) está en src/data/sound-map.ts.
+   - Foley real (public/audio/foley): cada sonido responde a algo que se ve. Los narrativos suenan solo hacia adelante.
+   - Ambiente: la bodega tiene su aire de sótano en bucle; se aparta durante los momentos clave.
+   - Paneo según dónde está el objeto en pantalla. Se suspende con la pestaña oculta. */
+import { AUDIO_BASE, BEDS, BUILD, CUES, LEVELS, POUR_AFTER_CORK_MS, STEP, type Cue, type CueDef, type World } from '../data/sound-map';
 
 const KEY = 'portfolio:sound';
 const root = document.documentElement;
@@ -10,9 +11,10 @@ const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 
 let ctx: AudioContext | null = null;
 let master!: GainNode;
+let sfxBus!: GainNode;
 let uiBus!: GainNode;
 let ambBus!: GainNode;
-let clothBus!: GainNode;
+let duckGain!: GainNode;
 let enabled = false;
 let world: World = (root.dataset.world as World) || 'studio';
 const buffers = new Map<string, Promise<AudioBuffer | null>>();
@@ -20,183 +22,182 @@ const lastPlayed = new Map<string, number>();
 
 export const isEnabled = () => enabled;
 
-/* ---------- Efectos de interfaz ---------- */
-function load(url: string) {
-  let p = buffers.get(url);
+/* ---------- Sentido del recorrido: los sonidos narrativos solo avanzan ---------- */
+let lastY = scrollY;
+let dir: 1 | -1 = 1;
+addEventListener(
+  'scroll',
+  () => {
+    const y = scrollY;
+    if (Math.abs(y - lastY) > 2) dir = y > lastY ? 1 : -1;
+    lastY = y;
+  },
+  { passive: true },
+);
+let pointerX = innerWidth / 2;
+addEventListener('pointermove', (e) => (pointerX = e.clientX), { passive: true });
+
+/** Registro de lo que suena (solo con ?qa, para pruebas). */
+function log(s: string) {
+  (window as unknown as { __snd?: { log: string[] } }).__snd?.log.push(`${Math.round(scrollY)} ${s}`);
+}
+
+/* ---------- Carga ---------- */
+function load(file: string) {
+  let p = buffers.get(file);
   if (!p) {
-    p = fetch(url)
+    p = fetch(`${AUDIO_BASE}/${file}.mp3`)
       .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(new Error(String(r.status)))))
       .then((b) => ctx!.decodeAudioData(b))
       .catch(() => null);
-    buffers.set(url, p);
+    buffers.set(file, p);
   }
   return p;
 }
-
-interface PlayOpts {
-  volume?: number;
-  rate?: number;
-  force?: boolean; // ignora el límite de repetición (página de pruebas)
+/** Precarga lo que esta página puede necesitar, para que nada llegue tarde a su momento. */
+function preload() {
+  const home = !!document.getElementById('gl');
+  const list: string[] = [];
+  if (document.querySelector('.skills')) list.push(CUES.key.file);
+  if (document.getElementById('contacto')) list.push(CUES.ring.file);
+  if (home) (Object.keys(CUES) as Cue[]).forEach((c) => list.push(CUES[c].file));
+  Object.values(BEDS).forEach((b) => b && (home || world !== 'studio') && list.push(b.file));
+  [...new Set(list)].forEach(load);
 }
 
+/** Paneo (−1 izquierda … 1 derecha) según el primer elemento visible del selector. */
+function panOf(sel?: string) {
+  if (!sel) return 0;
+  for (const el of document.querySelectorAll<HTMLElement>(sel)) {
+    const r = el.getBoundingClientRect();
+    if (r.width > 0 && r.bottom > 0 && r.top < innerHeight) return clamp(((r.left + r.width / 2) / innerWidth) * 2 - 1, -1, 1) * LEVELS.pan;
+  }
+  return 0;
+}
+
+/* ---------- Reproducir ---------- */
+interface PlayOpts {
+  volume?: number;
+  pan?: number;
+  delay?: number; // s
+  force?: boolean; // ignora el límite de repetición (página de pruebas)
+}
 export async function play(cue: Cue, o: PlayOpts = {}) {
-  if (!enabled || !ctx || ctx.state !== 'running' || !FOLEY[cue]) return;
+  const def: CueDef = CUES[cue];
+  if (!enabled || !ctx || ctx.state !== 'running' || !def) return;
   const now = performance.now();
-  if (!o.force && now - (lastPlayed.get(cue) ?? -1e9) < 140) return;
+  if (!o.force && now - (lastPlayed.get(cue) ?? -1e9) < (def.cooldown ?? 120)) return;
   lastPlayed.set(cue, now);
-  const buf = await load(`${AUDIO_BASE}/${cue}.mp3`);
+  const pan = o.pan ?? panOf(def.from);
+  const buf = await load(def.file);
   if (!buf || !ctx || !enabled) return;
+  log(`  ▶ ${cue}${o.delay ? ` (+${o.delay}s)` : ""} pan ${pan.toFixed(2)}`);
+  const t = ctx.currentTime + (o.delay ?? 0);
   const src = ctx.createBufferSource();
   src.buffer = buf;
-  src.playbackRate.value = (o.rate ?? 1) * (1 + (Math.random() - 0.5) * 0.05); // leve variación: nunca suena idéntico
+  const vary = def.vary ?? 0;
+  if (vary) src.playbackRate.value = 1 + (Math.random() * 2 - 1) * vary;
   const g = ctx.createGain();
-  g.gain.value = FOLEY[cue].vol * (o.volume ?? 1);
-  src.connect(g).connect(uiBus);
-  src.start();
+  g.gain.value = def.vol * (o.volume ?? 1);
+  const p = ctx.createStereoPanner();
+  p.pan.value = pan;
+  src.connect(g).connect(p).connect(sfxBus);
+  src.start(t);
+  if (def.hero) duck(t, buf.duration);
   src.onended = () => {
     src.disconnect();
     g.disconnect();
+    p.disconnect();
   };
 }
 
-/* ---------- Ambiente sintetizado ---------- */
-const beds: Record<World, GainNode> = {} as Record<World, GainNode>;
-let buzzGain: GainNode;
-let buzzFilter: BiquadFilterNode;
-let dripTimer = 0;
-let noiseBuf: AudioBuffer;
-
-function noise(): AudioBufferSourceNode {
-  const s = ctx!.createBufferSource();
-  s.buffer = noiseBuf;
-  s.loop = true;
-  s.loopStart = Math.random() * 0.5;
-  return s;
-}
-function osc(type: OscillatorType, f: number, detune = 0) {
-  const o = ctx!.createOscillator();
-  o.type = type;
-  o.frequency.value = f;
-  o.detune.value = detune;
-  return o;
-}
-function lfo(target: AudioParam, rate: number, depth: number) {
-  const l = osc('sine', rate);
-  const d = ctx!.createGain();
-  d.gain.value = depth;
-  l.connect(d).connect(target);
-  l.start();
+/** Momento clave: el ambiente se aparta y vuelve despacio. */
+function duck(at: number, dur: number) {
+  const gp = duckGain.gain;
+  gp.cancelScheduledValues(at);
+  gp.setTargetAtTime(LEVELS.duck, at, 0.03);
+  gp.setTargetAtTime(1, at + Math.min(dur, 1.2), 0.6);
 }
 
-function buildAmbience() {
-  const c = ctx!;
-  // Ruido rosado/marrón precalculado (2 s, en bucle)
-  noiseBuf = c.createBuffer(1, c.sampleRate * 2, c.sampleRate);
-  const d = noiseBuf.getChannelData(0);
-  let b0 = 0, b1 = 0, b2 = 0;
-  for (let i = 0; i < d.length; i++) {
-    const w = Math.random() * 2 - 1;
-    b0 = 0.99765 * b0 + w * 0.099046;
-    b1 = 0.963 * b1 + w * 0.2965164;
-    b2 = 0.57 * b2 + w * 1.0526913;
-    d[i] = (b0 + b1 + b2 + w * 0.1848) * 0.12;
-  }
-  (['studio', 'cellar', 'barber'] as World[]).forEach((w) => {
-    beds[w] = c.createGain();
-    beds[w].gain.value = 0;
-    beds[w].connect(ambBus);
+/* ---------- Tonos de interfaz (lo único sintetizado: activar el sonido y «email copiado») ----------
+   Mismo timbre para los dos: nota suave tipo marimba (fundamental + parcial 4× que se apaga rápido). */
+function tone(freqs: number[], gap = 0.07, vol = 1) {
+  if (!ctx || !enabled) return;
+  const t0 = ctx.currentTime + 0.02;
+  freqs.forEach((f, i) => {
+    const t = t0 + i * gap;
+    [
+      [1, 0.22, 0.32],
+      [4, 0.05, 0.06],
+    ].forEach(([mul, amp, dec]) => {
+      const o = ctx!.createOscillator();
+      o.frequency.value = f * mul;
+      const g = ctx!.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(amp * vol, t + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+      o.connect(g).connect(uiBus);
+      o.start(t);
+      o.stop(t + dec + 0.05);
+      o.onended = () => {
+        o.disconnect();
+        g.disconnect();
+      };
+    });
   });
+}
+const toneOn = () => (log("  ♪ tono activar"), tone([659.25, 987.77])); // mi5 → si5: sube, se lee como «encendido»
+const toneDone = () => (log("  ♪ tono copiado"), tone([1318.5], 0, 0.7)); // mi6: una sola nota corta, «listo»
 
-  // Estudio: silencio (la presentación personal no lleva ambiente)
+/* ---------- Ambiente ---------- */
+let bedSrc: AudioBufferSourceNode | null = null;
+let bedGain: GainNode | null = null;
+let bedName = '';
 
-  // Bodega: aire grave de sótano que respira, sin zumbidos; las gotas lejanas lo completan
-  {
-    const out = beds.cellar;
-    const n = noise(), lp = c.createBiquadFilter(), ng = c.createGain();
-    lp.type = 'lowpass'; lp.frequency.value = 210; ng.gain.value = 0.7;
-    lfo(ng.gain, 0.05, 0.25);
-    n.connect(lp).connect(ng).connect(out); n.start();
-    const n2 = noise(), bp = c.createBiquadFilter(), g2 = c.createGain();
-    bp.type = 'bandpass'; bp.frequency.value = 620; bp.Q.value = 0.5; g2.gain.value = 0.05;
-    lfo(g2.gain, 0.07, 0.04);
-    n2.connect(bp).connect(g2).connect(out); n2.start();
+async function setBed(w: World | 'none') {
+  const def = w === 'none' ? undefined : BEDS[w];
+  const name = def ? def.file : '';
+  if (!ctx || name === bedName) return;
+  bedName = name;
+  log(`  ≈ ambiente: ${name || "silencio"}`);
+  // el anterior se funde y se libera
+  if (bedSrc && bedGain) {
+    const s = bedSrc, g = bedGain;
+    g.gain.setTargetAtTime(0, ctx.currentTime, 0.5);
+    setTimeout(() => {
+      try { s.stop(); } catch { /* ya detenido */ }
+      s.disconnect();
+      g.disconnect();
+    }, 2500);
+    bedSrc = bedGain = null;
   }
-  // Barbería: aire de sala muy tenue; el roce de la capa (ligado al scroll) es el sonido principal
-  {
-    const out = beds.barber;
-    const n = noise(), bp = c.createBiquadFilter(), ng = c.createGain();
-    bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 0.4; ng.gain.value = 0.1;
-    n.connect(bp).connect(ng).connect(out); n.start();
-    // Capa de barbero: roce de tela; se agita con el desplazamiento (ruido filtrado con pulsos irregulares)
-    buzzFilter = c.createBiquadFilter();
-    buzzFilter.type = 'bandpass'; buzzFilter.frequency.value = 900; buzzFilter.Q.value = 0.6;
-    buzzGain = c.createGain();
-    buzzGain.gain.value = 0;
-    const am = c.createGain(); am.gain.value = 0.6;
-    lfo(am.gain, 7.3, 0.4); // flameo
-    lfo(am.gain, 2.1, 0.15);
-    const rn = noise();
-    rn.connect(buzzFilter).connect(am).connect(buzzGain).connect(clothBus);
-    rn.start();
-  }
+  if (!def) return;
+  const buf = await load(def.file);
+  if (!buf || !ctx || bedName !== name || !enabled) return;
+  const s = ctx.createBufferSource();
+  s.buffer = buf;
+  s.loop = true;
+  const g = ctx.createGain();
+  g.gain.value = 0;
+  s.connect(g).connect(duckGain);
+  s.start(ctx.currentTime, Math.random() * buf.duration); // cada visita entra en un punto distinto del bucle
+  g.gain.setTargetAtTime(def.vol, ctx.currentTime, 0.8);
+  bedSrc = s;
+  bedGain = g;
 }
 
-function drip() {
-  dripTimer = 0;
-  if (!enabled || !ctx || world !== 'cellar' || document.hidden) return schedule();
-  const c = ctx, t = c.currentTime;
-  const f = 1300 + Math.random() * 900;
-  const o = osc('sine', f), g = c.createGain(), dl = c.createDelay(1), fb = c.createGain(), lp = c.createBiquadFilter();
-  g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(0.09, t + 0.004);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
-  o.frequency.setValueAtTime(f * 1.25, t);
-  o.frequency.exponentialRampToValueAtTime(f, t + 0.05);
-  dl.delayTime.value = 0.27; fb.gain.value = 0.38; lp.type = 'lowpass'; lp.frequency.value = 2400;
-  o.connect(g); g.connect(beds.cellar); g.connect(dl); dl.connect(lp).connect(fb).connect(dl); lp.connect(beds.cellar);
-  o.start(t); o.stop(t + 0.3);
-  setTimeout(() => { try { dl.disconnect(); fb.disconnect(); lp.disconnect(); } catch { /* ya liberado */ } }, 3500);
-  schedule();
+/* Qué ambiente corresponde. Durante el estallido seguimos en la bodega hasta que la botella se rompe. */
+let broken = false;
+function inBurst() {
+  const b = document.getElementById('estallido');
+  if (!b) return false;
+  const r = b.getBoundingClientRect();
+  return r.top < innerHeight / 2 && r.bottom > innerHeight / 2;
 }
-function schedule() {
-  if (!dripTimer) dripTimer = window.setTimeout(drip, 7000 + Math.random() * 9000);
+function bedFor(w: World): World | 'none' {
+  if (w === 'studio' && inBurst()) return broken ? 'none' : 'cellar';
+  return BEDS[w] ? w : 'none';
 }
-
-function applyWorld(w: World) {
-  if (!ctx) return;
-  (Object.keys(beds) as World[]).forEach((k) => beds[k].gain.setTargetAtTime(k === w ? 1 : 0, ctx!.currentTime, 0.9));
-  if (w === 'cellar') schedule();
-}
-
-/* ---------- Roce de la capa ligado a la velocidad del scroll ---------- */
-let lastY = scrollY;
-let lastT = performance.now();
-let vel = 0; // px/ms suavizado
-let buzzRaf = 0;
-function buzzLoop() {
-  buzzRaf = 0;
-  if (!enabled || !ctx) return;
-  const now = performance.now();
-  const y = scrollY;
-  const dt = Math.max(1, now - lastT);
-  const inst = Math.abs(y - lastY) / dt;
-  lastY = y;
-  lastT = now;
-  vel += (inst - vel) * (inst > vel ? 0.35 : 0.07);
-  const k = world === 'barber' ? clamp(vel / 1.6) : 0;
-  const t = ctx.currentTime;
-  buzzGain.gain.setTargetAtTime(LEVELS.cloth * k, t, 0.06);
-  buzzFilter.frequency.setTargetAtTime(600 + k * 2200, t, 0.08);
-  if (k > 0.002 || inst > 0.01) buzzRaf = requestAnimationFrame(buzzLoop);
-}
-const wakeBuzz = () => {
-  if (enabled && !buzzRaf) {
-    lastY = scrollY;
-    lastT = performance.now();
-    buzzRaf = requestAnimationFrame(buzzLoop);
-  }
-};
-addEventListener('scroll', wakeBuzz, { passive: true });
 
 /* ---------- Activar / desactivar ---------- */
 function ensure() {
@@ -205,14 +206,15 @@ function ensure() {
   ctx = new AC({ latencyHint: 'interactive' });
   master = ctx.createGain();
   master.gain.value = 0;
-  const comp = ctx.createDynamicsCompressor();
-  comp.threshold.value = -20; comp.knee.value = 14; comp.ratio.value = 3.5; comp.attack.value = 0.006; comp.release.value = 0.18;
-  master.connect(comp).connect(ctx.destination);
+  // Techo de seguridad: casi transparente, solo actúa si dos sonidos fuertes coinciden
+  const lim = ctx.createDynamicsCompressor();
+  lim.threshold.value = -6; lim.knee.value = 4; lim.ratio.value = 12; lim.attack.value = 0.002; lim.release.value = 0.15;
+  master.connect(lim).connect(ctx.destination);
   if (location.search.includes('qa')) {
     // Gancho de medición para pruebas (?qa): nivel de salida sin necesidad de escuchar
     const an = ctx.createAnalyser();
     an.fftSize = 2048;
-    comp.connect(an);
+    lim.connect(an);
     const buf = new Float32Array(an.fftSize);
     (window as unknown as { __snd: unknown }).__snd = {
       level: () => {
@@ -221,12 +223,14 @@ function ensure() {
         for (const v of buf) { sum += v * v; peak = Math.max(peak, Math.abs(v)); }
         return { rms: Math.sqrt(sum / buf.length), peak };
       },
+      log: [] as string[],
+      state: () => ({ ctx: ctx?.state, enabled, hidden: document.hidden }),
     };
   }
+  sfxBus = ctx.createGain(); sfxBus.gain.value = LEVELS.sfx; sfxBus.connect(master);
   uiBus = ctx.createGain(); uiBus.gain.value = LEVELS.ui; uiBus.connect(master);
   ambBus = ctx.createGain(); ambBus.gain.value = LEVELS.ambience; ambBus.connect(master);
-  clothBus = ctx.createGain(); clothBus.gain.value = 1; clothBus.connect(master);
-  buildAmbience();
+  duckGain = ctx.createGain(); duckGain.connect(ambBus);
   return ctx;
 }
 
@@ -240,17 +244,21 @@ export async function setEnabled(on: boolean, o: { silent?: boolean; remember?: 
     await c.resume().catch(() => {});
     enabled = true;
     master.gain.cancelScheduledValues(c.currentTime);
-    master.gain.setTargetAtTime(LEVELS.master, c.currentTime, 0.25);
-    applyWorld(world);
-    if (!o.silent) play('clink', { volume: 0.7 });
+    master.gain.setTargetAtTime(LEVELS.master, c.currentTime, 0.15);
+    preload();
+    bedName = '';
+    setBed(bedFor(world));
+    if (!o.silent) toneOn();
   } else {
     enabled = false;
     if (ctx) {
-      master.gain.setTargetAtTime(0, ctx.currentTime, 0.12);
-      window.clearTimeout(dripTimer);
-      dripTimer = 0;
+      master.gain.setTargetAtTime(0, ctx.currentTime, 0.1);
       const c = ctx;
-      setTimeout(() => { if (!enabled) c.suspend().catch(() => {}); }, 500);
+      setTimeout(() => {
+        if (enabled) return;
+        setBed('none');
+        c.suspend().catch(() => {});
+      }, 500);
     }
   }
   root.classList.toggle('snd-on', on);
@@ -258,104 +266,59 @@ export async function setEnabled(on: boolean, o: { silent?: boolean; remember?: 
 }
 export const toggle = () => setEnabled(!enabled);
 
-const ORDER: World[] = ['studio', 'cellar', 'barber'];
-export function setWorld(w: World, from?: World) {
-  if (w === world) return;
+export function setWorld(w: World) {
   world = w;
   if (!enabled) return;
-  applyWorld(w);
-  const fwd = ORDER.indexOf(w) > ORDER.indexOf(from ?? 'studio');
-  const c = WORLD_CUE[w][fwd ? 'forward' : 'back'];
-  if (c) play(c);
+  setBed(bedFor(w));
+  // El tubo de la barbería arranca cada vez que se entra (se ve parpadear): el sonido acompaña lo que se ve
+  if (w === 'barber' && document.getElementById('gl')) play('tube', { pan: -0.15 });
 }
 
 /* ---------- Eventos de la página ---------- */
 addEventListener('portfolio:world', (e) => {
   const d = (e as CustomEvent<{ world: World; from: World }>).detail;
-  setWorld(d.world, d.from);
+  log(`world ${d.from}→${d.world}`);
+  setWorld(d.world);
 });
-// Paso de un tramo fijado: adelante / atrás según el mundo activo
+// Paso 2 de un mundo (la pieza gira): solo hacia adelante
 addEventListener('portfolio:sfx', (e) => {
   const d = (e as CustomEvent<{ cue: 'forward' | 'back' }>).detail;
-  const c = STEP_CUE[world][d.cue];
-  if (c) play(c, { volume: d.cue === 'back' ? 0.75 : 1 });
+  const c = STEP[world];
+  log(`step ${d.cue} ${c ?? '-'}`);
+  if (c && d.cue === 'forward') play(c);
 });
-// Armado de la botella: suena al avanzar de fase
+// Armado de la botella: si el scroll saltea fases, suena solo la última alcanzada (nunca una ráfaga)
 addEventListener('portfolio:build', (e) => {
-  const d = (e as CustomEvent<{ phase: number; dir: 1 | -1 }>).detail;
-  const c = BUILD_CUE[d.phase];
-  if (c && d.dir > 0) play(c);
+  const d = (e as CustomEvent<{ phase: number; from: number }>).detail;
+  log(`build ${d.from}→${d.phase}`);
+  if (d.phase <= d.from || dir < 0) return;
+  const c = BUILD[d.phase];
+  if (!c) return;
+  play(c);
+  if (c === 'cork') play('pour', { delay: POUR_AFTER_CORK_MS / 1000 });
 });
-
-/* Estallido de la botella (entre la bodega y la barbería): crack de vidrio sintetizado (ruido agudo y astillas
-   que tintinean), la copa que se quiebra y el vino que salpica. Solo hacia adelante. */
-function shatter() {
-  if (!enabled || !ctx || ctx.state !== 'running' || !noiseBuf) return;
-  const c = ctx, t = c.currentTime;
-  const n = noise();
-  const hp = c.createBiquadFilter();
-  hp.type = 'highpass';
-  hp.frequency.value = 1700;
-  const g = c.createGain();
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(0.42, t + 0.004);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
-  n.connect(hp).connect(g).connect(uiBus);
-  n.start(t);
-  n.stop(t + 0.45);
-  n.onended = () => { n.disconnect(); hp.disconnect(); g.disconnect(); };
-  for (let i = 0; i < 9; i++) {
-    const at = t + 0.015 + Math.random() * 0.38;
-    const o = c.createOscillator();
-    o.frequency.value = 2400 + Math.random() * 4600;
-    const og = c.createGain();
-    og.gain.setValueAtTime(0.0001, at);
-    og.gain.exponentialRampToValueAtTime(0.035 + Math.random() * 0.04, at + 0.003);
-    og.gain.exponentialRampToValueAtTime(0.0001, at + 0.1 + Math.random() * 0.22);
-    o.connect(og).connect(uiBus);
-    o.start(at);
-    o.stop(at + 0.4);
-    o.onended = () => { o.disconnect(); og.disconnect(); };
-  }
-  play('clink', { rate: 0.62, volume: 0.8 });
-  setTimeout(() => play('pour', { rate: 1.3, volume: 0.7 }), 90);
-}
-/* Tecla de la botonera de habilidades: clic mecánico corto (ruido filtrado + golpe grave), muy bajo */
-let lastKey = 0;
-addEventListener('portfolio:key', () => {
-  if (!enabled || !ctx || ctx.state !== 'running' || !noiseBuf) return;
-  const now = performance.now();
-  if (now - lastKey < 60) return;
-  lastKey = now;
-  const c = ctx, t = c.currentTime;
-  const n = noise();
-  const bp = c.createBiquadFilter();
-  bp.type = 'bandpass';
-  bp.frequency.value = 2600 + Math.random() * 600;
-  bp.Q.value = 1.2;
-  const g = c.createGain();
-  g.gain.setValueAtTime(0.0001, t);
-  g.gain.exponentialRampToValueAtTime(0.16, t + 0.002);
-  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
-  n.connect(bp).connect(g).connect(uiBus);
-  n.start(t);
-  n.stop(t + 0.06);
-  const o = c.createOscillator();
-  o.frequency.setValueAtTime(190, t);
-  o.frequency.exponentialRampToValueAtTime(90, t + 0.05);
-  const og = c.createGain();
-  og.gain.setValueAtTime(0.0001, t);
-  og.gain.exponentialRampToValueAtTime(0.08, t + 0.003);
-  og.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
-  o.connect(og).connect(uiBus);
-  o.start(t);
-  o.stop(t + 0.07);
-  o.onended = () => { n.disconnect(); bp.disconnect(); g.disconnect(); o.disconnect(); og.disconnect(); };
-});
-
+// Estallido: la botella se rompe y el vino salpica; al rebobinar, silencio (y vuelve el aire de la bodega)
 addEventListener('portfolio:burst', (e) => {
-  if ((e as CustomEvent<{ dir: 1 | -1 }>).detail.dir > 0) shatter();
+  const d = (e as CustomEvent<{ dir: 1 | -1 }>).detail.dir;
+  broken = d > 0;
+  log(`burst ${d}`);
+  if (enabled) setBed(bedFor(world));
+  if (d > 0) {
+    play('shatter');
+    play('splash', { delay: 0.09, pan: 0.1 });
+  }
 });
+// La capa se forma a partir del vino
+addEventListener('portfolio:cape', (e) => {
+  const d = (e as CustomEvent<{ dir: 1 | -1 }>).detail.dir;
+  log(`cape ${d}`);
+  if (d > 0) play('cape');
+});
+// Tecla del teclado de herramientas: sale del lado donde está el puntero
+addEventListener('portfolio:key', () => play('key', { pan: clamp((pointerX / innerWidth) * 2 - 1, -1, 1) * LEVELS.pan }));
+// Contacto: el teléfono suena al señalar WhatsApp; confirmación suave al copiar el email
+addEventListener('portfolio:ring', () => play('ring'));
+addEventListener('portfolio:copied', () => enabled && ctx?.state === 'running' && toneDone());
 
 document.addEventListener('visibilitychange', () => {
   if (!ctx) return;
@@ -365,4 +328,5 @@ document.addEventListener('visibilitychange', () => {
 
 /* Para la página de pruebas (/sonidos) */
 export const __ready = () => !!ctx && enabled;
-export { FOLEY };
+export const __tones = { on: () => toneOn(), done: () => toneDone() };
+export { CUES };

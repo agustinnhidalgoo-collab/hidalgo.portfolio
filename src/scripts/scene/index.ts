@@ -667,6 +667,7 @@ export async function startScene(): Promise<boolean> {
   let prevY = scrollY;
   let running = !document.hidden;
   let buildPhase = 0;
+  let capeFormed = false;
   let drawn = false; // hay algo dibujado en el lienzo
   let broken = false; // para el sonido del estallido (solo al cruzar el instante)
   const onScreen = (p: Pose, half: number) => p.y + half > -20 && p.y - half < H + 20 && p.x > -half * 2 && p.x < W + half * 2;
@@ -841,7 +842,8 @@ export async function startScene(): Promise<boolean> {
     glass.envMapIntensity = 1.1 + 1.8 * part(0.5, 1, pb);
     const phase = pb <= 0.001 ? 0 : pb < 0.22 ? 1 : pb < 0.5 ? 2 : pb < 0.97 ? 3 : 4;
     if (phase !== buildPhase) {
-      if (!firstRender && Math.abs(phase - buildPhase) === 1) dispatchEvent(new CustomEvent('portfolio:build', { detail: { phase, dir: phase > buildPhase ? 1 : -1 } }));
+      // Aunque el scroll saltee fases, se avisa siempre (de qué fase a cuál): el sonido decide qué corresponde
+      if (!firstRender) dispatchEvent(new CustomEvent('portfolio:build', { detail: { phase, from: buildPhase, dir: phase > buildPhase ? 1 : -1 } }));
       buildPhase = phase;
     }
     if (note) {
@@ -856,6 +858,12 @@ export async function startScene(): Promise<boolean> {
     // La capa se materializa desde el splash (roja de vino) y pasa al blanco y negro de Be Fresh
     capeFormU.uForm.value = e < 0 ? (y < burstT ? 0 : 1) : smooth(clamp((e - 0.44) / 0.4, 0, 1));
     capeFormU.uWine.value = e < 0 ? (y < burstT ? 1 : 0) : 1 - smooth(clamp((e - 0.68) / 0.32, 0, 1));
+    // La capa aparece (el vino toma forma de tela): aviso para el sonido, en el momento en que se ve
+    const formed = capeFormU.uForm.value > 0.18;
+    if (formed !== capeFormed) {
+      if (!firstRender) dispatchEvent(new CustomEvent('portfolio:cape', { detail: { dir: formed ? 1 : -1 } }));
+      capeFormed = formed;
+    }
     // el brillo de la tela también es de vino mientras la capa está roja (si no, el rojo se vuelve rosa)
     if (capeFabric) capeFabric.sheenColor.copy(sheenGray).lerp(sheenWine, capeFormU.uWine.value);
     const kOn = !!cur.k && !!cape && onScreen(cur.k, cur.k.s / 2) && cur.k.y > -9000 && capeFormU.uForm.value > 0;
