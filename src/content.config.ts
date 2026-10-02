@@ -90,18 +90,31 @@ export const projects = defineCollection({
       /** Escena propia del proyecto en la home (opcional): 'bottle' y 'cape' son 3D; 'book' es el libro que se hojea con el scroll. */
       scene: z.enum(['bottle', 'cape', 'book']).optional(),
       /** Ambiente del proyecto (fondo, cursor y sonido): bodega, barbería o imprenta. */
-      world: z.enum(['cellar', 'barber', 'press']).optional(),
+      world: z.enum(['cellar', 'barber', 'aquarium']).optional(),
       /** Nombre corto para el índice lateral de los mundos (si no, se toma del título). */
       short: z.string().optional(),
       /**
-       * Publicación (scene: book): el libro se arma con las dobles páginas reales, en orden.
-       * La tapa es la mitad izquierda de la primera doble. `cover` es el rótulo del libro cerrado;
-       * cada doble lleva un rótulo corto y una nota sobre la decisión de diseño que se ve en ella.
+       * Publicación (scene: book): un mundo que se recorre hojeando el libro.
+       * El libro se arma con las dobles páginas reales, en orden; la tapa es la mitad izquierda de la primera doble.
+       * - `opening`: la frase de entrada al mundo (bajo el título).
+       * - `cover` y cada doble: `line` es el fragmento del relato que aparece al llegar a esa página;
+       *   `title` y `note`, el rótulo chico con la decisión de diseño que se ve en ella.
+       * - `closing`: las frases del final, cuando el libro se hunde (la última es la que queda).
+       * - `pitch`: el cierre que vende: qué demuestra la pieza.
        */
       book: z
         .object({
-          cover: z.string(),
-          spreads: z.array(z.object({ image: image(), alt: z.string().min(3), title: z.string(), note: z.string() })).min(2),
+          opening: z.string(),
+          cover: z.object({ line: z.string(), note: z.string() }),
+          spreads: z
+            .array(z.object({ image: image(), alt: z.string().min(3), title: z.string(), note: z.string(), line: z.string() }))
+            .min(2),
+          closing: z.array(z.string()).min(1),
+          pitch: z.object({
+            title: z.string(),
+            items: z.array(z.object({ t: z.string(), d: z.string() })).min(1),
+            cta: z.string(),
+          }),
         })
         .optional(),
       /** Idea central del proyecto (rótulo corto) y foto de apoyo para la escena. */

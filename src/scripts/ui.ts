@@ -102,8 +102,8 @@ if (stages.length) {
 }
 
 /* ---------- Mundos: cada proyecto con 3D cambia el ambiente (fondo, cursor y sonido) ---------- */
-type WorldName = 'studio' | 'cellar' | 'barber' | 'press';
-const ORDER: WorldName[] = ['studio', 'cellar', 'barber', 'press'];
+type WorldName = 'studio' | 'cellar' | 'barber' | 'aquarium';
+const ORDER: WorldName[] = ['studio', 'cellar', 'barber', 'aquarium'];
 const ENTER = document.getElementById('enter');
 let enterT = 0;
 let lastEnter = -1e9;
@@ -113,8 +113,8 @@ function announce(w: Exclude<WorldName, 'studio'>) {
   lastEnter = performance.now();
   const stage = document.querySelector<HTMLElement>(`.pstage[data-world="${w}"]`);
   const name = [...(stage?.querySelectorAll('.ptitle > span') ?? [])].map((t) => t.textContent).join(' ').trim();
-  const title = { cellar: 'La bodega', barber: 'La barbería', press: 'La imprenta' }[w];
-  const hand = 'entrando a';
+  const title = { cellar: 'La bodega', barber: 'La barbería', aquarium: 'Acuario' }[w];
+  const hand = w === 'aquarium' ? 'entrando al' : 'entrando a';
   (ENTER.querySelector('.enter__hand') as HTMLElement).textContent = hand;
   (ENTER.querySelector('.enter__title') as HTMLElement).textContent = title;
   (ENTER.querySelector('.enter__sub') as HTMLElement).textContent = name;

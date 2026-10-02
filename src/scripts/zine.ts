@@ -18,6 +18,11 @@ function init(z: HTMLElement) {
   const leaves = [...book.querySelectorAll<HTMLElement>('.zb__leaf')];
   const n = leaves.length;
   const max = clamp(Number(z.dataset.max) || n, 1, n);
+  // Tramo final (página del proyecto): después de la última doble el libro se hunde y quedan las frases de cierre
+  const END = Number(z.dataset.end) || 0;
+  const total = max + END;
+  const world = z.dataset.zine === 'case'; // el lector maneja el acuario: se oscurece y se vacía a medida que se hojea
+  const html = document.documentElement;
   const track = z.closest<HTMLElement>('[data-zine-track]');
   const pin = track?.querySelector<HTMLElement>('[data-zine-pin]') ?? null;
   const caps = [...z.querySelectorAll<HTMLElement>('[data-zb-cap]')];
@@ -37,7 +42,14 @@ function init(z: HTMLElement) {
   let target = 0; // destino en modo botones
   let state = -1; // doble asentada
 
-  function render(p: number, scrolled: boolean) {
+  function render(raw: number, scrolled: boolean) {
+    const p = Math.min(raw, max);
+    const end = END ? clamp((raw - max) / END) : 0;
+    z.style.setProperty('--end', end.toFixed(3));
+    if (world) {
+      html.style.setProperty('--depth', clamp(raw / total).toFixed(3));
+      html.style.setProperty('--end', end.toFixed(3));
+    }
     const turning: number[] = [];
     leaves.forEach((leaf, i) => {
       const u = p - i;
@@ -63,6 +75,7 @@ function init(z: HTMLElement) {
     if (s !== state) {
       state = s;
       z.dataset.state = String(s);
+      if (world) html.dataset.zstate = String(s);
       caps.forEach((c) => c.toggleAttribute('data-on', Number(c.dataset.zbCap) === s));
       if (count) count.textContent = s === 0 ? 'Tapa' : pad(s);
       if (btnPrev) btnPrev.disabled = s <= 0;
@@ -77,8 +90,10 @@ function init(z: HTMLElement) {
   let last = 0;
   function frame(now: number) {
     raf = 0;
-    if (pinned()) {
-      pos = progress() * max;
+    const pin = pinned();
+    z.classList.toggle('is-pinned', pin);
+    if (pin) {
+      pos = progress() * total;
       render(pos, true);
       return;
     }
@@ -99,7 +114,7 @@ function init(z: HTMLElement) {
   function go(k: number) {
     k = clamp(Math.round(k), 0, max);
     if (pinned()) {
-      const y = scrollY + track!.getBoundingClientRect().top + span() * (k / max);
+      const y = scrollY + track!.getBoundingClientRect().top + span() * (k / total);
       const lenis = (window as unknown as { __lenis?: Lenis }).__lenis;
       if (lenis) lenis.scrollTo(y, { duration: 1.1, force: true });
       else scrollTo({ top: y, behavior: calm ? 'auto' : 'smooth' });
@@ -125,11 +140,25 @@ function init(z: HTMLElement) {
     });
   }
 
+  // Las páginas de adentro se precargan cuando el libro se acerca: al hojear (o saltar) ya están listas
+  const imgs = [...book.querySelectorAll<HTMLImageElement>('img[loading="lazy"]')];
+  const preload = () => imgs.forEach((im) => (im.loading = 'eager'));
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => {
+      if (es.some((e) => e.isIntersecting)) {
+        preload();
+        io.disconnect();
+      }
+    }, { rootMargin: '150% 0px' });
+    io.observe(track ?? z);
+  } else preload();
+
   addEventListener('scroll', () => pinned() && kick(), { passive: true });
   addEventListener('resize', kick);
   // Estado inicial sin sonido: lo que ya está pasado al cargar (recarga a mitad de página) no «suena»
-  pos = target = pinned() ? progress() * max : 0;
-  leaves.forEach((_, i) => (side[i] = (pinned() ? ease(clamp((pos - i - 0.16) / 0.68)) : 0) >= 0.5));
+  z.classList.toggle('is-pinned', pinned());
+  pos = target = pinned() ? progress() * total : 0;
+  leaves.forEach((_, i) => (side[i] = (pinned() ? ease(clamp((Math.min(pos, max) - i - 0.16) / 0.68)) : 0) >= 0.5));
   render(pos, pinned());
   z.classList.add('is-ready');
 }
