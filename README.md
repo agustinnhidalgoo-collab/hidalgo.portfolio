@@ -70,7 +70,7 @@ Otros comandos: `npm.cmd run font` (regenera la tipografía 3D del nombre), `npm
 - Las fotos del PDF miden ~525 px de ancho: por eso la botella nunca se muestra por encima de ~720 px de alto ni con primeros planos. No hay reverso inventado: solo se muestran las dos caras con información real.
 - La capa es una imagen real con deformación de tela (efecto visual, no una simulación física ni un modelo 3D). El armado de la botella (trazo, guías, regla) es una animación decorativa sobre la silueta medida de la foto real.
 - Los sonidos se eligieron y mezclaron con medición (volumen percibido, picos, ruido de fondo, espectrograma) y se verificó en un navegador que cada uno se dispara en su momento y en orden, en escritorio y en móvil; el timbre final lo juzga el oído (`/sonidos`). Para cambiar uno: editar `scripts/sound-sources/sounds.json` y volver a correr `scripts/process-sounds.mjs`.
-- Sin dominio confirmado: no hay canonical ni sitemap con URLs. Al publicar: `SITE_URL=https://tu-dominio npm run build`.
+- Publicado en Vercel: https://hidalgo-portfolio-two.vercel.app (se actualiza solo con cada push a `main`). Con un dominio propio, cambiar la dirección en `astro.config.mjs` (o la variable `SITE_URL`) y en `public/robots.txt`.
 - Sin versión en inglés (sin evidencia que la justifique).
 - El rendimiento se midió en laboratorio (Chromium con render por software); no en un teléfono real.
 - Para pruebas: `/?snap` desactiva el suavizado de la escena y `window.__lenis` expone el scroll.
