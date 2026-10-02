@@ -621,9 +621,10 @@ export async function startScene(): Promise<boolean> {
       capeStageEnter = k.enter;
       cBuild = { a: k.enter + vh * 0.3, b: Math.max(k.enter + vh * 0.3 + 2, k.pinned ? k.T + k.L * 0.4 : k.T + vh * 0.5) };
     }
-    const contactSec = $('#contacto');
-    if (contactSec && monos.length > 1) {
-      const cT = docTop(contactSec);
+    // La barbería se apaga al llegar a lo que sigue (otro mundo sin 3D, como la imprenta, o el contacto)
+    const afterCape = (capeStage?.nextElementSibling as HTMLElement | null) ?? $('#contacto');
+    if (afterCape && monos.length > 1) {
+      const cT = docTop(afterCape);
       monos.push({ y: Math.max(monos[monos.length - 1].y + 1, cT - vh * 1.05), v: 1 }, { y: Math.max(monos[monos.length - 1].y + 2, cT - vh * 0.2), v: 0 });
     }
     monoTrack = monos;

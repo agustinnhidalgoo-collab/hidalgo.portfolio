@@ -102,18 +102,19 @@ if (stages.length) {
 }
 
 /* ---------- Mundos: cada proyecto con 3D cambia el ambiente (fondo, cursor y sonido) ---------- */
-type WorldName = 'studio' | 'cellar' | 'barber';
-const ORDER: WorldName[] = ['studio', 'cellar', 'barber'];
+type WorldName = 'studio' | 'cellar' | 'barber' | 'press';
+const ORDER: WorldName[] = ['studio', 'cellar', 'barber', 'press'];
 const ENTER = document.getElementById('enter');
 let enterT = 0;
 let lastEnter = -1e9;
 /** Cartel breve al cruzar a un mundo: «Entrando a la bodega». Decorativo, no bloquea y se omite con «reducir movimiento». */
-function announce(w: 'cellar' | 'barber') {
+function announce(w: Exclude<WorldName, 'studio'>) {
   if (!ENTER || calm || !root.classList.contains('gl-try') || performance.now() - lastEnter < 4000) return;
   lastEnter = performance.now();
   const stage = document.querySelector<HTMLElement>(`.pstage[data-world="${w}"]`);
   const name = [...(stage?.querySelectorAll('.ptitle > span') ?? [])].map((t) => t.textContent).join(' ').trim();
-  const [hand, title] = w === 'cellar' ? ['entrando a', 'La bodega'] : ['entrando a', 'La barbería'];
+  const title = { cellar: 'La bodega', barber: 'La barbería', press: 'La imprenta' }[w];
+  const hand = 'entrando a';
   (ENTER.querySelector('.enter__hand') as HTMLElement).textContent = hand;
   (ENTER.querySelector('.enter__title') as HTMLElement).textContent = title;
   (ENTER.querySelector('.enter__sub') as HTMLElement).textContent = name;

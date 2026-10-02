@@ -64,7 +64,7 @@ export const copy = {
   ],
   about: [
     'Me interesa el diseño que parte de **una idea** y la sostiene en cada pieza. Trabajo la tipografía, la composición y la imagen como partes de un mismo sistema: si una no acompaña, el concepto se pierde.',
-    'Los proyectos de este portfolio muestran ese recorrido. En **Cordero con piel de lobo**, una idea sobre apariencia y esencia se vuelve etiqueta, textura y caja. En **Be Fresh**, un logo se convierte en un sistema de versiones que funciona en una tarjeta, un cartel o una capa.',
+    'Los proyectos de este portfolio muestran ese recorrido. En **Cordero con piel de lobo**, una idea sobre apariencia y esencia se vuelve etiqueta, textura y caja. En **Be Fresh**, un logo se convierte en un sistema de versiones que funciona en una tarjeta, un cartel o una capa. En **El pulpo que no murió**, un relato se vuelve fanzine y la tipografía lo cuenta.',
     'Estudio la **Licenciatura en Comunicación Visual, Gráfica y Digital** en la Universidad de Belgrano, desde 2024. Trabajo de forma independiente en piezas para marcas y redes desde 2025, y en 2026 sumé diseño gráfico y edición audiovisual en la Honorable Cámara de Diputados.',
   ],
   /** «Perfil» de la página Sobre mí: el perfil del CV reescrito sin agregar datos (el original sigue en `cvData.profile`). */

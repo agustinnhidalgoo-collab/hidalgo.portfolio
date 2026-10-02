@@ -12,7 +12,7 @@ import { getProjects, titleLines } from '../lib/projects';
 
 const projects = await getProjects();
 const description =
-  'Portfolio de Agustín Hidalgo, diseñador y comunicador visual: identidades visuales y packaging, del concepto a las aplicaciones. Proyectos, CV y contacto.';
+  'Portfolio de Agustín Hidalgo, diseñador y comunicador visual: identidades visuales, packaging y diseño editorial, del concepto a las aplicaciones. Proyectos, CV y contacto.';
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Person',
@@ -34,10 +34,10 @@ copy.lead.split('**').forEach((seg, i, all) => {
   seg.split(/\s+/).filter(Boolean).forEach((w) => bio.push({ w, b: i % 2 === 1 }));
 });
 // Disciplinas que rotan junto a «Diseño de»
-const crafts = ['Identidad', 'Packaging', 'Marcas'];
+const crafts = ['Identidad', 'Packaging', 'Editorial', 'Marcas'];
 // Índice lateral 01 / 02 de los mundos (nombre corto: «Cordero», «Be Fresh»)
-const shortTitle = (t: string) => (t.split(' ').length <= 2 ? t : t.split(' ')[0]);
-const rail = staged.map((p) => ({ id: p.id, n: pad(numOf(p)), short: shortTitle(p.data.title), scene: p.data.scene }));
+const shortTitle = (p: (typeof projects)[number]) => p.data.short ?? (p.data.title.split(' ').length <= 2 ? p.data.title : p.data.title.split(' ')[0]);
+const rail = staged.map((p) => ({ id: p.id, n: pad(numOf(p)), short: shortTitle(p), scene: p.data.scene }));
 // Vista previa del índice: la pieza del primer mundo (con 3D, la botella se empieza a armar ahí)
 const preview = staged[0]?.data.stageImages?.[0];
 ---

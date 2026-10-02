@@ -17,7 +17,7 @@ import { person, contact, cv, copy, cvData } from '../data/site';
 import { getProjects, inline } from '../lib/projects';
 
 const description =
-  'Agustín Hidalgo, diseñador y comunicador visual: identidades visuales y packaging. Qué me interesa del diseño, cómo trabajo, formación en la Universidad de Belgrano y experiencia.';
+  'Agustín Hidalgo, diseñador y comunicador visual: identidades visuales, packaging y diseño editorial. Qué me interesa del diseño, cómo trabajo, formación en la Universidad de Belgrano y experiencia.';
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Person',
@@ -43,6 +43,7 @@ const cards = projects.map((p, i) => ({
 const cardLine: Record<string, string> = {
   'cordero-con-piel-de-lobo': 'Una idea sobre apariencia y esencia que se vuelve etiqueta, textura y caja.',
   'be-fresh': 'Un logo que se convierte en un sistema de versiones: tarjeta, cartel, capa.',
+  'el-pulpo-que-no-murio': 'Un relato que se vuelve fanzine: la tipografía cuenta la historia.',
 };
 
 const steps = [

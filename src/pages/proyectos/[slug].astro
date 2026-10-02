@@ -9,6 +9,7 @@ import Base from '../../layouts/Base.astro';
 import ProjectMeta from '../../components/ProjectMeta.astro';
 import CaseBlock from '../../components/CaseBlock.astro';
 import CaseVisual, { type Visual } from '../../components/CaseVisual.astro';
+import Zine from '../../components/Zine.astro';
 import { getProjects, titleLines, type Project } from '../../lib/projects';
 import { person } from '../../data/site';
 
@@ -37,8 +38,8 @@ const jsonLd = {
   ...(data.year ? { dateCreated: String(data.year) } : {}),
   genre: [...(data.type ?? []), ...(data.category ?? [])],
 };
-const worldName = { cellar: 'Bodega', barber: 'Barbería' } as const;
-const enterName = { cellar: 'la bodega', barber: 'la barbería' } as const;
+const worldName = { cellar: 'Bodega', barber: 'Barbería', press: 'Imprenta' } as const;
+const enterName = { cellar: 'la bodega', barber: 'la barbería', press: 'la imprenta' } as const;
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /* ---------- Piezas de la columna fija y tramos ---------- */
@@ -46,21 +47,24 @@ type Section = Project['data']['sections'][number];
 type Block = { s: Section; i: number; v: number; own: boolean };
 type Run = { kind: 'split'; visuals: Visual[]; blocks: Block[]; first: boolean } | { kind: 'full'; s: Section; i: number };
 
+/* Publicación (book): la apertura no es una pieza fija sino el libro a pantalla completa (ver más abajo).
+   Las secciones arman su propio mitad y mitad a partir de la primera que trae pieza. */
+const book = data.book;
 const lead = data.stageImages?.[0];
 const opening: Visual = lead
   ? { image: lead.src, alt: lead.alt, tilt: 0, cutout: true }
   : { image: data.cover.src, alt: data.cover.alt, tilt: 0, cutout: false };
 
-const runs: Run[] = [{ kind: 'split', visuals: [opening], blocks: [], first: true }];
-let carry: Visual = opening;
+const runs: Run[] = book ? [] : [{ kind: 'split', visuals: [opening], blocks: [], first: true }];
+let carry: Visual | null = book ? null : opening;
 data.sections.forEach((s, i) => {
   if (s.layout === 'full') {
     runs.push({ kind: 'full', s, i });
     return;
   }
   let run = runs[runs.length - 1];
-  if (run.kind !== 'split') {
-    run = { kind: 'split', visuals: [carry], blocks: [], first: false };
+  if (!run || run.kind !== 'split') {
+    run = { kind: 'split', visuals: carry ? [carry] : [], blocks: [], first: false };
     runs.push(run);
   }
   let own: Visual | null = null;
@@ -77,14 +81,40 @@ data.sections.forEach((s, i) => {
     run.visuals.push(own);
     carry = own;
   }
-  run.blocks.push({ s, i, v: run.visuals.length - 1, own: !!own });
+  run.blocks.push({ s, i, v: Math.max(0, run.visuals.length - 1), own: !!own });
 });
 
 const nextLead = next.data.stageImages?.[0] ?? next.data.cover;
 ---
 
 <Base title={title} description={description} path={`/proyectos/${project.id}`} jsonLd={jsonLd} world={data.world}>
-  <article class="case" aria-labelledby="case-title">
+  <article class={`case${book ? ' case--book' : ''}`} aria-labelledby="case-title">
+    {book && (
+      <>
+        <!-- Publicación: cabecera editorial y, debajo, el libro que se hojea con el scroll -->
+        <header class="zh">
+          <div class="wrap zh__in">
+            <p class="label cs-world">{pad(index + 1)}{data.world && ` · ${worldName[data.world]}`}</p>
+            <h1 id="case-title" class={`display ptitle cs-title zh__title mask ${tone}`}>
+              {lines.map((l, k) => <span class="line" style={`--i:${k}`}><span>{l}</span></span>)}
+            </h1>
+            <div class="zh__row">
+              <div class="zh__meta">
+                <p class="descriptor">{data.descriptor}</p>
+                <ProjectMeta project={project} />
+              </div>
+              <div class="cs-intro prose zh__intro"><Content /></div>
+            </div>
+            <p class="cs-down" aria-hidden="true">Bajá para hojearlo <span>↓</span></p>
+          </div>
+        </header>
+        <section class="zr" data-zine-track style={`--states:${book.spreads.length}`} aria-label={`${data.title}: el fanzine completo`}>
+          <div class="zr__pin" data-zine-pin>
+            <Zine spreads={book.spreads} cover={book.cover} mode="case" name={data.title} />
+          </div>
+        </section>
+      </>
+    )}
     {runs.map((run) =>
       run.kind === 'split' ? (
         <div class="cs-split" data-split>

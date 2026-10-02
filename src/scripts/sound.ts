@@ -60,6 +60,7 @@ function preload() {
   const list: string[] = [];
   if (document.querySelector('.skills')) list.push(CUES.key.file);
   if (document.getElementById('contacto')) list.push(CUES.ring.file);
+  if (document.querySelector('[data-zine]')) list.push(CUES.page.file);
   if (home) (Object.keys(CUES) as Cue[]).forEach((c) => list.push(CUES[c].file));
   Object.values(BEDS).forEach((b) => b && (home || world !== 'studio') && list.push(b.file));
   [...new Set(list)].forEach(load);
@@ -96,7 +97,7 @@ export async function play(cue: Cue, o: PlayOpts = {}) {
   const src = ctx.createBufferSource();
   src.buffer = buf;
   const vary = def.vary ?? 0;
-  if (vary) src.playbackRate.value = 1 + (Math.random() * 2 - 1) * vary;
+  src.playbackRate.value = (def.rate ?? 1) * (1 + (Math.random() * 2 - 1) * vary);
   const g = ctx.createGain();
   g.gain.value = def.vol * (o.volume ?? 1);
   const p = ctx.createStereoPanner();
@@ -313,6 +314,12 @@ addEventListener('portfolio:cape', (e) => {
   const d = (e as CustomEvent<{ dir: 1 | -1 }>).detail.dir;
   log(`cape ${d}`);
   if (d > 0) play('cape');
+});
+// Fanzine: cada hoja que cae hacia adelante suena (la tapa, más grave); al volver, silencio
+addEventListener('portfolio:page', (e) => {
+  const d = (e as CustomEvent<{ i: number; dir: 1 | -1 }>).detail;
+  log(`page ${d.i} ${d.dir}`);
+  if (d.dir > 0) play(d.i === 0 ? 'cover' : 'page');
 });
 // Tecla del teclado de herramientas: sale del lado donde está el puntero
 addEventListener('portfolio:key', () => play('key', { pan: clamp((pointerX / innerWidth) * 2 - 1, -1, 1) * LEVELS.pan }));

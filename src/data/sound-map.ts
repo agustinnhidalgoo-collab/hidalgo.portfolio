@@ -15,7 +15,7 @@
  * Freesound y una de Mixkit (fuentes y créditos en scripts/sound-sources/). Para escucharlos: /sonidos (página interna).
  */
 
-export type World = 'studio' | 'cellar' | 'barber';
+export type World = 'studio' | 'cellar' | 'barber' | 'press';
 
 export interface CueDef {
   /** Archivo en public/audio/foley (sin extensión). */
@@ -24,6 +24,8 @@ export interface CueDef {
   vol: number;
   /** Variación aleatoria de afinación (±, en proporción): evita que un sonido repetido suene idéntico. */
   vary?: number;
+  /** Velocidad base de reproducción (1 = original; más alto, más corto y agudo). */
+  rate?: number;
   /** Tiempo mínimo entre dos disparos (ms). */
   cooldown?: number;
   /** Momento clave: aparta el ambiente mientras suena. */
@@ -49,12 +51,16 @@ export const CUES = {
   // Barbería
   tube: { file: 'tube', vol: 0.5, cooldown: 6000, what: 'Tubo fluorescente que arranca al entrar' },
   scissors: { file: 'scissors', vol: 1.25, from: '[data-slot="c1"]', what: 'Tijera: la capa gira' },
+  // Imprenta: el fanzine se hojea (la misma grabación de papel, más rápida: una hoja que pasa)
+  page: { file: 'label', vol: 0.7, rate: 1.35, vary: 0.08, cooldown: 140, from: '.zb', what: 'Una hoja del fanzine que pasa' },
+  cover: { file: 'label', vol: 0.85, rate: 0.85, vary: 0.04, cooldown: 300, from: '.zb', what: 'Se abre la tapa del fanzine' },
   // Contacto
   ring: { file: 'ring', vol: 0.35, cooldown: 2600, from: '.contact__avatar', what: 'El teléfono suena (marimba) al señalar WhatsApp' },
 } satisfies Record<string, CueDef>;
 export type Cue = keyof typeof CUES;
 
-/** Ambiente en bucle por mundo (o ninguno). La barbería es silencio de salón: la escena la cuentan el tubo y la tijera. */
+/** Ambiente en bucle por mundo (o ninguno). La barbería es silencio de salón: la escena la cuentan el tubo y la tijera.
+ *  La imprenta también es silencio: suenan solo las hojas que pasan. */
 export const BEDS: Partial<Record<World, { file: string; vol: number }>> = {
   cellar: { file: 'cellar', vol: 0.75 },
 };

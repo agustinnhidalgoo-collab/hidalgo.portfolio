@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import ProjectMeta from './ProjectMeta.astro';
+import Zine from './Zine.astro';
 import { titleLines, type Project } from '../lib/projects';
 
 interface Props { project: Project; n: number; rail: { id: string; n: string; short: string; scene?: string }[] }
@@ -10,11 +11,14 @@ const scene = data.scene ?? 'bottle';
 const prefix = scene === 'cape' ? 'c' : 'b';
 const img = data.stageImages?.[0];
 const shadow = scene === 'bottle';
+// Publicación: en lugar de una pieza 3D, el libro se abre y se hojea con el scroll (sin canvas)
+const book = scene === 'book' && data.book ? data.book : null;
 ---
 
-<!-- Mundo de un proyecto: una sola pantalla (fijada con 3D). La pieza se arma al entrar y, al seguir bajando, gira -->
-<section id={`stage-${scene}`} class="pstage clear" data-scene={scene} data-world={data.world} data-snd-section data-step="1" aria-labelledby={`p-${project.id}`}>
-  <div class="pstage__pin">
+<!-- Mundo de un proyecto: una sola pantalla (fijada con 3D o, en las publicaciones, mientras se hojea el libro).
+     La pieza se arma al entrar y, al seguir bajando, gira (o pasa sus páginas) -->
+<section id={`stage-${scene}`} class={`pstage clear${book ? ' pstage--book' : ''}`} data-scene={scene} data-world={data.world} data-snd-section data-step="1" data-zine-track={book ? '' : undefined} aria-labelledby={`p-${project.id}`}>
+  <div class="pstage__pin" data-zine-pin={book ? '' : undefined}>
     <div class="pstage__step">
       <div class="wrap grid step-grid">
         <div class="pstage__text">
@@ -25,13 +29,19 @@ const shadow = scene === 'bottle';
           <p class="descriptor">{data.descriptor}</p>
           <p class="prose">{data.summary}</p>
           <p class="pstage__cta">
-            <a class="btn btn--red" href={`/proyectos/${project.id}`}>Ver proyecto completo <span class="arrow" aria-hidden="true">→</span><span class="sr-only">: {data.title}</span></a>
+            <a class="btn btn--red" href={`/proyectos/${project.id}`}>{book ? 'Hojear el proyecto completo' : 'Ver proyecto completo'} <span class="arrow" aria-hidden="true">→</span><span class="sr-only">: {data.title}</span></a>
           </p>
           <div class="pstage__meta"><ProjectMeta project={project} compact /></div>
         </div>
-        <div class="slot" data-slot={`${prefix}1`}>
-          {img && <Image class={`slot__img ${shadow ? 'slot__img--shadow' : ''}`} src={img.src} alt={img.alt} format="webp" quality={88} loading="lazy" sizes="(min-width: 64rem) 30vw, 60vw" />}
-        </div>
+        {book ? (
+          <div class="pstage__book">
+            <Zine spreads={book.spreads} cover={book.cover} mode="home" max={3} name={data.title} />
+          </div>
+        ) : (
+          <div class="slot" data-slot={`${prefix}1`}>
+            {img && <Image class={`slot__img ${shadow ? 'slot__img--shadow' : ''}`} src={img.src} alt={img.alt} format="webp" quality={88} loading="lazy" sizes="(min-width: 64rem) 30vw, 60vw" />}
+          </div>
+        )}
       </div>
     </div>
     {rail.length > 1 && (

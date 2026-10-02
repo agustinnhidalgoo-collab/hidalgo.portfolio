@@ -1,0 +1,99 @@
+---
+/* Libro que se hojea: las dobles páginas reales del proyecto, armadas como hojas que giran sobre el lomo.
+   Hoja 0: la tapa (mitad izquierda de la doble 1) y, al abrirla, la misma página como portadilla.
+   Hoja i: al frente la mitad derecha de la doble i, al dorso la mitad izquierda de la doble i + 1.
+   Debajo de todo, la mitad derecha de la última doble. Estado k = k hojas pasadas (0 = cerrado).
+   La lógica (scroll, botones, teclado, sonido) está en src/scripts/zine.ts. Sin JS se ven las dobles una debajo de otra. */
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Spread { image: ImageMetadata; alt: string; title: string; note: string }
+interface Props {
+  spreads: Spread[];
+  cover: string;
+  /** home: el libro acompaña al texto del mundo · case: lector a pantalla completa con rótulos */
+  mode: 'home' | 'case';
+  /** Hasta qué estado se hojea (home: un adelanto) */
+  max?: number;
+  /** Nombre de la publicación (para lectores de pantalla) */
+  name: string;
+}
+const { spreads, cover, mode, max = spreads.length, name } = Astro.props;
+const n = spreads.length;
+const sizes = mode === 'case' ? '(min-width: 64rem) 72vw, 96vw' : '(min-width: 64rem) 40vw, 92vw';
+// Una sola URL por doble: las dos mitades (y la portadilla) comparten la descarga
+const pics = await Promise.all(spreads.map((s) => getImage({ src: s.image, format: 'webp', quality: 86, widths: [900, 1400, 2000], sizes })));
+type Half = { s: number; side: 'l' | 'r' };
+const leaves: { front: Half; back: Half }[] = Array.from({ length: n }, (_, i) =>
+  i === 0 ? { front: { s: 0, side: 'l' }, back: { s: 0, side: 'l' } } : { front: { s: i - 1, side: 'r' }, back: { s: i, side: 'l' } },
+);
+const pad = (k: number) => String(k).padStart(2, '0');
+/** Atributos del <img> de una mitad (la misma URL para las dos mitades de una doble) */
+const img = (h: Half, eager = false) => ({
+  src: pics[h.s].src,
+  srcset: pics[h.s].srcSet.attribute,
+  sizes,
+  width: spreads[h.s].image.width,
+  height: spreads[h.s].image.height,
+  loading: eager ? ('eager' as const) : ('lazy' as const),
+});
+---
+
+<div class={`zine zine--${mode}`} data-zine={mode} data-max={Math.min(max, n)}>
+  <div class="zb" data-zb style="--shift:-25;--open:0" aria-hidden="true">
+    <div class="zb__in">
+      <div class="zb__base zb__base--l"></div>
+      <div class="zb__base zb__base--r"><div class="zb__face" data-side="r"><img {...img({ s: n - 1, side: 'r' })} alt="" decoding="async" draggable="false" /></div></div>
+      {leaves.map((l, i) => (
+        <div class="zb__leaf" data-i={i} style={`--t:0;z-index:${2 * n - i}`}>
+          <div class={`zb__face zb__face--front${i === 0 ? ' zb__face--cover' : ''}`} data-side={l.front.side}><img {...img(l.front, i === 0)} alt="" decoding="async" draggable="false" /></div>
+          <div class="zb__face zb__face--back" data-side={l.back.side}><img {...img(l.back)} alt="" decoding="async" draggable="false" /></div>
+        </div>
+      ))}
+    </div>
+    <!-- Puntero: un clic en la página derecha avanza, en la izquierda vuelve (el teclado usa los botones) -->
+    <div class="zb__hit zb__hit--prev" data-zb-go="-1" data-cursor="Volver"></div>
+    <div class="zb__hit zb__hit--next" data-zb-go="1" data-cursor="Pasar"></div>
+  </div>
+
+  <div class="zb-bar">
+    {mode === 'case' && (
+      <ol class="zb-caps" aria-label={`${name}, página por página`}>
+        <li data-zb-cap="0" data-on>
+          <span class="zb-caps__n">Tapa</span>
+          <span class="zb-caps__t display">{name}</span>
+          <span class="zb-caps__d">{cover}</span>
+        </li>
+        {spreads.map((s, i) => (
+          <li data-zb-cap={i + 1}>
+            <span class="zb-caps__n">Doble {pad(i + 1)}</span>
+            <span class="zb-caps__t display">{s.title}</span>
+            <span class="zb-caps__d">{s.note}</span>
+            <span class="sr-only">{s.alt}</span>
+          </li>
+        ))}
+      </ol>
+    )}
+    <div class="zb-nav">
+      <button class="zb-nav__b" type="button" data-zb-go="-1" aria-label="Página anterior" disabled><span aria-hidden="true">←</span></button>
+      <p class="zb-nav__c" aria-live="polite"><span data-zb-count>Tapa</span><span class="zb-nav__of"> / {pad(n)}</span></p>
+      <button class="zb-nav__b" type="button" data-zb-go="1" aria-label="Página siguiente"><span aria-hidden="true">→</span></button>
+    </div>
+  </div>
+
+  <!-- Sin JS: las dobles completas, una debajo de otra -->
+  <ol class="zb-flat">
+    {spreads.map((s, i) => (
+      <li>
+        <figure class="fig">
+          <img src={pics[i].src} srcset={pics[i].srcSet.attribute} sizes={sizes} alt={s.alt} width={s.image.width} height={s.image.height} loading="lazy" decoding="async" />
+          <figcaption><span class="fk">Doble {pad(i + 1)} · {s.title}</span><span>{s.note}</span></figcaption>
+        </figure>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<script>
+  import '../scripts/zine';
+</script>

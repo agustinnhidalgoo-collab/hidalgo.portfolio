@@ -87,10 +87,23 @@ export const projects = defineCollection({
       category: z.array(z.string()).optional(),
       role: z.string().optional(),
       collaborators: z.array(z.string()).optional(),
-      /** Escena 3D propia del proyecto (opcional): 'bottle' usa el tramo fijado con botella. */
-      scene: z.enum(['bottle', 'cape']).optional(),
-      /** Ambiente del proyecto (fondo, cursor y sonido): bodega o barbería. */
-      world: z.enum(['cellar', 'barber']).optional(),
+      /** Escena propia del proyecto en la home (opcional): 'bottle' y 'cape' son 3D; 'book' es el libro que se hojea con el scroll. */
+      scene: z.enum(['bottle', 'cape', 'book']).optional(),
+      /** Ambiente del proyecto (fondo, cursor y sonido): bodega, barbería o imprenta. */
+      world: z.enum(['cellar', 'barber', 'press']).optional(),
+      /** Nombre corto para el índice lateral de los mundos (si no, se toma del título). */
+      short: z.string().optional(),
+      /**
+       * Publicación (scene: book): el libro se arma con las dobles páginas reales, en orden.
+       * La tapa es la mitad izquierda de la primera doble. `cover` es el rótulo del libro cerrado;
+       * cada doble lleva un rótulo corto y una nota sobre la decisión de diseño que se ve en ella.
+       */
+      book: z
+        .object({
+          cover: z.string(),
+          spreads: z.array(z.object({ image: image(), alt: z.string().min(3), title: z.string(), note: z.string() })).min(2),
+        })
+        .optional(),
       /** Idea central del proyecto (rótulo corto) y foto de apoyo para la escena. */
       concept: z.string().optional(),
       /** Nota breve del paso 2 de la escena (opcional). */
