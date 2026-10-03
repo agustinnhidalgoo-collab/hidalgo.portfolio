@@ -94,27 +94,48 @@ export const projects = defineCollection({
       /** Nombre corto para el índice lateral de los mundos (si no, se toma del título). */
       short: z.string().optional(),
       /**
-       * Publicación (scene: book): un mundo que se recorre hojeando el libro.
-       * El libro se arma con las dobles páginas reales, en orden; la tapa es la mitad izquierda de la primera doble.
-       * - `opening`: la frase de entrada al mundo (bajo el título).
-       * - `cover` y cada doble: `line` es el fragmento del relato que aparece al llegar a esa página;
-       *   `title` y `note`, el rótulo chico con la decisión de diseño que se ve en ella.
-       * - `closing`: las frases del final, cuando el libro se hunde (la última es la que queda).
-       * - `pitch`: el cierre que vende: qué demuestra la pieza.
+       * Página del proyecto como un mundo que se recorre (bodega, barbería, acuario). Con `story`, la página es:
+       * entrada (título + `opening`) → la pieza fijada que avanza con el scroll, con una frase por paso → el final
+       * (`closing`, la última frase es la que queda) → `pitch`, el cierre que vende → siguiente proyecto.
+       * La pieza es el libro (`book`) o, si no hay libro, los `steps`: una imagen real por paso que entra con la
+       * transición de su mundo (desgarro en la bodega, corte en la barbería).
+       * En cada paso, `line` es la frase que cuenta; `tag` y `note`, el rótulo chico con la decisión de diseño.
        */
-      book: z
+      story: z
         .object({
           opening: z.string(),
-          cover: z.object({ line: z.string(), note: z.string() }),
-          spreads: z
-            .array(z.object({ image: image(), alt: z.string().min(3), title: z.string(), note: z.string(), line: z.string() }))
-            .min(2),
+          steps: z
+            .array(
+              z.object({
+                image: image(),
+                alt: z.string().min(3),
+                line: z.string(),
+                tag: z.string(),
+                note: z.string(),
+                /** Recorte sin fondo (botella, capa, logo): sin marco y con sombra */
+                cutout: z.boolean().default(false),
+              }),
+            )
+            .min(2)
+            .optional(),
           closing: z.array(z.string()).min(1),
           pitch: z.object({
             title: z.string(),
             items: z.array(z.object({ t: z.string(), d: z.string() })).min(1),
             cta: z.string(),
           }),
+        })
+        .optional(),
+      /**
+       * Publicación (scene: book): el libro se arma con las dobles páginas reales, en orden; la tapa es la mitad
+       * izquierda de la primera doble. `cover` y cada doble: `line` (la frase del relato) y `title` / `note`.
+       */
+      book: z
+        .object({
+          cover: z.object({ line: z.string(), note: z.string() }),
+          spreads: z
+            .array(z.object({ image: image(), alt: z.string().min(3), title: z.string(), note: z.string(), line: z.string() }))
+            .min(2),
         })
         .optional(),
       /** Idea central del proyecto (rótulo corto) y foto de apoyo para la escena. */

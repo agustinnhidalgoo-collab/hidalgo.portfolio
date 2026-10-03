@@ -1,4 +1,5 @@
-/* Libro que se hojea (src/components/Zine.astro).
+/* La pieza que avanza con el scroll: el libro que se hojea (src/components/Zine.astro) o los pasos de un mundo
+   (src/components/Reel.astro: cada imagen entra con la transición de su mundo y la anterior se apaga).
    - Con la sección fijada (movimiento permitido): el estado es función del scroll. Cada hoja gira en su tramo
      y entre una y otra hay una pausa, así cada doble se puede leer. Recargar a mitad de camino deja el libro en su página.
    - Sin fijar (reducir movimiento, pantallas muy bajas): se hojea con los botones; con «reducir movimiento», sin animación.
@@ -13,15 +14,18 @@ const pad = (k: number) => String(k).padStart(2, '0');
 type Lenis = { scrollTo: (y: number, o?: Record<string, unknown>) => void };
 
 function init(z: HTMLElement) {
-  const book = z.querySelector<HTMLElement>('[data-zb]');
+  const reel = z.querySelector<HTMLElement>('[data-rl]');
+  const book = z.querySelector<HTMLElement>('[data-zb]') ?? reel;
   if (!book) return;
-  const leaves = [...book.querySelectorAll<HTMLElement>('.zb__leaf')];
+  // Unidades que avanzan: las hojas del libro o, en los pasos, cada imagen que entra (la primera ya está)
+  const steps = reel ? [...reel.querySelectorAll<HTMLElement>('.rl__step')] : [];
+  const leaves = reel ? steps.slice(1) : [...book.querySelectorAll<HTMLElement>('.zb__leaf')];
   const n = leaves.length;
   const max = clamp(Number(z.dataset.max) || n, 1, n);
   // Tramo final (página del proyecto): después de la última doble el libro se hunde y quedan las frases de cierre
   const END = Number(z.dataset.end) || 0;
   const total = max + END;
-  const world = z.dataset.zine === 'case'; // el lector maneja el acuario: se oscurece y se vacía a medida que se hojea
+  const world = z.dataset.zine === 'case'; // la página maneja su mundo: se oscurece (--depth) y se apaga al final (--end)
   const html = document.documentElement;
   const track = z.closest<HTMLElement>('[data-zine-track]');
   const pin = track?.querySelector<HTMLElement>('[data-zine-pin]') ?? null;
@@ -51,7 +55,23 @@ function init(z: HTMLElement) {
       html.style.setProperty('--end', end.toFixed(3));
     }
     const turning: number[] = [];
-    leaves.forEach((leaf, i) => {
+    if (reel) {
+      // Pasos: la imagen i + 1 se revela con --r; la i se apaga mientras tanto (--o)
+      const ts = leaves.map((_, i) => (scrolled ? ease(clamp((p - i - 0.16) / 0.68)) : ease(clamp(p - i))));
+      steps.forEach((st, j) => {
+        if (j > 0) st.style.setProperty('--r', ts[j - 1].toFixed(4));
+        st.style.setProperty('--o', (j < n ? 1 - ts[j] : 1).toFixed(4));
+      });
+      ts.forEach((t, i) => {
+        if (t > 0.001 && t < 0.999) turning.push(i);
+        const left = t >= 0.5;
+        if (left !== side[i]) {
+          side[i] = left;
+          dispatchEvent(new CustomEvent('portfolio:reel', { detail: { i, dir: left ? 1 : -1 } }));
+        }
+      });
+    }
+    if (!reel) leaves.forEach((leaf, i) => {
       const u = p - i;
       // Por scroll, cada hoja gira en el centro de su tramo: antes y después, el libro queda quieto
       const t = scrolled ? ease(clamp((u - 0.16) / 0.68)) : ease(clamp(u));
@@ -67,9 +87,11 @@ function init(z: HTMLElement) {
       }
     });
     // Abrir la tapa corre el libro: cerrado, la tapa queda centrada; abierto, el lomo va al centro
-    const open = Number(leaves[0].style.getPropertyValue('--t')) || 0;
-    book!.style.setProperty('--shift', (-25 * (1 - open)).toFixed(3));
-    book!.style.setProperty('--open', open.toFixed(3));
+    if (!reel) {
+      const open = Number(leaves[0].style.getPropertyValue('--t')) || 0;
+      book!.style.setProperty('--shift', (-25 * (1 - open)).toFixed(3));
+      book!.style.setProperty('--open', open.toFixed(3));
+    }
     book!.classList.toggle('is-turning', turning.length > 0);
     const s = side.filter(Boolean).length;
     if (s !== state) {
@@ -77,7 +99,7 @@ function init(z: HTMLElement) {
       z.dataset.state = String(s);
       if (world) html.dataset.zstate = String(s);
       caps.forEach((c) => c.toggleAttribute('data-on', Number(c.dataset.zbCap) === s));
-      if (count) count.textContent = s === 0 ? 'Tapa' : pad(s);
+      if (count) count.textContent = reel ? pad(s + 1) : s === 0 ? 'Tapa' : pad(s);
       if (btnPrev) btnPrev.disabled = s <= 0;
       if (btnNext) btnNext.disabled = s >= max;
       if (hitPrev) hitPrev.hidden = s <= 0;

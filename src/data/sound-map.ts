@@ -72,6 +72,10 @@ export const POUR_AFTER_CORK_MS = 520;
 /** Paso 2 de cada mundo (la pieza gira), solo hacia adelante. La botella gira en silencio; en la barbería, tijera. */
 export const STEP: Partial<Record<World, Cue>> = { barber: 'scissors' };
 
+/** Página del proyecto: cada pieza que entra en el recorrido (solo hacia adelante). Bodega: papel que se rasga
+ *  (la etiqueta se desgarra); barbería: la tijera (el corte). */
+export const REEL: Partial<Record<World, Cue>> = { cellar: 'label', barber: 'scissors' };
+
 /** Niveles generales (0–1). El sonido acompaña, no protagoniza. */
 export const LEVELS = {
   master: 0.8,

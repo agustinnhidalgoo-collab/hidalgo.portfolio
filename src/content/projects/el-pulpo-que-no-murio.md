@@ -18,8 +18,23 @@ cover:
   src: ../../assets/pulpo/detalle-titulo.jpg
   alt: "Título «El pulpo que no murió» en letras de madera gastadas: «El pulpo que» en blanco y «no murió» en rojo, sobre negro."
 seoDescription: "Fanzine tipográfico experimental a partir de «El pulpo que no murió», de Sakutaro Hagiwara: la tipografía como recurso narrativo. Materia Tipografía I, 2025."
-book:
+story:
   opening: "Un acuario olvidado. Un pulpo que se niega a desaparecer. Y un fanzine donde la tipografía cuenta cómo."
+  closing:
+    - "Pero no había muerto."
+    - "Aún estaba vivo."
+    - "Es un cuento sobre permanecer."
+  pitch:
+    title: "Diseño piezas que se quedan."
+    items:
+      - t: Tipografía que cuenta
+        d: "Las letras no decoran el texto: lo actúan. Se rompen, se repiten, se esconden."
+      - t: Diseño editorial
+        d: "Ritmo, vacío y jerarquía para sostener una lectura de principio a fin."
+      - t: Dirección de arte
+        d: "Una atmósfera coherente en cada doble: textura, color y silencio."
+    cta: "¿Tenés una historia, una marca o un texto que necesita quedarse?"
+book:
   cover:
     line: "Un pulpo que agonizaba de hambre fue encerrado en un acuario."
     note: "El título en letras de madera gastadas, blanco y rojo."
@@ -54,19 +69,5 @@ book:
       title: Vivir en soledad
       note: "Título arriba, relato abajo y, en el medio, el vacío."
       line: "Una mañana llegó un cuidador. Solo vio el agua sombría. El pulpo había desaparecido."
-  closing:
-    - "Pero no había muerto."
-    - "Aún estaba vivo."
-    - "Es un cuento sobre permanecer."
-  pitch:
-    title: "Diseño piezas que se quedan."
-    items:
-      - t: Tipografía que cuenta
-        d: "Las letras no decoran el texto: lo actúan. Se rompen, se repiten, se esconden."
-      - t: Diseño editorial
-        d: "Ritmo, vacío y jerarquía para sostener una lectura de principio a fin."
-      - t: Dirección de arte
-        d: "Una atmósfera coherente en cada doble: textura, color y silencio."
-    cta: "¿Tenés una historia, una marca o un texto que necesita quedarse?"
 ---
 Fanzine tipográfico experimental a partir del relato **«El pulpo que no murió»**, de Sakutaro Hagiwara, hecho en la materia Tipografía I (2025) con InDesign, Illustrator y Photoshop.

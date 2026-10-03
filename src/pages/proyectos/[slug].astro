@@ -10,6 +10,7 @@ import ProjectMeta from '../../components/ProjectMeta.astro';
 import CaseBlock from '../../components/CaseBlock.astro';
 import CaseVisual, { type Visual } from '../../components/CaseVisual.astro';
 import Zine from '../../components/Zine.astro';
+import Reel from '../../components/Reel.astro';
 import { getProjects, titleLines, type Project } from '../../lib/projects';
 import { person, contact } from '../../data/site';
 
@@ -39,6 +40,8 @@ const jsonLd = {
   genre: [...(data.type ?? []), ...(data.category ?? [])],
 };
 const worldName = { cellar: 'Bodega', barber: 'Barbería', aquarium: 'Acuario' } as const;
+// Invitación a entrar a cada mundo (entrada de la página)
+const cue = { cellar: 'Bajá a la bodega', barber: 'Pasá a la barbería', aquarium: 'Entrá al acuario' } as const;
 const enterName = { cellar: 'a la bodega', barber: 'a la barbería', aquarium: 'al acuario' } as const;
 const pad = (n: number) => String(n).padStart(2, '0');
 
@@ -47,16 +50,19 @@ type Section = Project['data']['sections'][number];
 type Block = { s: Section; i: number; v: number; own: boolean };
 type Run = { kind: 'split'; visuals: Visual[]; blocks: Block[]; first: boolean } | { kind: 'full'; s: Section; i: number };
 
-/* Publicación (book): la página es un mundo (el acuario) que se recorre hojeando el libro; cierra con lo que demuestra.
+/* Con story: la página es un mundo que se recorre (la pieza fijada avanza con el scroll) y cierra con lo que demuestra.
    Las secciones arman su propio mitad y mitad a partir de la primera que trae pieza. */
+const story = data.story;
 const book = data.book;
+const steps = story?.steps;
+const count = book ? book.spreads.length : (steps?.length ?? 0);
 const lead = data.stageImages?.[0];
 const opening: Visual = lead
   ? { image: lead.src, alt: lead.alt, tilt: 0, cutout: true }
   : { image: data.cover.src, alt: data.cover.alt, tilt: 0, cutout: false };
 
-const runs: Run[] = book ? [] : [{ kind: 'split', visuals: [opening], blocks: [], first: true }];
-let carry: Visual | null = book ? null : opening;
+const runs: Run[] = story ? [] : [{ kind: 'split', visuals: [opening], blocks: [], first: true }];
+let carry: Visual | null = story ? null : opening;
 data.sections.forEach((s, i) => {
   if (s.layout === 'full') {
     runs.push({ kind: 'full', s, i });
@@ -88,40 +94,40 @@ const nextLead = next.data.stageImages?.[0] ?? next.data.cover;
 ---
 
 <Base title={title} description={description} path={`/proyectos/${project.id}`} jsonLd={jsonLd} world={data.world}>
-  <article class={`case${book ? ' case--book' : ''}`} aria-labelledby="case-title">
-    {book && (
+  <article class={`case${story ? ' case--story' : ''}${book ? ' case--book' : ''}`} aria-labelledby="case-title">
+    {story && (book || steps) && (
       <>
         <!-- Publicación: un mundo, el acuario del relato. Se entra en la oscuridad, bajo una luz pálida -->
-        <header class="aq-in">
-          <div class="aq-in__light" aria-hidden="true"></div>
-          <div class="wrap aq-in__in">
-            <p class="label aq-in__k">{pad(index + 1)} · {data.descriptor}{data.year && ` · ${data.year}`}</p>
-            <h1 id="case-title" class={`display ptitle aq-in__title mask ${tone}`}>
+        <header class="st-in">
+          <div class="st-in__light" aria-hidden="true"></div>
+          <div class="wrap st-in__in">
+            <p class="label st-in__k">{pad(index + 1)} · {data.descriptor}{data.year && ` · ${data.year}`}</p>
+            <h1 id="case-title" class={`display ptitle st-in__title mask ${tone}`}>
               {lines.map((l, k) => <span class="line" style={`--i:${k}`}><span>{l}</span></span>)}
             </h1>
-            <p class="aq-in__lead reveal">{book.opening}</p>
-            <p class="aq-in__down" aria-hidden="true">Entrá al acuario <span>↓</span></p>
+            <p class="st-in__lead reveal">{story.opening}</p>
+            <p class="st-in__down" aria-hidden="true">{data.world ? cue[data.world] : 'Bajá'} <span>↓</span></p>
           </div>
         </header>
-        <section class="zr" data-zine-track style={`--states:${book.spreads.length}`} aria-label={`${data.title}: el fanzine, página por página`}>
+        <section class="zr" data-zine-track style={`--states:${book ? count : count - 1}`} aria-label={`${data.title}: ${book ? 'el fanzine, página por página' : 'el proyecto, paso por paso'}`}>
           <div class="zr__pin" data-zine-pin>
-            <Zine spreads={book.spreads} cover={book.cover} closing={book.closing} mode="case" name={data.title} />
+            {book ? <Zine spreads={book.spreads} cover={book.cover} closing={story.closing} mode="case" name={data.title} /> : <Reel steps={steps!} closing={story.closing} name={data.title} />}
           </div>
         </section>
         <!-- Cierre: qué demuestra la pieza y una invitación a hablar -->
-        <section class="aq-pitch" aria-labelledby="pitch-title">
+        <section class="st-pitch" aria-labelledby="pitch-title">
           <div class="wrap">
-            <h2 id="pitch-title" class="display aq-pitch__t mask"><span class="line"><span>{book.pitch.title}</span></span></h2>
-            <ul class="aq-pitch__list">
-              {book.pitch.items.map((it, i) => (
-                <li class="reveal" style={`--d:${i * 120}ms`}><span class="aq-pitch__n" aria-hidden="true">{pad(i + 1)}</span><strong>{it.t}</strong><span>{it.d}</span></li>
+            <h2 id="pitch-title" class="display st-pitch__t mask"><span class="line"><span>{story.pitch.title}</span></span></h2>
+            <ul class="st-pitch__list">
+              {story.pitch.items.map((it, i) => (
+                <li class="reveal" style={`--d:${i * 120}ms`}><span class="st-pitch__n" aria-hidden="true">{pad(i + 1)}</span><strong>{it.t}</strong><span>{it.d}</span></li>
               ))}
             </ul>
-            <div class="aq-pitch__cta reveal">
-              <p>{book.pitch.cta}</p>
+            <div class="st-pitch__cta reveal">
+              <p>{story.pitch.cta}</p>
               <a class="btn btn--red" href={contact.whatsappUrl} target="_blank" rel="noopener noreferrer">Hablemos <span class="arrow" aria-hidden="true">→</span></a>
             </div>
-            <div class="aq-pitch__meta reveal"><ProjectMeta project={project} /></div>
+            <div class="st-pitch__meta reveal"><ProjectMeta project={project} /></div>
           </div>
         </section>
       </>

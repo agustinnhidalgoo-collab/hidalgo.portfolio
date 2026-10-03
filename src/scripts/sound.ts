@@ -3,7 +3,7 @@
    - Foley real (public/audio/foley): cada sonido responde a algo que se ve. Los narrativos suenan solo hacia adelante.
    - Ambiente: la bodega tiene su aire de sótano en bucle; se aparta durante los momentos clave.
    - Paneo según dónde está el objeto en pantalla. Se suspende con la pestaña oculta. */
-import { AUDIO_BASE, BEDS, BUILD, CUES, LEVELS, POUR_AFTER_CORK_MS, STEP, type Cue, type CueDef, type World } from '../data/sound-map';
+import { AUDIO_BASE, BEDS, BUILD, CUES, LEVELS, POUR_AFTER_CORK_MS, REEL, STEP, type Cue, type CueDef, type World } from '../data/sound-map';
 
 const KEY = 'portfolio:sound';
 const root = document.documentElement;
@@ -61,6 +61,8 @@ function preload() {
   if (document.querySelector('.skills')) list.push(CUES.key.file);
   if (document.getElementById('contacto')) list.push(CUES.ring.file);
   if (document.querySelector('[data-zine]')) list.push(CUES.page.file);
+  const rc = REEL[world];
+  if (document.querySelector('[data-rl]') && rc) list.push(CUES[rc].file);
   if (home) (Object.keys(CUES) as Cue[]).forEach((c) => list.push(CUES[c].file));
   Object.values(BEDS).forEach((b) => b && (home || world !== 'studio') && list.push(b.file));
   [...new Set(list)].forEach(load);
@@ -320,6 +322,13 @@ addEventListener('portfolio:page', (e) => {
   const d = (e as CustomEvent<{ i: number; dir: 1 | -1 }>).detail;
   log(`page ${d.i} ${d.dir}`);
   if (d.dir > 0) play(d.i === 0 ? 'cover' : 'page');
+});
+// Pasos de un mundo (página del proyecto): cada pieza que entra suena según el mundo; al volver, silencio
+addEventListener('portfolio:reel', (e) => {
+  const d = (e as CustomEvent<{ i: number; dir: 1 | -1 }>).detail;
+  log(`reel ${d.i} ${d.dir}`);
+  const c = REEL[world];
+  if (c && d.dir > 0) play(c);
 });
 // Tecla del teclado de herramientas: sale del lado donde está el puntero
 addEventListener('portfolio:key', () => play('key', { pan: clamp((pointerX / innerWidth) * 2 - 1, -1, 1) * LEVELS.pan }));

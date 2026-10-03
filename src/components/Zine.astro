@@ -48,7 +48,7 @@ const words = (t: string) => t.split(/\s+/).filter(Boolean);
 
 <div class={`zine zine--${mode}`} data-zine={mode} data-max={Math.min(max, n)} data-end={mode === 'case' && closing.length ? '1.6' : undefined}>
   {mode === 'case' && (
-    <ol class="aq-lines" aria-label={`${name}: el relato`}>
+    <ol class="st-lines" aria-label={`${name}: el relato`}>
       {states.map((s, k) => (
         <li data-zb-cap={k} data-on={k === 0 ? '' : undefined}>
           {words(s.line).map((w, i) => <span class="w" style={`--i:${i}`}>{w} </span>)}
@@ -95,8 +95,8 @@ const words = (t: string) => t.split(/\s+/).filter(Boolean);
   </div>
 
   {closing.length > 0 && (
-    <div class="aq-end">
-      {closing.map((c, i) => <p class={`aq-end__l${i === closing.length - 1 ? ' aq-end__l--last' : ''}`} style={`--k:${i}`}>{c}</p>)}
+    <div class="st-end">
+      {closing.map((c, i) => <p class={`st-end__l${i === closing.length - 1 ? ' st-end__l--last' : ''}`} style={`--k:${i}`}>{c}</p>)}
     </div>
   )}
 

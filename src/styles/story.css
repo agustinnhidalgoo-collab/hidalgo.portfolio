@@ -1,0 +1,208 @@
+/* =========================================================
+   Páginas de proyecto como mundos que se recorren (story): lo propio de cada mundo.
+   La base común (entrada, relato arriba, pieza fijada, nota y botones, final, cierre que vende) está en zine.css.
+   - Bodega (Cordero): luz de vela desde abajo, el relato en letra manuscrita, cada pieza entra DESGARRADA
+     (el concepto es «Verdad desgarrada»); al final la vela se apaga.
+   - Barbería (Be Fresh): un tubo fluorescente que arranca, el relato en mayúsculas espaciadas y nítidas, cada pieza
+     entra con un CORTE diagonal limpio (tijera); al final se corta la luz.
+   - Acuario (El pulpo): luz pálida desde arriba y voz de máquina de escribir (zine.css).
+   ========================================================= */
+
+/* ---------- La pieza por pasos (src/components/Reel.astro) ---------- */
+.rl {
+  position: relative;
+  width: 100%;
+  height: min(62svh, 40rem);
+}
+.rl__step {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  opacity: calc(var(--r, 1) * var(--o, 1));
+}
+/* Ocupa el alto disponible, sin agrandarse más de 1,7 veces su tamaño real (los originales son chicos) */
+.rl__step img {
+  width: auto;
+  height: min(100%, calc(var(--nh, 600px) * 1.7));
+  max-width: 100%;
+  object-fit: contain;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+.rl__step.is-photo img {
+  filter: drop-shadow(0 0 1px rgb(255 255 255 / 0.25)) drop-shadow(0 1.5rem 2rem rgb(0 0 0 / 0.65));
+}
+.rl__step.is-cutout img {
+  filter: drop-shadow(0 1.5rem 1.5rem rgb(0 0 0 / 0.6));
+}
+.zine--reel .zb-float {
+  width: 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html.js .zr .zine--reel .zb-float {
+    width: 100%;
+  }
+  html.js .zine--reel .rl {
+    height: calc(100svh - 19.5rem);
+  }
+}
+@media (max-width: 39.99rem) {
+  html.js .zine--reel .rl {
+    height: calc(100svh - 24rem);
+  }
+}
+
+/* Bodega: la pieza nueva entra desgarrada, con un borde irregular que avanza */
+html[data-world='cellar'] .rl__step {
+  --x: calc(var(--r, 1) * 120% - 8%);
+  opacity: var(--o, 1);
+  clip-path: polygon(
+    0 0, var(--x) 0, calc(var(--x) - 4%) 8%, calc(var(--x) + 3%) 16%, calc(var(--x) - 2%) 25%, calc(var(--x) + 5%) 34%,
+    calc(var(--x) - 3%) 43%, calc(var(--x) + 2%) 52%, calc(var(--x) - 5%) 61%, calc(var(--x) + 3%) 70%,
+    calc(var(--x) - 2%) 79%, calc(var(--x) + 4%) 88%, calc(var(--x) - 3%) 100%, 0 100%
+  );
+}
+/* Barbería: un corte diagonal limpio, de una sola pasada */
+html[data-world='barber'] .rl__step {
+  opacity: var(--o, 1);
+  clip-path: polygon(0 0, calc(var(--r, 1) * 125%) 0, calc(var(--r, 1) * 125% - 22%) 100%, 0 100%);
+}
+html[data-world='barber'] .zb-float {
+  animation: none;
+}
+
+/* ---------- La voz de cada relato ---------- */
+html[data-world='cellar'] .st-lines li {
+  max-width: 30ch;
+  font-family: var(--f-hand);
+  font-size: clamp(2rem, 1.4rem + 2.2vw, 3.4rem);
+  line-height: 1.05;
+  -webkit-text-stroke: 0.6px currentColor;
+  color: #f4e6d6;
+}
+html[data-world='cellar'] .st-end__l:not(.st-end__l--last) {
+  font-family: var(--f-hand);
+  font-size: clamp(2rem, 1.4rem + 2vw, 3.2rem);
+  -webkit-text-stroke: 0.6px currentColor;
+  color: #f4e6d6;
+}
+html[data-world='barber'] .st-lines li {
+  max-width: 34ch;
+  font-family: var(--f-body);
+  font-size: clamp(0.95rem, 0.8rem + 0.7vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  color: #fff;
+}
+html[data-world='barber'] .st-end__l:not(.st-end__l--last) {
+  font-family: var(--f-body);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #fff;
+}
+/* En la barbería la palabra entra de un corte, sin desenfoque */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-world='barber'] .st-lines li[data-on] .w {
+    animation-name: st-cut;
+    animation-duration: 450ms;
+  }
+}
+@keyframes st-cut {
+  from { opacity: 0; clip-path: inset(0 100% 0 0); }
+  to { opacity: 1; clip-path: inset(0 0 0 0); }
+}
+
+/* Rótulos y números en el color de cada mundo */
+html[data-world='cellar'] .st-in__k,
+html[data-world='cellar'] .zb-caps__n,
+html[data-world='cellar'] .st-pitch__n {
+  color: #e8c79a;
+}
+html[data-world='barber'] .st-in__k,
+html[data-world='barber'] .zb-caps__n,
+html[data-world='barber'] .st-pitch__n {
+  color: #fff;
+}
+
+/* ---------- La entrada de cada mundo ---------- */
+/* Bodega: la luz de una vela que sube desde abajo y tiembla */
+html[data-world='cellar'] .st-in__light {
+  top: auto;
+  bottom: -18%;
+  width: min(80rem, 140vw);
+  height: 90%;
+  clip-path: none;
+  filter: none;
+  background:
+    radial-gradient(38% 46% at 50% 100%, rgb(255 160 80 / 0.32), transparent 70%),
+    radial-gradient(70% 60% at 50% 100%, rgb(124 0 0 / 0.45), transparent 75%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html[data-world='cellar'] .st-in__light {
+    animation: st-candle 3.2s ease-in-out infinite;
+  }
+}
+@keyframes st-candle {
+  0%, 100% { opacity: 1; }
+  22% { opacity: 0.86; }
+  37% { opacity: 0.97; }
+  58% { opacity: 0.82; }
+  76% { opacity: 0.95; }
+}
+/* Barbería: el tubo fluorescente del salón, que arranca al entrar */
+html[data-world='barber'] .st-in__light {
+  top: 4.5rem;
+  width: min(42rem, 110vw);
+  height: 85%;
+  clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%);
+  background: linear-gradient(180deg, rgb(236 241 255 / 0.2), rgb(236 241 255 / 0.04) 60%, transparent);
+}
+html[data-world='barber'] .st-in::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 4.5rem;
+  width: min(24rem, 60vw);
+  height: 4px;
+  border-radius: 2px;
+  background: #f4f7ff;
+  box-shadow: 0 0 1rem rgb(236 241 255 / 0.9), 0 0 3rem rgb(236 241 255 / 0.45);
+  transform: translateX(-50%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html[data-world='barber'] .st-in::before,
+  html[data-world='barber'] .st-in__light {
+    animation: st-tube 1.4s steps(1, end) 0.3s both;
+  }
+}
+@keyframes st-tube {
+  0% { opacity: 0.1; }
+  12% { opacity: 1; }
+  20% { opacity: 0.2; }
+  32% { opacity: 0.9; }
+  40% { opacity: 0.35; }
+  55%, 100% { opacity: 1; }
+}
+
+/* ---------- El final: la luz del mundo se apaga mientras quedan las frases ---------- */
+html[data-world='cellar'] .world-bg i[data-w='cellar'],
+html[data-world='barber'] .world-bg i[data-w='barber'],
+html[data-world='aquarium'] .world-bg i[data-w='aquarium'] {
+  opacity: calc(var(--wa, 1) * (1 - var(--end, 0) * 0.7));
+}
+/* Celular: las notas de diseño pueden ocupar tres líneas; la pieza cede ese lugar */
+@media (max-width: 39.99rem) {
+  .zr .zb-caps {
+    min-height: 5.6rem;
+  }
+  html.js .zine--reel .rl {
+    height: calc(100svh - 26rem);
+  }
+}

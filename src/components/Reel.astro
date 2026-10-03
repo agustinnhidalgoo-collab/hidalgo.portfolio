@@ -1,0 +1,77 @@
+---
+/* La pieza de un mundo que se recorre (bodega, barbería): una imagen real por paso, apiladas.
+   Con el scroll, cada imagen nueva entra con la transición de su mundo (desgarro en la bodega, corte en la barbería;
+   ver src/styles/story.css) y la anterior se apaga. Arriba, la frase del paso; abajo, la nota de diseño; al final,
+   la pieza se apaga y quedan las frases de cierre. Misma lógica que el libro: src/scripts/zine.ts.
+   Sin JS se ven las imágenes una debajo de otra. */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Step { image: ImageMetadata; alt: string; line: string; tag: string; note: string; cutout: boolean }
+interface Props { steps: Step[]; closing?: string[]; name: string }
+const { steps, closing = [], name } = Astro.props;
+const n = steps.length;
+const pad = (k: number) => String(k).padStart(2, '0');
+const words = (t: string) => t.split(/\s+/).filter(Boolean);
+---
+
+<div class="zine zine--case zine--reel" data-zine="case" data-max={n - 1} data-end={closing.length ? '1.6' : undefined}>
+  <ol class="st-lines" aria-label={`${name}: el recorrido`}>
+    {steps.map((s, k) => (
+      <li data-zb-cap={k} data-on={k === 0 ? '' : undefined}>
+        {words(s.line).map((w, i) => <span class="w" style={`--i:${i}`}>{w} </span>)}
+      </li>
+    ))}
+  </ol>
+
+  <div class="zb-float">
+    <div class="rl" data-rl aria-hidden="true">
+      {steps.map((s, i) => (
+        <figure class={`rl__step${s.cutout ? ' is-cutout' : ' is-photo'}`} style={`--r:${i === 0 ? 1 : 0};--o:1;z-index:${i + 1};--nh:${s.image.height}px`}>
+          <Image src={s.image} alt="" format="webp" quality={88} loading={i === 0 ? 'eager' : 'lazy'} sizes="(min-width: 64rem) 50vw, 92vw" draggable="false" />
+        </figure>
+      ))}
+      <div class="zb__hit zb__hit--prev" data-zb-go="-1" data-cursor="Volver"></div>
+      <div class="zb__hit zb__hit--next" data-zb-go="1" data-cursor="Seguir"></div>
+    </div>
+  </div>
+
+  <div class="zb-bar">
+    <ol class="zb-caps" aria-label={`${name}: notas de diseño, paso por paso`}>
+      {steps.map((s, k) => (
+        <li data-zb-cap={k} data-on={k === 0 ? '' : undefined}>
+          <span class="zb-caps__n">{s.tag}</span>
+          <span class="zb-caps__d">{s.note}</span>
+          <span class="sr-only">{s.alt}</span>
+        </li>
+      ))}
+    </ol>
+    <div class="zb-nav">
+      <button class="zb-nav__b" type="button" data-zb-go="-1" aria-label="Paso anterior" disabled><span aria-hidden="true">←</span></button>
+      <p class="zb-nav__c" aria-live="polite"><span data-zb-count>01</span><span class="zb-nav__of"> / {pad(n)}</span></p>
+      <button class="zb-nav__b" type="button" data-zb-go="1" aria-label="Paso siguiente"><span aria-hidden="true">→</span></button>
+    </div>
+  </div>
+
+  {closing.length > 0 && (
+    <div class="st-end">
+      {closing.map((c, i) => <p class={`st-end__l${i === closing.length - 1 ? ' st-end__l--last' : ''}`} style={`--k:${i}`}>{c}</p>)}
+    </div>
+  )}
+
+  <!-- Sin JS: las imágenes una debajo de otra, con su frase -->
+  <ol class="zb-flat">
+    {steps.map((s) => (
+      <li>
+        <figure class="fig">
+          <Image src={s.image} alt={s.alt} format="webp" quality={88} loading="lazy" sizes="(min-width: 64rem) 60vw, 100vw" />
+          <figcaption><span class="fk">{s.line}</span><span>{s.tag} · {s.note}</span></figcaption>
+        </figure>
+      </li>
+    ))}
+  </ol>
+</div>
+
+<script>
+  import '../scripts/zine';
+</script>
