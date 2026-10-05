@@ -14,8 +14,8 @@ concept: Elegancia, detalle y autenticidad
 titleTone: white
 titleLines: Be Fresh
 cover:
-  src: ../../assets/befresh/portada.jpg
-  alt: Tarjeta negra sobre fondo negro, en perspectiva, con el isotipo BF en relieve y, en pequeño, las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
+  src: ../../assets/befresh/capa.webp
+  alt: Capa de barbero negra con el logotipo befresh en blanco y las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
 stageImages:
   - src: ../../assets/befresh/capa.webp
     alt: Capa de barbero negra con el logotipo befresh en blanco y las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
@@ -39,11 +39,6 @@ story:
       line: "Dos letras. Un solo signo."
       tag: Isotipo
       note: "La B y la F unidas: funciona sola."
-    - image: ../../assets/befresh/portada.jpg
-      alt: Tarjeta negra en perspectiva con el isotipo BF en relieve y las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
-      line: "Ni siquiera necesita tinta."
-      tag: Tarjeta en relieve · mockup
-      note: "Negro sobre negro: el isotipo se reconoce solo por su forma. Paleta de negro, grises y blanco hueso, sin los colores de siempre."
     - image: ../../assets/befresh/capa.webp
       alt: Capa de barbero negra con el logotipo befresh en blanco y las leyendas Exclusive Studio, ESTD 2026 y The detail by detail.
       cutout: true

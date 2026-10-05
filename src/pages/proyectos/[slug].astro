@@ -11,6 +11,7 @@ import CaseBlock from '../../components/CaseBlock.astro';
 import CaseVisual, { type Visual } from '../../components/CaseVisual.astro';
 import Zine from '../../components/Zine.astro';
 import Reel from '../../components/Reel.astro';
+import Shelf from '../../components/Shelf.astro';
 import { getProjects, titleLines, type Project } from '../../lib/projects';
 import { person, contact } from '../../data/site';
 
@@ -55,6 +56,7 @@ type Run = { kind: 'split'; visuals: Visual[]; blocks: Block[]; first: boolean }
 const story = data.story;
 const book = data.book;
 const steps = story?.steps;
+const shelf = story?.shelf;
 const count = book ? book.spreads.length : (steps?.length ?? 0);
 const lead = data.stageImages?.[0];
 const opening: Visual = lead
@@ -95,9 +97,9 @@ const nextLead = next.data.stageImages?.[0] ?? next.data.cover;
 
 <Base title={title} description={description} path={`/proyectos/${project.id}`} jsonLd={jsonLd} world={data.world}>
   <article class={`case${story ? ' case--story' : ''}${book ? ' case--book' : ''}`} aria-labelledby="case-title">
-    {story && (book || steps) && (
+    {story && (book || steps || shelf) && (
       <>
-        <!-- Publicación: un mundo, el acuario del relato. Se entra en la oscuridad, bajo una luz pálida -->
+        <!-- Entrada al mundo del proyecto: oscuridad y la luz propia del mundo sobre el título -->
         <header class="st-in">
           <div class="st-in__light" aria-hidden="true"></div>
           <div class="wrap st-in__in">
@@ -109,11 +111,13 @@ const nextLead = next.data.stageImages?.[0] ?? next.data.cover;
             <p class="st-in__down" aria-hidden="true">{data.world ? cue[data.world] : 'Bajá'} <span>↓</span></p>
           </div>
         </header>
-        <section class="zr" data-zine-track style={`--states:${book ? count : count - 1}`} aria-label={`${data.title}: ${book ? 'el fanzine, página por página' : 'el proyecto, paso por paso'}`}>
+        {shelf ? <Shelf items={shelf} closing={story.closing} name={data.title} /> : (
+        <section class="zr" data-zine-track style={`--states:${book ? count + 1 : count - 1}`} aria-label={`${data.title}: ${book ? 'el fanzine, página por página' : 'el proyecto, paso por paso'}`}>
           <div class="zr__pin" data-zine-pin>
             {book ? <Zine spreads={book.spreads} cover={book.cover} closing={story.closing} mode="case" name={data.title} /> : <Reel steps={steps!} closing={story.closing} name={data.title} />}
           </div>
         </section>
+        )}
         <!-- Cierre: qué demuestra la pieza y una invitación a hablar -->
         <section class="st-pitch" aria-labelledby="pitch-title">
           <div class="wrap">
@@ -185,7 +189,7 @@ const nextLead = next.data.stageImages?.[0] ?? next.data.cover;
             Siguiente proyecto
             {next.data.world && <span class="hand cs-next__hand"> · entrando {enterName[next.data.world]}</span>}
           </p>
-          <p class={`display cs-next__title ${next.data.titleTone === 'red' ? 'ptitle--red' : ''}`}>{next.data.title} <span class="arrow" aria-hidden="true">→</span></p>
+          <p class={`display cs-next__title ${next.data.titleTone === 'red' ? 'ptitle--red' : ''}`}>{titleLines(next).map((l) => <span class="cs-next__line">{l}</span>)}<span class="arrow cs-next__arrow" aria-hidden="true">→</span></p>
         </div>
         <Image class="cs-next__img" src={nextLead.src} alt="" format="webp" quality={80} loading="lazy" sizes="40vw" />
       </a>

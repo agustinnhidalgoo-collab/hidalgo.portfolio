@@ -1,11 +1,14 @@
 ---
-/* Libro que se hojea: las dobles páginas reales del proyecto, armadas como hojas que giran sobre el lomo.
-   Hoja 0: la tapa (mitad izquierda de la doble 1) y, al abrirla, la misma página como portadilla.
-   Hoja i: al frente la mitad derecha de la doble i, al dorso la mitad izquierda de la doble i + 1.
-   Debajo de todo, la mitad derecha de la última doble. Estado k = k hojas pasadas (0 = cerrado).
-   En la página del proyecto (case) el libro flota en el acuario: arriba aparece el relato, página a página;
-   abajo, una nota chica con la decisión de diseño; al final el libro se hunde y quedan las frases de cierre.
-   La lógica (scroll, botones, teclado, sonido) está en src/scripts/zine.ts. Sin JS se ven las dobles una debajo de otra. */
+/* Libro que se hojea como uno de verdad: las hojas se doblan en diagonal desde la esquina (con su dorso, la sombra
+   del pliegue y la página de abajo), se agarran y se arrastran, y la esquina se levanta al pasar el puntero.
+   Hojas (cada una con frente y dorso):
+   - Hoja 0: la tapa (mitad izquierda de la doble 1); su dorso es la guarda (papel negro).
+   - Hoja i (1 … n−1): al frente la mitad derecha de la doble i, al dorso la mitad izquierda de la doble i + 1.
+   - Hoja n: al frente la mitad derecha de la última doble; al dorso, la contratapa.
+   Estado k = k hojas pasadas: 0 = cerrado (tapa), 1 = guarda + presentación, … , n + 1 = cerrado (contratapa).
+   En la página del proyecto (case), arriba aparece el relato página a página y abajo una nota de diseño; al final
+   el libro se hunde y quedan las frases de cierre. La lógica está en src/scripts/zine.ts.
+   Sin JS se ven las dobles una debajo de otra. */
 import { getImage } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 
@@ -22,34 +25,42 @@ interface Props {
   /** Nombre de la publicación (para lectores de pantalla) */
   name: string;
 }
-const { spreads, cover, mode, max = spreads.length, closing = [], name } = Astro.props;
+const { spreads, cover, mode, closing = [], name } = Astro.props;
 const n = spreads.length;
+const states = n + 2; // tapa, n dobles, contratapa
+const max = Math.min(Astro.props.max ?? states - 1, states - 1);
 const sizes = mode === 'case' ? '(min-width: 64rem) 60vw, 96vw' : '(min-width: 64rem) 40vw, 92vw';
-// Una sola URL por doble: las dos mitades (y la portadilla) comparten la descarga
+// Una sola URL por doble: las dos mitades comparten la descarga
 const pics = await Promise.all(spreads.map((s) => getImage({ src: s.image, format: 'webp', quality: 86, widths: [900, 1400, 2000], sizes })));
-type Half = { s: number; side: 'l' | 'r' };
-const leaves: { front: Half; back: Half }[] = Array.from({ length: n }, (_, i) =>
-  i === 0 ? { front: { s: 0, side: 'l' }, back: { s: 0, side: 'l' } } : { front: { s: i - 1, side: 'r' }, back: { s: i, side: 'l' } },
-);
+type Face = { s: number; side: 'l' | 'r' } | { paper: 'guarda' | 'contratapa' };
+const leaves: { front: Face; back: Face }[] = [
+  { front: { s: 0, side: 'l' }, back: { paper: 'guarda' } },
+  ...spreads.slice(0, -1).map((_, i) => ({ front: { s: i, side: 'r' as const }, back: { s: i + 1, side: 'l' as const } })),
+  { front: { s: n - 1, side: 'r' }, back: { paper: 'contratapa' } },
+];
 const pad = (k: number) => String(k).padStart(2, '0');
 /** Atributos del <img> de una mitad (la misma URL para las dos mitades de una doble) */
-const img = (h: Half, eager = false) => ({
-  src: pics[h.s].src,
-  srcset: pics[h.s].srcSet.attribute,
+const img = (s: number, eager = false) => ({
+  src: pics[s].src,
+  srcset: pics[s].srcSet.attribute,
   sizes,
-  width: spreads[h.s].image.width,
-  height: spreads[h.s].image.height,
+  width: spreads[s].image.width,
+  height: spreads[s].image.height,
   loading: eager ? ('eager' as const) : ('lazy' as const),
 });
-// Estados: 0 = tapa, k = doble k
-const states = [{ line: cover.line, note: cover.note, tag: 'Tapa', alt: '' }, ...spreads.map((s, i) => ({ line: s.line, note: s.note, tag: `Doble ${pad(i + 1)} · ${s.title}`, alt: s.alt }))];
+// Estados: 0 = tapa, k = doble k, n + 1 = contratapa
+const rows = [
+  { line: cover.line, note: cover.note, tag: 'Tapa', alt: '' },
+  ...spreads.map((s, i) => ({ line: s.line, note: s.note, tag: `Doble ${pad(i + 1)} · ${s.title}`, alt: s.alt })),
+  { line: '', note: '', tag: 'Contratapa', alt: '' },
+];
 const words = (t: string) => t.split(/\s+/).filter(Boolean);
 ---
 
-<div class={`zine zine--${mode}`} data-zine={mode} data-max={Math.min(max, n)} data-end={mode === 'case' && closing.length ? '1.6' : undefined}>
+<div class={`zine zine--${mode}`} data-zine={mode} data-max={max} data-end={mode === 'case' && closing.length ? '1.6' : undefined}>
   {mode === 'case' && (
     <ol class="st-lines" aria-label={`${name}: el relato`}>
-      {states.map((s, k) => (
+      {rows.map((s, k) => (
         <li data-zb-cap={k} data-on={k === 0 ? '' : undefined}>
           {words(s.line).map((w, i) => <span class="w" style={`--i:${i}`}>{w} </span>)}
         </li>
@@ -60,28 +71,32 @@ const words = (t: string) => t.split(/\s+/).filter(Boolean);
   <div class="zb-float">
     <div class="zb" data-zb style="--shift:-25;--open:0" aria-hidden="true">
       <div class="zb__in">
-        <div class="zb__base zb__base--l"></div>
-        <div class="zb__base zb__base--r"><div class="zb__face" data-side="r"><img {...img({ s: n - 1, side: 'r' })} alt="" decoding="async" draggable="false" /></div></div>
         {leaves.map((l, i) => (
-          <div class="zb__leaf" data-i={i} style={`--t:0;z-index:${2 * n - i}`}>
-            <div class={`zb__face zb__face--front${i === 0 ? ' zb__face--cover' : ''}`} data-side={l.front.side}><img {...img(l.front, i === 0)} alt="" decoding="async" draggable="false" /></div>
-            <div class="zb__face zb__face--back" data-side={l.back.side}><img {...img(l.back)} alt="" decoding="async" draggable="false" /></div>
+          <div class="zb__leaf" data-i={i} style={`z-index:${2 * (n + 1) - i}`}>
+            <div class="zb__front">
+              {'paper' in l.front ? <div class="zb__paper"></div> : <div class="zb__img" data-side={l.front.side}><img {...img(l.front.s, i === 0)} alt="" decoding="async" draggable="false" /></div>}
+              <i class="zb__shade"></i>
+            </div>
+            <div class="zb__drop"><i></i></div>
+            <div class="zb__back">
+              <div class="zb__back-in">
+                {'paper' in l.back ? <div class={`zb__paper zb__paper--${l.back.paper}`}></div> : <div class="zb__img" data-side={l.back.side}><img {...img(l.back.s)} alt="" decoding="async" draggable="false" /></div>}
+                <i class="zb__curl"></i>
+              </div>
+            </div>
           </div>
         ))}
       </div>
-      <!-- Puntero: un clic en la página derecha avanza, en la izquierda vuelve (el teclado usa los botones) -->
-      <div class="zb__hit zb__hit--prev" data-zb-go="-1" data-cursor="Volver"></div>
-      <div class="zb__hit zb__hit--next" data-zb-go="1" data-cursor="Pasar"></div>
     </div>
   </div>
 
   <div class="zb-bar">
     {mode === 'case' && (
       <ol class="zb-caps" aria-label={`${name}: notas de diseño, página por página`}>
-        {states.map((s, k) => (
+        {rows.map((s, k) => (
           <li data-zb-cap={k} data-on={k === 0 ? '' : undefined}>
             <span class="zb-caps__n">{s.tag}</span>
-            <span class="zb-caps__d">{s.note}</span>
+            {s.note && <span class="zb-caps__d">{s.note}</span>}
             {s.alt && <span class="sr-only">{s.alt}</span>}
           </li>
         ))}
@@ -92,6 +107,7 @@ const words = (t: string) => t.split(/\s+/).filter(Boolean);
       <p class="zb-nav__c" aria-live="polite"><span data-zb-count>Tapa</span><span class="zb-nav__of"> / {pad(n)}</span></p>
       <button class="zb-nav__b" type="button" data-zb-go="1" aria-label="Página siguiente"><span aria-hidden="true">→</span></button>
     </div>
+    <p class="zb-hint" aria-hidden="true">Arrastrá la esquina para pasar la página</p>
   </div>
 
   {closing.length > 0 && (

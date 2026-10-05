@@ -1,0 +1,51 @@
+---
+/* Estante: la pieza se recorre en horizontal mientras se baja, como una presentación de producto.
+   Fotos a la misma altura, apoyadas sobre una tabla, con paneles de texto entre grupos; al final, las frases de cierre.
+   La sección se fija y el scroll vertical mueve el estante (src/scripts/shelf.ts). Sin JS, o con «reducir movimiento»,
+   el estante se desplaza a mano (arrastre, rueda o teclado). */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+type Item =
+  | { kind: 'text'; tag: string; title: string; body: string }
+  | { kind: 'image'; image: ImageMetadata; alt: string; label: string; note?: string; paper: boolean };
+interface Props { items: Item[]; closing?: string[]; name: string }
+const { items, closing = [], name } = Astro.props;
+---
+
+<section class="sh-track" data-shelf-track aria-label={`${name}: la pieza completa`}>
+  <div class="sh-pin" data-shelf-pin>
+    <div class="sh" data-shelf tabindex="0">
+      <ul class="sh__row" data-shelf-row>
+        {items.map((it, i) =>
+          it.kind === 'text' ? (
+            <li class="sh__text">
+              <p class="sh__tag">{it.tag}</p>
+              <h2 class="display sh__t">{it.title}</h2>
+              <p class="sh__b">{it.body}</p>
+            </li>
+          ) : (
+            <li class={`sh__item${it.paper ? ' is-paper' : ''}`}>
+              <figure>
+                <div class="sh__frame">
+                  <Image src={it.image} alt={it.alt} format="webp" quality={88} loading="eager" sizes="(min-width: 64rem) 30vw, 70vw" draggable="false" />
+                </div>
+                <figcaption><span class="sh__l">{it.label}</span>{it.note && <span class="sh__n">{it.note}</span>}</figcaption>
+              </figure>
+            </li>
+          ),
+        )}
+        {closing.length > 0 && (
+          <li class="sh__end">
+            {closing.map((c, i) => <p class={i === closing.length - 1 ? 'sh__end-last display' : 'sh__end-l'}>{c}</p>)}
+          </li>
+        )}
+      </ul>
+    </div>
+    <div class="sh__bar" aria-hidden="true"><i data-shelf-bar></i></div>
+  </div>
+</section>
+
+<script>
+  import '../scripts/shelf';
+</script>

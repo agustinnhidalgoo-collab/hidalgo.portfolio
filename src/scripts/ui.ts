@@ -160,6 +160,30 @@ if (worldEls.length) {
   update();
 }
 
+/* ---------- Fundido entre mundos: el contenido de cada tramo fijado aparece al entrar y se desvanece al salir ----------
+   (--vis de 0 a 1 en la sección; el CSS lo aplica a su contenido). Así no hay cortes secos entre un mundo y otro. */
+const fades = [...document.querySelectorAll<HTMLElement>('.pstage, .zr, .sh-track')];
+if (fades.length && !calm) {
+  let tick = 0;
+  const update = () => {
+    tick = 0;
+    const vh = innerHeight;
+    for (const el of fades) {
+      const r = el.getBoundingClientRect();
+      if (r.bottom < -vh || r.top > vh * 2) continue;
+      const enter = Math.min(1, Math.max(0, (vh - r.top) / (vh * 0.55)));
+      const exit = Math.min(1, Math.max(0, r.bottom / (vh * 0.55)));
+      el.style.setProperty('--vis', Math.min(enter, exit).toFixed(3));
+    }
+  };
+  const req = () => {
+    if (!tick) tick = requestAnimationFrame(update);
+  };
+  addEventListener('scroll', req, { passive: true });
+  addEventListener('resize', req);
+  update();
+}
+
 /* ---------- Sonido (opcional, apagado por defecto; se recuerda durante la sesión) ---------- */
 const sndBtn = document.querySelector<HTMLButtonElement>('[data-sound-toggle]');
 if (sndBtn && ('AudioContext' in window || 'webkitAudioContext' in window)) {

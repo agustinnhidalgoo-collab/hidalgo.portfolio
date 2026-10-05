@@ -32,13 +32,42 @@ const GAP = 0.14;
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 const outBack = (t: number) => { const c = 1.55; return 1 + (c + 1) * (t - 1) ** 3 + c * (t - 1) ** 2; };
 
-interface KeyDef { id: string; name: string; desc: string; bg: string; bg2: string; fg: string; path?: string; text?: string; sub?: string; script: boolean; small: boolean; display: boolean; btn: HTMLButtonElement }
+interface KeyDef { id: string; name: string; desc: string; bg: string; bg2: string; fg: string; path?: string; text?: string; sub?: string; script: boolean; small: boolean; display: boolean; logo?: string; fit: number; tint?: string; btn: HTMLButtonElement }
+
+/** Logos oficiales (src/assets/logos): se cargan una vez; cuando llegan, la cara de la tecla se redibuja */
+const logos = new Map<string, HTMLImageElement>();
+function loadLogo(url: string) {
+  return new Promise<void>((res) => {
+    if (logos.has(url)) return res();
+    const im = new Image();
+    im.decoding = 'async';
+    im.onload = () => { logos.set(url, im); res(); };
+    im.onerror = () => res();
+    im.src = url;
+  });
+}
+/** Recorta la cara con las esquinas de la tecla */
+function rounded(c: CanvasRenderingContext2D, S: number, r: number) {
+  c.beginPath();
+  c.roundRect(0, 0, S, S, r);
+  c.clip();
+}
 
 /** Cara superior de una tecla: fondo de la marca (con degradado si tiene dos colores) e ícono o monograma. */
 function keyTop(k: KeyDef) {
   const S = 512, cv = document.createElement('canvas');
   cv.width = cv.height = S;
   const c = cv.getContext('2d')!;
+  // La cara cubre la tecla entera, con sus mismas esquinas
+  rounded(c, S, S * 0.1);
+  const img = k.logo ? logos.get(k.logo) : undefined;
+  if (k.logo && k.fit >= 1) {
+    // Ícono cuadrado (Adobe, Instagram, TikTok…): la tecla ES el ícono, de borde a borde
+    c.fillStyle = k.bg;
+    c.fillRect(0, 0, S, S);
+    if (img) c.drawImage(img, -S * 0.02, -S * 0.02, S * 1.04, S * 1.04);
+    return texOf(cv);
+  }
   const g = c.createLinearGradient(0, S, S, 0);
   g.addColorStop(0, k.bg2);
   g.addColorStop(1, k.bg);
@@ -52,7 +81,26 @@ function keyTop(k: KeyDef) {
   c.fillRect(0, 0, S, S);
   c.fillStyle = k.fg;
   const cy = k.sub ? S * 0.44 : S * 0.5;
-  if (k.path) {
+  if (k.logo) {
+    // Logo sobre el color de la marca, centrado y a su escala
+    if (img) {
+      const box = S * k.fit;
+      const iw = img.naturalWidth || 1, ih = img.naturalHeight || 1;
+      const sc = Math.min(box / iw, box / ih);
+      const w = iw * sc, h = ih * sc;
+      const x = (S - w) / 2, y = cy - h / 2;
+      if (k.tint) {
+        const off = document.createElement('canvas');
+        off.width = Math.ceil(w); off.height = Math.ceil(h);
+        const o = off.getContext('2d')!;
+        o.drawImage(img, 0, 0, w, h);
+        o.globalCompositeOperation = 'source-in';
+        o.fillStyle = k.tint;
+        o.fillRect(0, 0, w, h);
+        c.drawImage(off, x, y);
+      } else c.drawImage(img, x, y, w, h);
+    }
+  } else if (k.path) {
     const p = new Path2D(k.path);
     const sz = S * (k.sub ? 0.44 : 0.56), s = sz / 24;
     const draw = (dx: number, dy: number, col: string) => {
@@ -79,6 +127,9 @@ function keyTop(k: KeyDef) {
     c.textBaseline = 'middle';
     c.fillText(k.sub.toUpperCase(), S / 2, S * 0.76);
   }
+  return texOf(cv);
+}
+function texOf(cv: HTMLCanvasElement) {
   const t = new CanvasTexture(cv);
   t.colorSpace = SRGBColorSpace;
   t.anisotropy = 8;
@@ -138,6 +189,7 @@ export function startKeys(root: HTMLElement): boolean {
       path: b.querySelector('path')?.getAttribute('d') ?? undefined, text: mono?.textContent ?? undefined,
       sub: b.querySelector('small')?.textContent ?? undefined,
       script: !!mono?.classList.contains('is-script'), small: !!mono?.classList.contains('is-small'), display: !!mono?.classList.contains('is-display'),
+      logo: b.dataset.logo || undefined, fit: Number(b.dataset.fit) || 1, tint: b.dataset.tint || undefined,
       btn: b,
     };
   });
@@ -158,8 +210,8 @@ export function startKeys(root: HTMLElement): boolean {
   plate.receiveShadow = true;
   board.add(plate);
 
-  const capGeo = new RoundedBoxGeometry(U * 0.94, 0.5, U * 0.94, 4, 0.13);
-  const topGeo = new PlaneGeometry(U * 0.8, U * 0.8);
+  const capGeo = new RoundedBoxGeometry(U * 0.94, 0.5, U * 0.94, 4, 0.07);
+  const topGeo = new PlaneGeometry(U * 0.9, U * 0.9);
   topGeo.rotateX(-Math.PI / 2);
   interface Key { def: KeyDef; g: Group; x: number; z: number; delay: number; press: number; vel: number }
   const keys: Key[] = defs.map((def, i) => {
@@ -170,7 +222,7 @@ export function startKeys(root: HTMLElement): boolean {
     body.receiveShadow = true;
     body.position.y = 0.27;
     // la cara impresa conserva los colores exactos de la marca (sin tono de cámara); el relieve lo da la tecla
-    const top = new Mesh(topGeo, new MeshPhysicalMaterial({ map: keyTop(def), roughness: 0.42, clearcoat: 0.4, clearcoatRoughness: 0.3, toneMapped: false, envMapIntensity: 0.15 }));
+    const top = new Mesh(topGeo, new MeshPhysicalMaterial({ map: keyTop(def), transparent: true, alphaTest: 0.02, roughness: 0.42, clearcoat: 0.4, clearcoatRoughness: 0.3, toneMapped: false, envMapIntensity: 0.15 }));
     top.position.y = 0.523;
     g.add(body, top);
     body.userData.i = top.userData.i = i;
@@ -315,6 +367,19 @@ export function startKeys(root: HTMLElement): boolean {
     if (moving || t0 < 0) raf = requestAnimationFrame(frame); // quieto: el bucle se detiene hasta la próxima interacción
   }
   // los monogramas usan las tipografías del sitio: se redibujan cuando terminan de cargar
+  const redraw = () => {
+    keys.forEach((k) => {
+      const top = k.g.children[1] as Mesh;
+      const m = top.material as MeshPhysicalMaterial;
+      m.map?.dispose();
+      m.map = keyTop(k.def);
+      m.needsUpdate = true;
+    });
+    need = true;
+    kick();
+  };
+  // los logos oficiales: al llegar todos, se redibujan las caras
+  Promise.all(defs.filter((d) => d.logo).map((d) => loadLogo(d.logo!))).then(redraw);
   document.fonts?.ready.then(() => {
     keys.forEach((k) => {
       const top = k.g.children[1] as Mesh;

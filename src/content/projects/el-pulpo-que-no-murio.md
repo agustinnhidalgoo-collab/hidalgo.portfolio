@@ -42,7 +42,7 @@ book:
     - image: ../../assets/pulpo/doble-1.jpg
       alt: "Doble 1. A la izquierda, el título «El pulpo que no murió» en letras de madera blancas y rojas. A la derecha, el texto de presentación alineado a la derecha, con «permanecer» y «este trabajo tipográfico» en rojo."
       title: Presentación
-      note: "El título ocupa toda la página; enfrente, el texto que presenta la pieza."
+      note: "La presentación, alineada a la derecha, con «permanecer» en rojo. Enfrente, la guarda negra."
       line: "Este no es un cuento sobre la muerte."
     - image: ../../assets/pulpo/doble-2.jpg
       alt: "Doble 2. A la izquierda, casi vacía, la palabra «Cuidador» y una frase breve. A la derecha, «Cuidador» y la misma frase repetidas hacia abajo, cada vez más tenues, cruzadas por la palabra «Tiempo» en vertical."

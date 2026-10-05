@@ -31,8 +31,6 @@ const words = (t: string) => t.split(/\s+/).filter(Boolean);
           <Image src={s.image} alt="" format="webp" quality={88} loading={i === 0 ? 'eager' : 'lazy'} sizes="(min-width: 64rem) 50vw, 92vw" draggable="false" />
         </figure>
       ))}
-      <div class="zb__hit zb__hit--prev" data-zb-go="-1" data-cursor="Volver"></div>
-      <div class="zb__hit zb__hit--next" data-zb-go="1" data-cursor="Seguir"></div>
     </div>
   </div>
 

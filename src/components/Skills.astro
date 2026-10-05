@@ -28,9 +28,14 @@ const n = skills.filter((s) => s.id !== 'ah').length;
               data-key={s.id}
               data-name={s.name}
               data-desc={s.desc}
+              data-logo={s.logo}
+              data-fit={s.fit}
+              data-tint={s.tint}
               style={`--bg:${s.bg};--bg2:${s.bg2 ?? s.bg};--fg:${s.fg}`}
             >
-              {s.icon ? (
+              {s.logo ? (
+                <img class:list={['skills__logo', { 'is-full': (s.fit ?? 1) >= 1 }]} src={s.logo} alt="" style={`--fit:${s.fit ?? 1}`} loading="lazy" />
+              ) : s.icon ? (
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d={s.icon} /></svg>
               ) : (
                 <span class:list={['skills__mono', { 'is-script': s.script, 'is-small': s.small, 'is-display': s.display }]} aria-hidden="true">{s.text}</span>

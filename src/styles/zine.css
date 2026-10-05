@@ -140,8 +140,9 @@ html[data-world='aquarium'] .cursor__c.is-label {
 }
 
 /* ---------- El libro (src/components/Zine.astro) ----------
-   Cada hoja gira sobre el lomo (perspectiva propia con origen en el lomo). JS solo escribe --t (0 → 1),
-   --lift (cuánto se levanta), --shift / --open del libro y el orden de apilado; el resto es CSS. */
+   Se hojea como uno de verdad: cada hoja se dobla en diagonal desde la esquina. Todo es 2D: src/scripts/zine.ts
+   recorta el frente (clip-path), refleja el dorso sobre el pliegue (matrix) y coloca las sombras del pliegue.
+   Acá: el papel, el lomo, el canto de las hojas y las sombras. */
 .zine {
   position: relative;
   width: 100%;
@@ -153,60 +154,50 @@ html[data-world='aquarium'] .cursor__c.is-label {
   -webkit-user-select: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y; /* el dedo puede arrastrar la hoja en horizontal y seguir bajando en vertical */
+  cursor: grab;
+}
+.zb.is-dragging {
+  cursor: grabbing;
 }
 .zb__in {
   position: absolute;
   inset: 0;
-  transform: translateX(calc(var(--shift, 0) * 1%));
+  transform: translateX(-25%);
 }
-.zb__base,
+/* Cada hoja ocupa la mitad derecha; el lomo es su borde izquierdo */
 .zb__leaf {
   position: absolute;
+  left: 50%;
   top: 0;
   width: 50%;
   height: 100%;
 }
-.zb__base--r,
-.zb__leaf {
-  left: 50%;
-}
-.zb__base--l {
-  left: 0;
-  opacity: var(--open, 0);
-  background: #050506;
-}
-/* Bordes de las hojas apiladas y la sombra del libro sobre la mesa */
-.zb__base--r {
-  box-shadow:
-    1px 0 0 #d8d3cc, 2px 1px 0 #2b2928, 3px 1px 0 #cdc8c0, 4px 2px 0 #242221, 5px 2px 0 #bdb8b0,
-    0 1.6rem 3rem -0.4rem rgb(0 0 0 / 0.85);
-}
-.zb__base--l {
-  box-shadow:
-    -1px 0 0 #d8d3cc, -2px 1px 0 #2b2928, -3px 1px 0 #cdc8c0, -4px 2px 0 #242221, -5px 2px 0 #bdb8b0,
-    0 1.6rem 3rem -0.4rem rgb(0 0 0 / 0.85);
-}
-.zb__leaf {
-  transform-origin: 0 50%;
-  transform-style: preserve-3d;
-  transform: perspective(2400px) rotateY(calc(var(--t, 0) * -180deg));
-}
-.zb.is-turning .zb__leaf {
-  will-change: transform;
-}
-.zb__face {
+.zb__front,
+.zb__back-in {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: #050506;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  box-shadow: 0 0 calc(var(--lift, 0) * 2.2rem) rgb(0 0 0 / calc(var(--lift, 0) * 0.55));
+  background: #060607;
 }
-.zb__face--back {
-  transform: rotateY(180deg);
+.zb__back {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: 0 0;
+  visibility: hidden;
 }
-.zb__face img {
+/* El dorso que se levanta proyecta su sombra sobre lo que tapa */
+.zb__leaf.is-moving .zb__back {
+  filter: drop-shadow(0 0 0.9rem rgb(0 0 0 / 0.55));
+}
+.zb__img {
+  position: absolute;
+  inset: 0;
+}
+.zb__img img {
   position: absolute;
   top: 0;
   left: 0;
@@ -216,36 +207,80 @@ html[data-world='aquarium'] .cursor__c.is-label {
   -webkit-user-drag: none;
   pointer-events: none;
 }
-.zb__face[data-side='r'] img {
+.zb__img[data-side='r'] img {
   left: -100%;
 }
-/* Pliegue del lomo (fijo) y sombra de la hoja que gira (sube con --t) */
-.zb__face::before,
-.zb__face::after {
+/* Papel negro de la guarda y la contratapa, con grano y un borde gastado */
+.zb__paper {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 90% at 30% 20%, rgb(255 255 255 / 0.02), transparent 60%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.07 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"),
+    #070607;
+}
+/* Pliegue del lomo: la mitad derecha se oscurece contra el lomo; el dorso (a la izquierda), igual del otro lado */
+.zb__front::after,
+.zb__back-in::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.14) 3%, transparent 9%, rgb(255 255 255 / 0.03) 55%, transparent 85%);
 }
-.zb__face[data-side='r']::after {
-  background: linear-gradient(90deg, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.16) 3%, transparent 10%, rgb(255 255 255 / 0.035) 55%, transparent 80%);
+.zb__back-in::after {
+  background: linear-gradient(270deg, rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.14) 3%, transparent 9%, rgb(255 255 255 / 0.03) 55%, transparent 85%);
 }
-.zb__face[data-side='l']::after {
-  background: linear-gradient(270deg, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.16) 3%, transparent 10%, rgb(255 255 255 / 0.035) 55%, transparent 80%);
+/* La tapa no tiene pliegue: es una tapa (y tiene canto) */
+.zb__leaf[data-i='0'] .zb__front::after {
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.1), transparent 2%, transparent 94%, rgb(0 0 0 / 0.3));
 }
-/* La tapa cerrada no tiene pliegue: es una tapa */
-.zb__face--cover::after {
-  background: linear-gradient(90deg, rgb(255 255 255 / 0.08), transparent 2.5%, transparent 92%, rgb(0 0 0 / 0.35));
+/* Sombras que siguen al pliegue (las ubica el script): una franja alineada con la línea del doblez */
+.zb__shade,
+.zb__drop i,
+.zb__curl {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 400%;
+  height: 400%;
+  transform-origin: 0 0;
+  pointer-events: none;
+  opacity: 0;
 }
-.zb__leaf .zb__face--front::before {
-  background: linear-gradient(90deg, transparent 20%, rgb(0 0 0 / 0.65));
-  opacity: min(1, calc(var(--t, 0) * 2.2));
+/* sobre la hoja de abajo, junto al pliegue */
+.zb__drop {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  visibility: hidden;
 }
-.zb__leaf .zb__face--back::before {
-  background: linear-gradient(270deg, transparent 20%, rgb(0 0 0 / 0.65));
-  opacity: min(1, calc((1 - var(--t, 0)) * 2.2));
+.zb__drop i {
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.62) 0, rgb(0 0 0 / 0.28) 1.2rem, rgb(0 0 0 / 0.08) 3.5rem, transparent 7rem);
 }
-/* Línea del lomo cuando el libro está abierto */
+/* en el frente, la hoja que empieza a curvarse */
+.zb__shade {
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.4) 0, rgb(0 0 0 / 0.1) 1.6rem, transparent 4rem);
+}
+/* en el dorso, la curva del papel: brillo en el filo y sombra suave */
+.zb__curl {
+  background: linear-gradient(90deg, rgb(255 255 255 / 0.22) 0, rgb(255 255 255 / 0.06) 0.4rem, rgb(0 0 0 / 0.32) 1.4rem, rgb(0 0 0 / 0.08) 4rem, transparent 8rem);
+}
+/* Canto de las hojas apiladas y sombra del libro sobre la mesa (va en el libro, sigue su desplazamiento) */
+.zb__in::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 50% * var(--open, 0));
+  right: calc(50% * var(--shut, 0));
+  box-shadow:
+    1px 0 0 #d8d3cc, 2px 1px 0 #2b2928, 3px 1px 0 #cdc8c0, 4px 2px 0 #242221, 5px 2px 0 #bdb8b0,
+    0 1.8rem 3rem -0.6rem rgb(0 0 0 / 0.85);
+  background: #060607;
+}
+/* Línea del lomo con el libro abierto */
 .zb__in::after {
   content: '';
   position: absolute;
@@ -255,32 +290,31 @@ html[data-world='aquarium'] .cursor__c.is-label {
   bottom: 0;
   width: 2px;
   background: linear-gradient(180deg, rgb(0 0 0 / 0.2), rgb(0 0 0 / 0.75) 50%, rgb(0 0 0 / 0.2));
-  opacity: var(--open, 0);
+  opacity: calc(var(--open, 0) - var(--shut, 0));
   pointer-events: none;
 }
-/* Zonas de clic: la página derecha avanza, la izquierda vuelve (se corren con el libro) */
-.zb__hit {
-  position: absolute;
-  z-index: 101;
-  top: 0;
-  bottom: 0;
-  width: 50%;
-  cursor: pointer;
-  transform: translateX(calc(var(--shift, 0) * 2%));
+.zb-hint {
+  flex-basis: 100%;
+  margin-top: -0.25rem;
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: right;
+  color: rgb(255 255 255 / 0.45);
 }
-.zb__hit--prev {
-  left: 0;
+.zine--home .zb-hint {
+  text-align: center;
 }
-.zb__hit--next {
-  right: 0;
-}
-.zb__hit[hidden] {
-  display: none;
+@media (hover: none) {
+  .zb-hint {
+    display: none;
+  }
 }
 
 /* Barra: rótulo de la doble (lector) y botones */
 .zb-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 1rem 2rem;
   margin-top: clamp(1rem, 2.4svh, 1.75rem);

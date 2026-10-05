@@ -118,6 +118,26 @@ export const projects = defineCollection({
             )
             .min(2)
             .optional(),
+          /**
+           * Estante: la pieza se recorre en horizontal mientras se baja (presentación de producto). Paneles de texto
+           * entre grupos de fotos, todas a la misma altura. `paper`: la imagen va sobre una tarjeta de papel (recortes).
+           */
+          shelf: z
+            .array(
+              z.discriminatedUnion('kind', [
+                z.object({ kind: z.literal('text'), tag: z.string(), title: z.string(), body: z.string() }),
+                z.object({
+                  kind: z.literal('image'),
+                  image: image(),
+                  alt: z.string().min(3),
+                  label: z.string(),
+                  note: z.string().optional(),
+                  paper: z.boolean().default(false),
+                }),
+              ]),
+            )
+            .min(2)
+            .optional(),
           closing: z.array(z.string()).min(1),
           pitch: z.object({
             title: z.string(),

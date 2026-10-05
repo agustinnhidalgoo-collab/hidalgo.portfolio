@@ -27,45 +27,63 @@ stageImages:
 seoDescription: "Rediseño conceptual de marca y sistema de envases para un vino tinto blend. Concepto «Verdad desgarrada»: ilustración, textura y tipografía al servicio de la tensión entre apariencia y esencia."
 story:
   opening: "Un vino tinto que aparenta ser inofensivo. Un rediseño sobre la distancia entre lo que se muestra y lo que se esconde."
-  steps:
-    - image: ../../assets/3d/botella-frente.webp
-      alt: Botella de vino tinto Cordero con piel de lobo, vista de frente.
-      cutout: true
-      line: "A primera vista, un vino tinto más."
-      tag: La botella
-      note: "El frente concentra el título, la ilustración y el desgaste: es lo primero que se ve."
-    - image: ../../assets/3d/label-front.webp
-      alt: Etiqueta de frente, plana, con bordes rotos, manchas rojas, el título arriba y el grabado del lobo sobre el cordero.
-      cutout: true
-      line: "Pero la etiqueta parece una piel rota."
-      tag: Textura y bordes
-      note: "Bordes irregulares, trazos gastados y manchas rojas: el desgaste no es un defecto, es la grieta por donde asoma lo de abajo."
-    - image: ../../assets/cordero/etiqueta-ilustracion.webp
-      alt: Grabado de un lobo sobre un cordero, sobre el papel manchado de la etiqueta.
-      line: "Y debajo de la piel, el lobo."
-      tag: Ilustración
-      note: "Un grabado del lobo sobre el cordero: el nombre puesto en imagen. Las manchas rojas remiten al vino y, a la vez, a una herida."
-    - image: ../../assets/cordero/etiqueta-titulo.webp
-      alt: Título «Cordero» en rojo y subtítulo «con piel de lobo» en blanco, sobre la etiqueta.
-      line: "Primero se lee el cordero. Después, lo que lo cubre."
-      tag: Tipografía · Bebas Neue Bold
-      note: "«Cordero» en rojo y condensado, en el centro; «con piel de lobo», más chico y en blanco."
-    - image: ../../assets/3d/botella-dorso.webp
-      alt: Botella de vino tinto Cordero con piel de lobo, vista de dorso con la etiqueta de Mosquita Muerta Wines.
-      cutout: true
-      line: "Lo firma una mosquita muerta."
-      tag: Dorso
-      note: "La marca, Mosquita Muerta Wines, y el contenido neto: 750 mL. El nombre repite la idea de alguien que aparenta ser inofensivo."
-    - image: ../../assets/cordero/caja.jpg
-      alt: Caja de cartón gris con el título Cordero con piel de lobo y la ilustración de un cordero bajo cuya piel asoma la cabeza de un lobo.
-      line: "Mirada de cerca, la caja tampoco es inocente."
-      tag: Caja
-      note: "A primera vista, un cordero; debajo de la piel asoma la cabeza de un lobo. Cartón en grises y título metalizado."
-    - image: ../../assets/cordero/oscura.jpg
+  shelf:
+    - kind: text
+      tag: Concepto
+      title: Verdad desgarrada
+      body: "Un vino tinto que aparenta ser inofensivo. El rediseño parte de la distancia entre lo que se muestra y lo que se esconde, y la lleva a una etiqueta que parece una piel rota: bordes irregulares, trazos gastados y manchas rojas."
+    - kind: image
+      image: ../../assets/cordero/frente.jpg
+      alt: Botella de vino tinto Cordero con piel de lobo, de frente, sobre fondo claro.
+      label: Frente
+      note: Título, ilustración y desgaste
+    - kind: image
+      image: ../../assets/cordero/dorso.jpg
+      alt: Dorso de la botella con la marca Mosquita Muerta Wines y el contenido neto.
+      label: Dorso
+      note: Mosquita Muerta Wines · 750 mL
+    - kind: image
+      image: ../../assets/3d/label-front.webp
+      alt: Etiqueta de frente, plana, con bordes rotos, el título arriba y el grabado del lobo sobre el cordero.
+      label: Etiqueta
+      note: El lobo sobre el cordero
+      paper: true
+    - kind: text
+      tag: Sistema
+      title: Otras pieles, la misma idea
+      body: "Cambian la ilustración y el color, en tintos y blancos. Se mantienen el título condensado en Bebas Neue Bold, la textura y los bordes rotos."
+    - kind: image
+      image: ../../assets/cordero/frente-b.jpg
+      alt: Variante del tinto con una ilustración distinta.
+      label: Tinto · variante
+    - kind: image
+      image: ../../assets/cordero/oscura.jpg
       alt: Botella tinta con una etiqueta oscura y la ilustración de un jabalí.
-      line: "Cambian las pieles. La idea se queda."
-      tag: Variantes
-      note: "Tintos y blancos con otras ilustraciones y colores; se mantienen el título condensado, la textura y los bordes rotos."
+      label: Tinto · etiqueta oscura
+    - kind: image
+      image: ../../assets/cordero/blanco-1.jpg
+      alt: Botella de vino blanco con etiqueta verde y un lobo sobre un cordero.
+      label: Blanco
+    - kind: image
+      image: ../../assets/cordero/blanco-2.jpg
+      alt: Botella de vino blanco con la ilustración de un rostro gritando.
+      label: Blanco · rostro
+    - kind: image
+      image: ../../assets/cordero/blanco-6.jpg
+      alt: Botella de vino blanco con etiqueta azul y un lobo y un cordero dentro de un círculo.
+      label: Blanco · círculo
+    - kind: text
+      tag: Caja
+      title: Tampoco es inocente
+      body: "A primera vista, un cordero. Mirada de cerca, deja ver la cabeza de un lobo debajo de la piel. Cartón en grises y título metalizado."
+    - kind: image
+      image: ../../assets/cordero/caja.jpg
+      alt: Caja de cartón gris con el título y la ilustración de un cordero bajo cuya piel asoma la cabeza de un lobo.
+      label: Caja
+    - kind: image
+      image: ../../assets/cordero/caja-tierra.jpg
+      alt: La misma caja sobre un fondo marrón.
+      label: Caja · fondo tierra
   closing:
     - "Nada es lo que parece."
     - "Verdad desgarrada."
